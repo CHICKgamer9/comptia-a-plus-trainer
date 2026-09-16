@@ -59,10 +59,10 @@ export function DashboardHome() {
             {upcoming ? "Continue" : "Browse subjects"}
           </Link>
           <Link
-            href="/lab"
+            href="/brain/today"
             className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
           >
-            A+ lab
+            Brain Gym
           </Link>
         </div>
       </div>
@@ -82,6 +82,27 @@ export function DashboardHome() {
             }),
           )}
         />
+      </div>
+
+      <div className="mb-8 grid gap-3 sm:grid-cols-2">
+        <Link
+          href="/brain/today"
+          className="rounded-3xl border border-accent/30 bg-surface p-4 hover:border-accent/50"
+        >
+          <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Brain Gym</p>
+          <p className="mt-1 text-sm font-medium">Daily 2-hour challenge · Sydney calendar</p>
+          <p className="mt-1 text-xs text-muted">
+            Mini crosswords, word ladders, mental maths, logic. Playlist freezes for the day.
+          </p>
+        </Link>
+        <Link
+          href="/lab"
+          className="rounded-3xl border border-border bg-surface p-4 hover:border-accent/40"
+        >
+          <p className="text-[11px] uppercase tracking-[0.16em] text-muted">A+ lab</p>
+          <p className="mt-1 text-sm font-medium">Helpdesk tickets for Core 1 / Core 2</p>
+          <p className="mt-1 text-xs text-muted">Separate from Brain Gym. Still on this device.</p>
+        </Link>
       </div>
 
       <div className="mb-8 grid gap-3 sm:grid-cols-2">

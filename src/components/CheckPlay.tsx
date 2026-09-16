@@ -46,7 +46,7 @@ function ChoiceCheck({
 
   return (
     <div className="space-y-3">
-      <p className="text-lg font-medium leading-8">{check.prompt}</p>
+      <p className="whitespace-pre-wrap text-lg font-medium leading-8">{check.prompt}</p>
       <div className="space-y-2">
         {choices.map((choice) => {
           const isPick = picked === choice.id;
@@ -94,7 +94,7 @@ function TrueFalse({
 
   return (
     <div className="space-y-4">
-      <p className="text-lg font-medium leading-8">{check.prompt}</p>
+      <p className="whitespace-pre-wrap text-lg font-medium leading-8">{check.prompt}</p>
       <div className="grid grid-cols-2 gap-3">
         {[true, false].map((value) => {
           const isPick = picked === value;
@@ -158,7 +158,7 @@ function OrderCheck({
 
   return (
     <div className="space-y-4">
-      <p className="text-lg font-medium leading-8">{check.prompt}</p>
+      <p className="whitespace-pre-wrap text-lg font-medium leading-8">{check.prompt}</p>
       <ol className="min-h-16 space-y-2">
         {picked.map((id, index) => {
           const item = pool.find((entry) => entry.id === id);
@@ -242,7 +242,7 @@ function MatchCheck({
 
   return (
     <div className="space-y-4">
-      <p className="text-lg font-medium leading-8">{check.prompt}</p>
+      <p className="whitespace-pre-wrap text-lg font-medium leading-8">{check.prompt}</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-2">
           {lefts.map((left) => (

@@ -108,6 +108,31 @@ export const BADGES: BadgeDef[] = [
     title: "Four desks",
     blurb: "Touched Tech, Maths, Science, and History.",
   },
+  {
+    id: "first-brain",
+    title: "Brain gym open",
+    blurb: "Finished your first Brain Gym challenge.",
+  },
+  {
+    id: "brain-day",
+    title: "Two-hour desk",
+    blurb: "Completed a 120-minute Sydney daily playlist.",
+  },
+  {
+    id: "brain-week",
+    title: "Week of gym",
+    blurb: "Seven completed Brain Gym days on this device.",
+  },
+  {
+    id: "crossword-five",
+    title: "Five minis",
+    blurb: "Solved five interactive mini crosswords.",
+  },
+  {
+    id: "words-fifty",
+    title: "Word worker",
+    blurb: "Attempted fifty word or crossword challenges.",
+  },
 ];
 
 export interface BadgeInput {
@@ -116,6 +141,9 @@ export interface BadgeInput {
   scenarioScores: Record<string, { score: number; total: number }>;
   streakCount: number;
   xp: number;
+  brainAnswered?: number;
+  brainDays?: number;
+  brainCrosswords?: number;
 }
 
 export function unlockedBadgeIds(input: BadgeInput): string[] {
@@ -181,6 +209,11 @@ export function unlockedBadgeIds(input: BadgeInput): string[] {
   ) {
     ids.push("four-subjects");
   }
+  if ((input.brainAnswered ?? 0) >= 1) ids.push("first-brain");
+  if ((input.brainDays ?? 0) >= 1) ids.push("brain-day");
+  if ((input.brainDays ?? 0) >= 7) ids.push("brain-week");
+  if ((input.brainCrosswords ?? 0) >= 5) ids.push("crossword-five");
+  if ((input.brainAnswered ?? 0) >= 50) ids.push("words-fifty");
   return ids;
 }
 

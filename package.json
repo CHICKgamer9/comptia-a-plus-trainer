@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "catalog": "node scripts/generate-catalog.mjs"
+    "catalog": "node scripts/generate-catalog.mjs",
+    "brain": "node scripts/brain/generate.mjs"
   },
   "dependencies": {
     "ai": "^7.0.102",
