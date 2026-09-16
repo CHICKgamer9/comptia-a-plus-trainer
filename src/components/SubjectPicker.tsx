@@ -77,6 +77,15 @@ export function SubjectPicker({
                   >
                     Try a project · {projectCount} in this hub
                   </Link>
+                  {id === "tech" ? (
+                    <Link
+                      href="/lab"
+                      onClick={() => setLastSubject("tech")}
+                      className="block border-t border-border px-5 py-3 text-xs text-muted hover:bg-surface-2 hover:text-foreground"
+                    >
+                      Tech Lab · helpdesk tickets
+                    </Link>
+                  ) : null}
                 </div>
               );
             })}

@@ -49,6 +49,20 @@ export default async function SubjectLearnPage({
         {meta.blurb}
       </p>
       <p className="mb-8 text-center font-mono text-xs text-muted">{count} paths</p>
+      {subject === "tech" ? (
+        <Link
+          href="/lab"
+          className="mb-8 block rounded-3xl border border-accent/40 bg-gradient-to-br from-accent-dim/80 to-surface p-5 active:border-accent/60"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">Tech Lab</p>
+          <p className="mt-1 text-xl font-semibold">Helpdesk tickets</p>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            Investigate gather → tools → cause → fix. Tech only — separate from Brain Gym and
+            subject paths.
+          </p>
+          <p className="mt-4 text-sm font-semibold text-accent">Open Tech Lab →</p>
+        </Link>
+      ) : null}
       {subject === "languages" ? (
         <Link
           href="/lingo"
