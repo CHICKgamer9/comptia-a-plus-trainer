@@ -45,7 +45,7 @@ export const SUBJECTS: SubjectMeta[] = [
   {
     id: "history",
     title: "History",
-    mark: "Δ",
+    mark: "H",
     kicker: "Cause and choice",
     blurb: "World stories with Australian hooks. Evidence, decisions, and what changed — not a date dump.",
     today: "Step into a moment and choose.",
