@@ -1,4 +1,5 @@
 import type { Project } from "../types";
+import { diagramFigure } from "../figures";
 
 export const stemProjects: Project[] = [
   {
@@ -22,6 +23,11 @@ export const stemProjects: Project[] = [
         id: "s2",
         title: "Name every cable",
         body: "Trace each lead from device to port. Write the connector (HDMI, DisplayPort, USB-A, USB-C, Ethernet, DC barrel) and a colour or length if twins look the same.",
+        figure: diagramFigure(
+          "usb-c-roles",
+          "USB-C as three different jobs: charge only, DisplayPort Alt Mode, and Thunderbolt.",
+          "If two USB-C holes look identical, still write which one drove the monitor.",
+        ),
       },
       {
         id: "s3",
@@ -44,6 +50,11 @@ export const stemProjects: Project[] = [
     difficulty: "easy",
     minutes: 30,
     xp: 90,
+    figure: diagramFigure(
+      "rear-io",
+      "Example rear I/O with HDMI, DisplayPort, USB-A, USB-C, RJ45 and DC labelled as power or data.",
+      "Your desk will differ. Copy the habit: name the connector and whether it carries power, data, or both.",
+    ),
   },
   {
     id: "tech-wifi-map",
@@ -88,6 +99,11 @@ export const stemProjects: Project[] = [
     difficulty: "medium",
     minutes: 40,
     xp: 120,
+    figure: diagramFigure(
+      "wifi-rooms",
+      "Four rooms in a line from the router to a far room, with bar glyphs for signal strength.",
+      "Walk it. Bars (|||| vs |) beat a colour blob. Tie one change to the weakest room.",
+    ),
   },
   {
     id: "tech-helpdesk-reply",
@@ -176,6 +192,11 @@ export const stemProjects: Project[] = [
     difficulty: "easy",
     minutes: 35,
     xp: 90,
+    figure: diagramFigure(
+      "cash-flow",
+      "Two boxes: solid money in and dashed money out, reminding that GST is already in Australian receipts.",
+      "The weekly difference is arithmetic, not hope. Inclusive prices already contain GST.",
+    ),
   },
   {
     id: "maths-room-scale",
@@ -220,6 +241,11 @@ export const stemProjects: Project[] = [
     difficulty: "medium",
     minutes: 40,
     xp: 120,
+    figure: diagramFigure(
+      "room-scale",
+      "Plan of a room at 1 cm to 20 cm with a desk rectangle and a dashed door swing.",
+      "Write the ratio. Dashed line is the door swing — furniture that hits it does not fit.",
+    ),
   },
   {
     id: "maths-survey-chart",
@@ -396,6 +422,11 @@ export const stemProjects: Project[] = [
     difficulty: "medium",
     minutes: 35,
     xp: 120,
+    figure: diagramFigure(
+      "food-web",
+      "Sun to paperbark and grasses, then possum and insect, then magpie.",
+      "Use species you have actually seen. This drawing is a template, not a Victorian forest poster.",
+    ),
   },
   {
     id: "coding-study-timer",
@@ -439,6 +470,11 @@ export const stemProjects: Project[] = [
     difficulty: "medium",
     minutes: 45,
     xp: 120,
+    figure: diagramFigure(
+      "timer-wire",
+      "Wireframe of a timer page showing 12:00, a solid Start button and a dashed Pause button.",
+      "Draw states first. CSS can wait. Pause must stop the tick, not hide it.",
+    ),
   },
   {
     id: "coding-quiz-shuffle",
@@ -569,6 +605,11 @@ export const stemProjects: Project[] = [
     difficulty: "medium",
     minutes: 40,
     xp: 120,
+    figure: diagramFigure(
+      "claim-test",
+      "Three boxes: quote the claim, name a falsifying test, check two sources and leftover doubt.",
+      "If nothing could prove it false, you are holding a slogan. Write the test before you google.",
+    ),
   },
   {
     id: "logic-bias-experiment",

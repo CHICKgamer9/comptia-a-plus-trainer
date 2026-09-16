@@ -70,23 +70,8 @@ export interface LessonTable {
   rows: string[][];
 }
 
-export interface LessonSection {
-  heading: string;
-  paragraphs: string[];
-  bullets?: string[];
-  table?: LessonTable;
-  callout?: LessonCallout;
-}
-
-export interface Lesson {
-  id: string;
-  domainId: DomainId;
-  title: string;
-  minutes: number;
-  intro: string;
-  sections: LessonSection[];
-  keyTakeaways: string[];
-}
+/** Teaching media: labelled diagram, lazy image, or no-autoplay embed. */
+export type FigureKind = "diagram" | "image" | "video";
 
 export type DiagramId =
   | "laptop"
@@ -103,6 +88,57 @@ export type DiagramId =
   | "leaf"
   | "scroll"
   | "prism";
+
+export type TeachDiagramId =
+  | DiagramId
+  | "rear-io"
+  | "usb-c-roles"
+  | "soho-topo"
+  | "osi-where"
+  | "fru-laptop"
+  | "packet-path"
+  | "number-line"
+  | "room-scale"
+  | "food-web"
+  | "wifi-rooms"
+  | "timer-wire"
+  | "privacy-stack"
+  | "four-bar"
+  | "claim-test"
+  | "cash-flow"
+  | "suburb-map";
+
+export interface ContentFigure {
+  kind: FigureKind;
+  /** Required when kind is diagram */
+  diagram?: TeachDiagramId;
+  /** Image path (/figures/…) or a YouTube / Vimeo URL */
+  src?: string;
+  alt: string;
+  caption: string;
+  credit?: string;
+}
+
+export interface LessonSection {
+  heading: string;
+  paragraphs: string[];
+  bullets?: string[];
+  table?: LessonTable;
+  callout?: LessonCallout;
+  figure?: ContentFigure;
+}
+
+export interface Lesson {
+  id: string;
+  domainId: DomainId;
+  title: string;
+  minutes: number;
+  intro: string;
+  sections: LessonSection[];
+  keyTakeaways: string[];
+  /** Opening figure for the path hook beat */
+  figure?: ContentFigure;
+}
 
 export type PathCheckType = "choice" | "truefalse" | "order" | "match";
 
@@ -139,6 +175,7 @@ export interface PathBeat {
   body?: string[];
   bullets?: string[];
   diagram?: DiagramId;
+  figure?: ContentFigure;
   table?: LessonTable;
   check?: PathCheck;
   callout?: LessonCallout;
@@ -215,6 +252,28 @@ export interface ProjectStep {
   id: string;
   title: string;
   body: string;
+  figure?: ContentFigure;
+}
+
+export interface ProjectCheck {
+  id: string;
+  label: string;
+}
+
+export interface Project {
+  id: string;
+  subject: SubjectId;
+  title: string;
+  blurb: string;
+  goal: string;
+  materials: string[];
+  steps: ProjectStep[];
+  checklist: ProjectCheck[];
+  pathIds?: DomainId[];
+  difficulty: Difficulty;
+  minutes: number;
+  xp: number;
+  figure?: ContentFigure;
 }
 
 export interface ProjectCheck {

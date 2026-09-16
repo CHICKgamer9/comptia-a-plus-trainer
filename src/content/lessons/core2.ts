@@ -1,4 +1,5 @@
 import type { Lesson } from "../types";
+import { diagramFigure } from "../figures";
 
 export const core2Lessons: Lesson[] = [
   {
@@ -8,6 +9,11 @@ export const core2Lessons: Lesson[] = [
     minutes: 22,
     intro:
       "Core 2 expects you to install, configure, and navigate Windows 10 and 11 like a tech who lives in them — then prove you will not freeze if the user hands you a Mac or a Linux lab PC. This is about tools, install choices, and where settings actually live.",
+    figure: diagramFigure(
+      "window",
+      "Stylised window with title bar and three control dots, standing in for the OS desktop you actually click.",
+      "Settings live in named tools (WinRE, Settings, Control Panel leftovers) — not “somewhere in the GUI.”",
+    ),
     sections: [
       {
         heading: "Installs, upgrades, and the questions that change the outcome",
@@ -83,6 +89,11 @@ export const core2Lessons: Lesson[] = [
     minutes: 20,
     intro:
       "A+ security is not CISSP. It is the helpdesk layer: malware families, phishing, wireless hardening, account lockout, physical locks, and what you actually change on a SOHO router after a breach scare.",
+    figure: diagramFigure(
+      "lock",
+      "Padlock outline: the physical and account lock a helpdesk ticket actually touches.",
+      "Locks are layers: something you know, have, are — plus the cable on the door. One lock is a hope.",
+    ),
     sections: [
       {
         heading: "Malware and social engineering, as they appear on tickets",

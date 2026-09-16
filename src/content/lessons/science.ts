@@ -1,4 +1,5 @@
 import type { Lesson } from "../types";
+import { diagramFigure } from "../figures";
 
 export const scienceLessons: Lesson[] = [
   {
@@ -253,6 +254,11 @@ export const scienceLessons: Lesson[] = [
     minutes: 14,
     intro:
       "An ecosystem is living things plus the non-living stage they share. Energy flows one way (sun → eaters → heat). Matter cycles. Australia is not a generic forest poster: poor soils, fire, El Niño, and species that evolved in isolation.",
+    figure: diagramFigure(
+      "food-web",
+      "Simple Australian food web from sun to paperbark and grasses, then possum and insect, then magpie. Arrows mean is eaten by.",
+      "Start from the sun. Arrows are “is eaten by.” A chain is a cartoon; a web is the map.",
+    ),
     sections: [
       {
         heading: "Food webs, not chains",

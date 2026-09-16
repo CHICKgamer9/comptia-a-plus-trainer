@@ -7,6 +7,7 @@ import { getDomain, getSubject, pathHref } from "@/content/registry";
 import { projectsHubHref } from "@/content/projects";
 import { useProgress } from "./ProgressProvider";
 import { Badge, Card, DifficultyBadge, ProgressBar } from "./ui";
+import { TeachFigure } from "./TeachFigure";
 import { cn } from "@/lib/cn";
 
 export function ProjectView({ project }: { project: Project }) {
@@ -62,6 +63,12 @@ export function ProjectView({ project }: { project: Project }) {
         <p className="mt-2 text-sm leading-6">{project.goal}</p>
       </Card>
 
+      {project.figure ? (
+        <div className="mt-6">
+          <TeachFigure figure={project.figure} />
+        </div>
+      ) : null}
+
       <section className="mt-8">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">Materials / tools</h2>
         <ul className="mt-3 grid gap-2">
@@ -85,6 +92,11 @@ export function ProjectView({ project }: { project: Project }) {
                 {index + 1} / {project.steps.length}
               </p>
               <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
+              {step.figure ? (
+                <div className="mt-3">
+                  <TeachFigure figure={step.figure} />
+                </div>
+              ) : null}
               <p className="mt-2 text-sm leading-6 text-foreground/90">{step.body}</p>
             </li>
           ))}

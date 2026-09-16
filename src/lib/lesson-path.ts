@@ -1,4 +1,5 @@
-import type { DiagramId, Lesson, PathBeat, PathCheck, SubjectId } from "@/content/types";
+import type { ContentFigure, DiagramId, Lesson, PathBeat, PathCheck, SubjectId } from "@/content/types";
+import { diagramForCluster } from "@/content/figures";
 
 const DIAGRAM: Record<string, DiagramId> = {
   "mobile-devices": "laptop",
@@ -82,22 +83,65 @@ function diagramFor(domainId: string): DiagramId {
   return FALLBACK_DIAGRAMS[Math.abs(h) % FALLBACK_DIAGRAMS.length];
 }
 
+const TEACH: Record<string, ContentFigure["diagram"]> = {
+  "mobile-devices": "fru-laptop",
+  networking: "osi-where",
+  hardware: "rear-io",
+  "virtualization-cloud": "cloud",
+  "hw-net-troubleshooting": "loop",
+  "operating-systems": "window",
+  security: "lock",
+  "software-troubleshooting": "boot",
+  "operational-procedures": "clipboard",
+  "number-sense": "number-line",
+  fractions: "number-line",
+  percentages: "prism",
+  "algebra-foundations": "balance",
+  "geometry-measure": "room-scale",
+  "atoms-matter": "atom",
+  "forces-motion": "loop",
+  "energy-systems": "prism",
+  "cells-life": "leaf",
+  "ecosystems-au": "food-web",
+  "historical-thinking": "scroll",
+  "ancient-worlds": "scroll",
+  "country-contact": "leaf",
+  "making-australia": "scroll",
+  "twentieth-century": "scroll",
+};
+
+function fallbackFigure(lesson: Lesson, subject?: SubjectId, cluster?: string): ContentFigure {
+  const diagram =
+    lesson.figure?.diagram ??
+    TEACH[lesson.domainId] ??
+    diagramForCluster(cluster, subject) ??
+    diagramFor(lesson.domainId);
+  return {
+    kind: "diagram",
+    diagram,
+    alt: `Diagram for ${lesson.title}`,
+    caption:
+      "A pocket picture for this path. Read the labels in the drawing — colour is extra, not the legend.",
+  };
+}
+
 export function lessonToPath(
   lesson: Lesson,
   checks: PathCheck[] = [],
   subject?: SubjectId,
+  cluster?: string,
 ): PathBeat[] {
   const beats: PathBeat[] = [];
   const intro = firstSentences(lesson.intro, 2);
-  const diagram = diagramFor(lesson.domainId);
   const usedAuthored = new Set<string>();
+  const opening = lesson.figure ?? fallbackFigure(lesson, subject, cluster);
 
   beats.push({
     id: `${lesson.id}-open`,
     kind: "hook",
     title: lesson.title,
     body: [intro.hook],
-    diagram,
+    figure: opening,
   });
 
   if (intro.rest) {
@@ -117,7 +161,7 @@ export function lessonToPath(
       kind: "hook",
       title: section.heading,
       body: [split.hook || first],
-      diagram: sectionIndex === 0 ? undefined : undefined,
+      figure: section.figure,
     });
 
     const authored = checks.filter(
@@ -222,6 +266,6 @@ export function lessonToPath(
   return beats;
 }
 
-export function pathLength(lesson: Lesson, checks: PathCheck[] = [], subject?: SubjectId) {
-  return lessonToPath(lesson, checks, subject).length;
+export function pathLength(lesson: Lesson, checks: PathCheck[] = [], subject?: SubjectId, cluster?: string) {
+  return lessonToPath(lesson, checks, subject, cluster).length;
 }

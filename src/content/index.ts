@@ -35,6 +35,7 @@ import {
   projectsHubHref,
   suggestedProjectForPath,
 } from "./projects";
+import { diagramFigure, diagramForCluster, imageFigure, videoFigure } from "./figures";
 
 export {
   techDomains,
@@ -79,6 +80,8 @@ export {
   suggestedProjectForPath,
   PROJECT_COUNTS,
 };
+
+export { diagramFigure, diagramForCluster, imageFigure, videoFigure };
 
 export { getCheatsheet };
 

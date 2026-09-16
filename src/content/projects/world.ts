@@ -1,4 +1,5 @@
 import type { Project } from "../types";
+import { diagramFigure } from "../figures";
 
 export const worldProjects: Project[] = [
   {
@@ -174,6 +175,11 @@ export const worldProjects: Project[] = [
     difficulty: "medium",
     minutes: 40,
     xp: 120,
+    figure: diagramFigure(
+      "suburb-map",
+      "Sketch map with a north arrow, shop and park symbols, a walking-time note, and a legend.",
+      "North, scale or walking time, and a legend. A screenshot with doodles still needs those three.",
+    ),
   },
   {
     id: "geography-catchment",

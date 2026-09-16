@@ -1,13 +1,15 @@
 import type { DiagramId } from "@/content/types";
 
-export function PathDiagram({ id }: { id: DiagramId }) {
+export function PathDiagram({ id, alt }: { id: DiagramId; alt?: string }) {
   const common = {
     width: 280,
     height: 140,
     viewBox: "0 0 280 140",
     fill: "none",
-    "aria-hidden": true as const,
     className: "mx-auto h-32 w-full max-w-xs",
+    ...(alt
+      ? { role: "img" as const, "aria-label": alt }
+      : { "aria-hidden": true as const }),
   };
 
   if (id === "laptop") {

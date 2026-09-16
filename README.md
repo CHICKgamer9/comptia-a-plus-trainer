@@ -196,6 +196,44 @@ Client UI reads domain metadata from `@/content/registry` (no lesson/quiz/check 
 1. Add a `Project` in the matching `src/content/projects/*.ts` file (`id`, `subject`, `title`, `blurb`, `goal`, `materials`, ordered `steps`, `checklist`, optional `pathIds`, `difficulty`, `minutes`, `xp`)
 2. Keep Australian English where the rest of the hub does. Floor is **3 real projects per subject** (asserted at import)
 3. Optional `pathIds` should be existing domain ids so a finished path can suggest the project
+4. Optional `figure` on the project or a `figure` on a step (`diagramFigure` / `imageFigure` / `videoFigure` from `src/content/figures.ts`)
+
+## Adding a figure (paths and projects)
+
+Teaching media is a `ContentFigure` (`kind`: `diagram` | `image` | `video`) with **alt** and **caption**. Colour is never the only legend — diagrams use labels, ticks, solid vs dashed.
+
+**Where it hangs**
+
+- `Lesson.figure` — opening beat of a path
+- `LessonSection.figure` — that section’s hook beat (`lessonToPath` copies it)
+- `Project.figure` / `ProjectStep.figure` — rendered by `TeachFigure`
+
+If a path has no authored figure, `lessonToPath` still attaches a captioned diagram from the domain map or `diagramForCluster(cluster, subject)` so factory paths are not blank.
+
+**How to add one**
+
+```ts
+import { diagramFigure, imageFigure, videoFigure } from "@/content/figures";
+
+figure: diagramFigure(
+  "rear-io", // see TeachDiagramId in src/content/types.ts
+  "Alt text that works without the drawing.",
+  "Caption: what to notice. Labels in the drawing are the legend.",
+)
+
+figure: imageFigure("/figures/my-port-photo.webp", "Alt…", "Caption…") // file in public/figures/
+
+figure: videoFigure(
+  "https://www.youtube.com/watch?v=AYdF7b3nMto",
+  "Alt / iframe title",
+  "Caption. Optional extra — the path still stands if they skip it.",
+  "Credit · no autoplay",
+)
+```
+
+New labelled SVGs go in `src/components/teach-diagrams.tsx` (add the id to `TeachDiagramId`). Prefer that over stock photos. Embeds use youtube-nocookie / Vimeo, `loading="lazy"`, **no autoplay**. Raster images: keep them small, `loading="lazy"`.
+
+Sample set already wired: Core 1 mobile / networking / hardware, Core 2 OS / security, Maths number-sense, Science ecosystems, plus Projects (cable map, Wi-Fi map, budget, room scale, food web, study timer, fact-check, suburb map, 4-bar, privacy audit).
 
 ## Stack
 

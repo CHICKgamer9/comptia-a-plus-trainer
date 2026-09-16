@@ -1,4 +1,5 @@
 import type { Project } from "../types";
+import { diagramFigure } from "../figures";
 
 export const makeLifeProjects: Project[] = [
   {
@@ -301,6 +302,11 @@ export const makeLifeProjects: Project[] = [
     difficulty: "easy",
     minutes: 25,
     xp: 90,
+    figure: diagramFigure(
+      "four-bar",
+      "Sixteen count boxes labelled 1 e and a through 4, filled for claps and dashed for rests.",
+      "Filled = clap, dashed empty = rest. Do not rely on colour to hear the groove.",
+    ),
   },
   {
     id: "music-listen-log",
@@ -690,6 +696,11 @@ export const makeLifeProjects: Project[] = [
     difficulty: "medium",
     minutes: 30,
     xp: 120,
+    figure: diagramFigure(
+      "privacy-stack",
+      "Three stacked surfaces for one account: profile visibility, sessions and apps, then 2FA or recovery.",
+      "Inventory all three. Changing a theme is not an audit.",
+    ),
   },
   {
     id: "digital-scam-playbook",

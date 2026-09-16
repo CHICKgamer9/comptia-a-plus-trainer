@@ -10,6 +10,7 @@ import { projectHref, suggestedProjectForPath } from "@/content/projects";
 import { useProgress } from "./ProgressProvider";
 import { CheckPlay } from "./CheckPlay";
 import { PathDiagram } from "./PathDiagram";
+import { TeachFigure } from "./TeachFigure";
 import { joinSpeech } from "@/lib/speech";
 import { PlayerButton, PlayerFrame } from "./PlayerFrame";
 import { Badge, ExamBadge } from "./ui";
@@ -34,8 +35,8 @@ export function LessonPlayer({
   const { progress, markLessonComplete, saveLessonCursor, recordQuizAnswer, lessonDone } =
     useProgress();
   const beats = useMemo(
-    () => lessonToPath(lesson, checks, domain.subject),
-    [lesson, checks, domain.subject],
+    () => lessonToPath(lesson, checks, domain.subject, domain.cluster),
+    [lesson, checks, domain.subject, domain.cluster],
   );
   const [index, setIndex] = useState(() =>
     resumeIndex(progress.lessonCursor?.[lesson.id], beats.length),
@@ -150,7 +151,9 @@ function BeatView({
 
   return (
     <div className="space-y-4">
-      {beat.diagram ? (
+      {beat.figure ? (
+        <TeachFigure figure={beat.figure} />
+      ) : beat.diagram ? (
         <div className="text-accent">
           <PathDiagram id={beat.diagram} />
         </div>
