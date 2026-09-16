@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ProgressProvider } from "@/components/ProgressProvider";
 import { SiteShell } from "@/components/SiteShell";
+import { CelebrationHost } from "@/components/CelebrationHost";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full bg-background font-sans text-foreground">
         <ProgressProvider>
           <SiteShell>{children}</SiteShell>
+          <CelebrationHost />
         </ProgressProvider>
       </body>
     </html>

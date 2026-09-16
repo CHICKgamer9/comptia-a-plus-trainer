@@ -50,3 +50,19 @@ body {
     linear-gradient(to bottom, rgb(39 50 68 / 0.35) 1px, transparent 1px);
   background-size: 28px 28px;
 }
+
+.confetti-bit {
+  position: absolute;
+  top: -6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  animation: confetti-fall 900ms ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  to {
+    transform: translateY(92px) rotate(120deg);
+    opacity: 0;
+  }
+}

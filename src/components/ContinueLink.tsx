@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { domains, quizzes, scenarios } from "@/content";
+import { domains, quizzes } from "@/content";
 import { useProgress } from "./ProgressProvider";
 
 export function useContinueHref() {
@@ -16,16 +16,11 @@ export function useContinueHref() {
   const nextQuiz = quizzes.find((quiz) => !progress.quizScores[quiz.id]);
   if (nextQuiz) return `/practice/${nextQuiz.id}`;
 
-  const nextScenario = scenarios.find(
-    (scenario) => !progress.scenarioScores[scenario.id],
-  );
-  if (nextScenario) return `/lab/${nextScenario.id}`;
-
   if (progress.lastLessonId) {
     const domain = domains.find((item) => item.lessonId === progress.lastLessonId);
     if (domain) return `/learn/${domain.id}`;
   }
-  return "/learn";
+  return "/lab";
 }
 
 export function ContinueLink({
@@ -51,21 +46,8 @@ export function RandomTicketLink({
   className?: string;
 }) {
   const router = useRouter();
-  const { progress } = useProgress();
-
   return (
-    <button
-      type="button"
-      className={className}
-      onClick={() => {
-        const unfinished = scenarios.filter(
-          (scenario) => !progress.scenarioScores[scenario.id],
-        );
-        const pool = unfinished.length ? unfinished : scenarios;
-        const pick = pool[Math.floor(Math.random() * pool.length)];
-        router.push(pick ? `/lab/${pick.id}` : "/lab");
-      }}
-    >
+    <button type="button" className={className} onClick={() => router.push("/lab")}>
       {children}
     </button>
   );

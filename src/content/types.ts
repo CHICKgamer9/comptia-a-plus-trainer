@@ -1,3 +1,5 @@
+export type TicketSource = "ai" | "fallback";
+
 export type ExamId = "220-1101" | "220-1102";
 
 export type DomainId =
@@ -109,6 +111,7 @@ export interface Scenario {
   ticket: string;
   steps: ScenarioStep[];
   debrief: string;
+  source?: TicketSource;
 }
 
 export interface CheatsheetTable {

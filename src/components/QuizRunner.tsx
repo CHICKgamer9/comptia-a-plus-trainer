@@ -8,7 +8,7 @@ import { Badge, Card, ProgressBar } from "./ui";
 import { cn } from "@/lib/cn";
 
 export function QuizRunner({ quiz }: { quiz: Quiz }) {
-  const { recordQuiz, quizBest } = useProgress();
+  const { recordQuiz, recordQuizAnswer, quizBest } = useProgress();
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
@@ -24,6 +24,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
   function choose(choiceIndex: number) {
     if (locked || !question) return;
     setPicked(choiceIndex);
+    recordQuizAnswer(question.id, choiceIndex === question.correctIndex);
     if (choiceIndex === question.correctIndex) {
       setScore((value) => value + 1);
     }
@@ -54,7 +55,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
     return (
       <Card className="space-y-4">
         <Badge tone={percent >= 80 ? "ok" : percent >= 60 ? "warn" : "danger"}>
-          {percent >= 80 ? "Exam-ready range" : percent >= 60 ? "Keep drilling" : "Review the lesson"}
+            {percent >= 80 ? "Strong score" : percent >= 60 ? "Keep drilling" : "Review the lesson"}
         </Badge>
         <h2 className="text-2xl font-semibold">
           {score} / {quiz.questions.length} ({percent}%)

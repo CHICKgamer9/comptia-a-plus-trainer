@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useProgress } from "./ProgressProvider";
 import { Badge, Card, ExamBadge } from "./ui";
 import type { Domain, Lesson } from "@/content/types";
-import { scenariosForDomain } from "@/content";
+import { labThemeForDomain } from "@/content";
 import { cn } from "@/lib/cn";
 
 export function LessonView({
@@ -16,7 +16,6 @@ export function LessonView({
 }) {
   const { lessonDone, markLessonComplete } = useProgress();
   const done = lessonDone(lesson.id);
-  const related = scenariosForDomain(domain.id);
 
   return (
     <article className="space-y-6">
@@ -119,7 +118,7 @@ export function LessonView({
               : "bg-accent text-background hover:brightness-110",
           )}
         >
-          {done ? "Lesson marked complete" : "Mark lesson complete"}
+          {done ? "Lesson marked complete" : "Mark lesson complete (+80 XP)"}
         </button>
         <Link
           href={`/practice/${domain.quizId}`}
@@ -127,27 +126,13 @@ export function LessonView({
         >
           Take the {domain.title} quiz
         </Link>
+        <Link
+          href={`/lab?exam=${domain.exam}&theme=${labThemeForDomain(domain.id)}`}
+          className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-surface-2"
+        >
+          Generate a {domain.title} ticket
+        </Link>
       </div>
-
-      {related.length ? (
-        <div>
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-muted">
-            Related tickets
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {related.map((scenario) => (
-              <Link
-                key={scenario.id}
-                href={`/lab/${scenario.id}`}
-                className="rounded-xl border border-border bg-surface px-4 py-3 hover:border-accent/40"
-              >
-                <p className="font-medium">{scenario.title}</p>
-                <p className="mt-1 text-xs text-muted">{scenario.ticketId}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      ) : null}
     </article>
   );
 }

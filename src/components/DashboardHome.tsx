@@ -1,82 +1,114 @@
 "use client";
 
 import Link from "next/link";
-import { CONTENT_COUNTS, domains, quizzes, scenarios } from "@/content";
+import { CONTENT_COUNTS, domains, quizzes } from "@/content";
 import { useProgress } from "./ProgressProvider";
 import { ContinueLink, RandomTicketLink } from "./ContinueLink";
 import { Card, Disclaimer, PageHeader, ProgressBar } from "./ui";
 import { examShort } from "@/lib/labels";
+import { examReadiness, overallReadiness } from "@/lib/readiness";
+import { ReadinessCard } from "./ReadinessPanel";
+import { getBadge } from "@/lib/badges";
+import { labThemeForDomain } from "@/content";
 
 export function DashboardHome() {
   const { ready, stats, progress, resetProgress } = useProgress();
-  const fresh = ready && stats.percent === 0;
-  const complete = ready && stats.percent === 100;
+  const fresh = ready && stats.lessonsDone === 0 && stats.quizzesDone === 0 && stats.scenariosDone === 0;
+  const overall = overallReadiness(progress);
+  const core1 = examReadiness(progress, "220-1101");
+  const core2 = examReadiness(progress, "220-1102");
+  const recentBadges = [...(progress.game?.badges ?? [])].slice(-3).reverse();
 
   return (
     <div>
       <PageHeader
         kicker="TicketBench"
         title="Study the domains. Close the tickets."
-        description="Original lessons and exam-style quizzes for CompTIA A+ Core 1 (220-1101) and Core 2 (220-1102), plus a helpdesk lab that scores how you gather facts, pick tools, name the cause, and apply the fix."
+        description="Original lessons and exam-style quizzes for CompTIA A+ Core 1 (220-1101) and Core 2 (220-1102), plus an AI helpdesk lab. Progress, XP, and readiness stay on this device."
         actions={
           <>
             <ContinueLink className="rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-background">
               {fresh ? "Start with Core 1" : "Continue studying"}
             </ContinueLink>
             <RandomTicketLink className="rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-surface-2">
-              Random ticket
+              New ticket
             </RandomTicketLink>
           </>
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="mb-4 grid gap-4 lg:grid-cols-3">
         <Card>
-          <p className="text-xs uppercase tracking-wider text-muted">Overall</p>
-          <p className="mt-2 font-mono text-3xl">{ready ? `${stats.percent}%` : "—"}</p>
+          <p className="text-xs uppercase tracking-wider text-muted">{stats.levelTitle}</p>
+          <p className="mt-2 font-mono text-3xl">{stats.xp} XP</p>
           <div className="mt-4">
-            <ProgressBar value={ready ? stats.percent : 0} />
+            <ProgressBar
+              value={stats.levelPercent}
+              label={
+                stats.nextTitle
+                  ? `To ${stats.nextTitle} (${stats.nextAt} XP)`
+                  : "Max level on this track"
+              }
+            />
           </div>
           <p className="mt-3 text-sm text-muted">
-            {ready
-              ? `${stats.lessonsDone}/${stats.lessonsTotal} lessons · ${stats.quizzesDone}/${stats.quizzesTotal} quizzes · ${stats.scenariosDone}/${stats.scenariosTotal} tickets`
-              : "Loading saved progress…"}
+            Streak: {stats.streak} day{stats.streak === 1 ? "" : "s"} (Sydney calendar)
           </p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-wider text-muted">In the library</p>
-          <ul className="mt-3 space-y-2 text-sm">
+          <p className="text-xs uppercase tracking-wider text-muted">Coverage</p>
+          <p className="mt-2 text-sm leading-6">
+            {stats.lessonsDone}/{stats.lessonsTotal} lessons · {stats.quizzesDone}/
+            {stats.quizzesTotal} quizzes · {stats.scenariosDone} tickets closed
+          </p>
+          <ul className="mt-3 space-y-1.5 text-sm text-muted">
             <li>{CONTENT_COUNTS.lessons} domain lessons</li>
             <li>{CONTENT_COUNTS.questions} quiz questions</li>
-            <li>{CONTENT_COUNTS.scenarios} multi-step tickets</li>
-            <li>{CONTENT_COUNTS.cheatsheets} quick-reference sheets</li>
+            <li>AI-generated lab tickets (plus one offline stub)</li>
           </ul>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-wider text-muted">How this works</p>
-          <ol className="mt-3 list-decimal space-y-1.5 pl-4 text-sm leading-6 text-foreground/85">
-            <li>Read a domain in plain language.</li>
-            <li>Take the mapped quiz — explanations after every pick.</li>
-            <li>Run a ticket: gather → tools → cause → fix.</li>
-          </ol>
+          <p className="text-xs uppercase tracking-wider text-muted">Recent badges</p>
+          {recentBadges.length ? (
+            <ul className="mt-3 space-y-2 text-sm">
+              {recentBadges.map((id) => {
+                const badge = getBadge(id);
+                return (
+                  <li key={id}>
+                    <span className="font-medium">{badge?.title ?? id}</span>
+                    <span className="block text-xs text-muted">{badge?.blurb}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-muted">
+              Finish a lesson, quiz, or ticket to start unlocking badges.
+            </p>
+          )}
         </Card>
       </div>
 
-      {complete ? (
-        <Card className="mt-4 border-ok/30 bg-ok/5">
-          <p className="font-medium text-ok">You have touched every lesson, quiz, and ticket.</p>
-          <p className="mt-2 text-sm text-muted">
-            Retake weak quizzes and hard tickets. Progress is stored only in this browser.
-          </p>
-        </Card>
-      ) : null}
+      <div className="mb-2 flex items-end justify-between gap-3">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-muted">
+          Ready for the exam?
+        </h2>
+        <Link href="/ready" className="text-sm text-accent hover:underline">
+          Full rubric
+        </Link>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ReadinessCard report={overall} compact />
+        <ReadinessCard report={core1} compact />
+        <ReadinessCard report={core2} compact />
+      </div>
 
       {fresh ? (
         <Card className="mt-4">
           <p className="font-medium">Nothing saved yet — that is expected.</p>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Progress lives in localStorage on this device. No account required. Start with
-            Mobile Devices or jump a ticket if you learn faster by doing.
+            Progress lives in localStorage on this device. No account required. The meter will
+            not say Exam-ready until lessons, quizzes, and lab practice all clear a strict bar.
           </p>
         </Card>
       ) : null}
@@ -89,9 +121,6 @@ export function DashboardHome() {
           const lessonDone = progress.completedLessons.includes(domain.lessonId);
           const quiz = quizzes.find((item) => item.id === domain.quizId);
           const quizScore = progress.quizScores[domain.quizId];
-          const relatedTickets = scenarios.filter((scenario) =>
-            scenario.domainIds.includes(domain.id),
-          ).length;
           return (
             <Link
               key={domain.id}
@@ -117,7 +146,10 @@ export function DashboardHome() {
                   : quiz
                     ? `${quiz.questions.length} items`
                     : "—"}
-                {relatedTickets ? ` · ${relatedTickets} related tickets` : ""}
+                {" · "}
+                <span className="text-accent">
+                  Lab: {labThemeForDomain(domain.id)}
+                </span>
               </p>
             </Link>
           );
@@ -129,7 +161,7 @@ export function DashboardHome() {
         <button
           type="button"
           onClick={() => {
-            if (window.confirm("Reset all local progress on this device?")) {
+            if (window.confirm("Reset all local progress and tickets on this device?")) {
               resetProgress();
             }
           }}

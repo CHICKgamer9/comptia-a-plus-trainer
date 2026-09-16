@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Disclaimer } from "./ui";
+import { StatusChip } from "./StatusChip";
 
 const links = [
   { href: "/", label: "Home", icon: HomeIcon },
@@ -54,6 +55,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
+            <StatusChip />
           </nav>
         </div>
       </header>

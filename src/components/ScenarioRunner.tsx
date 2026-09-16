@@ -8,7 +8,6 @@ import { useProgress } from "./ProgressProvider";
 import { Badge, Card, DifficultyBadge, ExamBadge, ProgressBar, ThemeBadge } from "./ui";
 import { phaseLabel } from "@/lib/labels";
 import { cn } from "@/lib/cn";
-import { getRandomScenarioId } from "@/content";
 
 export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
   const router = useRouter();
@@ -40,7 +39,14 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
   function next() {
     if (!step) return;
     if (stepIndex >= scenario.steps.length - 1) {
-      recordScenario(scenario.id, score, scenario.steps.length);
+      recordScenario(scenario.id, {
+        score,
+        total: scenario.steps.length,
+        at: Date.now(),
+        exam: scenario.exam,
+        theme: scenario.theme,
+        domainIds: scenario.domainIds,
+      });
       setDone(true);
       return;
     }
@@ -90,13 +96,10 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
             </button>
             <button
               type="button"
-              onClick={() => {
-                const nextId = getRandomScenarioId(scenario.id);
-                router.push(nextId ? `/lab/${nextId}` : "/lab");
-              }}
+              onClick={() => router.push("/lab")}
               className="rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-surface-2"
             >
-              Another random ticket
+              Generate another ticket
             </button>
             <Link
               href="/lab"
@@ -229,6 +232,11 @@ function TicketHeader({ scenario }: { scenario: Scenario }) {
           <ExamBadge exam={scenario.exam} />
           <ThemeBadge theme={scenario.theme} />
           <DifficultyBadge level={scenario.difficulty} />
+          {scenario.source === "fallback" ? (
+            <Badge tone="warn">Practice stub</Badge>
+          ) : (
+            <Badge tone="accent">AI study aid</Badge>
+          )}
         </div>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">{scenario.title}</h1>
         <p className="mt-2 text-sm text-muted">

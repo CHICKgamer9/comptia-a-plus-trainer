@@ -5,19 +5,29 @@ import {
   emptyProgress,
   getProgressSnapshot,
   getServerProgressSnapshot,
+  markLessonCompleteIn,
+  mutateProgress,
   parseProgress,
+  recordQuizAnswerIn,
+  recordQuizIn,
+  recordScenarioIn,
   saveProgress,
   subscribeProgress,
   type ProgressState,
+  type ScenarioResult,
 } from "@/lib/progress";
-import { domains, quizzes, scenarios } from "@/content";
+import { domains, quizzes } from "@/content";
+import { levelForXp } from "@/lib/xp";
+import { overallReadiness } from "@/lib/readiness";
+import { clearTickets } from "@/lib/ticket-store";
 
 interface ProgressContextValue {
   ready: boolean;
   progress: ProgressState;
   markLessonComplete: (lessonId: string) => void;
+  recordQuizAnswer: (questionId: string, correct: boolean) => void;
   recordQuiz: (quizId: string, score: number, total: number) => void;
-  recordScenario: (scenarioId: string, score: number, total: number) => void;
+  recordScenario: (scenarioId: string, result: ScenarioResult) => void;
   resetProgress: () => void;
   lessonDone: (lessonId: string) => boolean;
   quizBest: (quizId: string) => { score: number; total: number } | undefined;
@@ -30,8 +40,13 @@ interface ProgressContextValue {
     quizzesDone: number;
     quizzesTotal: number;
     scenariosDone: number;
-    scenariosTotal: number;
     percent: number;
+    xp: number;
+    levelTitle: string;
+    levelPercent: number;
+    nextTitle?: string;
+    nextAt?: number;
+    streak: number;
   };
 }
 
@@ -44,54 +59,29 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     getServerProgressSnapshot,
   );
   const progress = useMemo(() => parseProgress(raw), [raw]);
-  const ready = true;
 
   const markLessonComplete = useCallback((lessonId: string) => {
-    const prev = loadCurrent();
-    saveProgress({
-      ...prev,
-      lastLessonId: lessonId,
-      completedLessons: prev.completedLessons.includes(lessonId)
-        ? prev.completedLessons
-        : [...prev.completedLessons, lessonId],
-    });
+    mutateProgress((prev) => markLessonCompleteIn(prev, lessonId));
+  }, []);
+
+  const recordQuizAnswer = useCallback((questionId: string, correct: boolean) => {
+    mutateProgress((prev) => recordQuizAnswerIn(prev, questionId, correct));
   }, []);
 
   const recordQuiz = useCallback((quizId: string, score: number, total: number) => {
-    const prev = loadCurrent();
-    const existing = prev.quizScores[quizId];
-    const keepExisting = existing && existing.score >= score;
-    saveProgress({
-      ...prev,
-      lastQuizId: quizId,
-      quizScores: {
-        ...prev.quizScores,
-        [quizId]: keepExisting ? existing : { score, total, at: Date.now() },
-      },
-    });
+    mutateProgress((prev) => recordQuizIn(prev, quizId, score, total));
   }, []);
 
   const recordScenario = useCallback(
-    (scenarioId: string, score: number, total: number) => {
-      const prev = loadCurrent();
-      const existing = prev.scenarioScores[scenarioId];
-      const keepExisting = existing && existing.score >= score;
-      saveProgress({
-        ...prev,
-        lastScenarioId: scenarioId,
-        scenarioScores: {
-          ...prev.scenarioScores,
-          [scenarioId]: keepExisting
-            ? existing
-            : { score, total, at: Date.now() },
-        },
-      });
+    (scenarioId: string, result: ScenarioResult) => {
+      mutateProgress((prev) => recordScenarioIn(prev, scenarioId, result));
     },
     [],
   );
 
   const resetProgress = useCallback(() => {
     saveProgress(emptyProgress());
+    clearTickets();
   }, []);
 
   const value = useMemo<ProgressContextValue>(() => {
@@ -102,15 +92,15 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     const quizzesDone = Object.keys(progress.quizScores).filter((id) =>
       quizzes.some((quiz) => quiz.id === id),
     ).length;
-    const scenariosDone = Object.keys(progress.scenarioScores).filter((id) =>
-      scenarios.some((scenario) => scenario.id === id),
-    ).length;
-    const totalUnits = lessonsTotal + quizzes.length + scenarios.length;
-    const doneUnits = lessonsDone + quizzesDone + scenariosDone;
+    const scenariosDone = Object.keys(progress.scenarioScores).length;
+    const xp = progress.game?.xp ?? 0;
+    const level = levelForXp(xp);
+    const both = overallReadiness(progress);
     return {
-      ready,
+      ready: true,
       progress,
       markLessonComplete,
+      recordQuizAnswer,
       recordQuiz,
       recordScenario,
       resetProgress,
@@ -123,14 +113,19 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         quizzesDone,
         quizzesTotal: quizzes.length,
         scenariosDone,
-        scenariosTotal: scenarios.length,
-        percent: totalUnits === 0 ? 0 : Math.round((doneUnits / totalUnits) * 100),
+        percent: both.percent,
+        xp,
+        levelTitle: level.title,
+        levelPercent: level.percent,
+        nextTitle: level.nextTitle,
+        nextAt: level.nextAt,
+        streak: progress.game?.streakCount ?? 0,
       },
     };
   }, [
-    ready,
     progress,
     markLessonComplete,
+    recordQuizAnswer,
     recordQuiz,
     recordScenario,
     resetProgress,
@@ -139,10 +134,6 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   return (
     <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>
   );
-}
-
-function loadCurrent(): ProgressState {
-  return parseProgress(getProgressSnapshot());
 }
 
 export function useProgress() {
