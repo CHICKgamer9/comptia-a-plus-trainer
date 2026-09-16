@@ -633,7 +633,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "r-mobile-devices",
     type: "crest",
-    rarity: "legendary",
+    rarity: "crest",
     title: "Crest: Mobile devices",
     subtitle: "Domain gate actually earned — lesson done and quiz at the bar.",
     body: "You did not buy this. The Mobile Devices domain lesson is done and the quiz recency bar cleared. Crests are receipts, not stickers.",
@@ -647,7 +647,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "r-networking",
     type: "crest",
-    rarity: "legendary",
+    rarity: "crest",
     title: "Crest: Networking",
     subtitle: "Domain gate actually earned.",
     body: "Networking lesson complete and quiz at the bar. Ports, APIPA, and DNS splits are not a poster anymore.",
@@ -661,7 +661,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "r-hardware",
     type: "crest",
-    rarity: "legendary",
+    rarity: "crest",
     title: "Crest: Hardware",
     subtitle: "Domain gate actually earned.",
     body: "Hardware lesson complete and quiz at the bar. RAM, storage, PSU rails — receipts, not loot.",
@@ -675,7 +675,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "r-operating-systems",
     type: "crest",
-    rarity: "legendary",
+    rarity: "crest",
     title: "Crest: Operating systems",
     subtitle: "Domain gate actually earned.",
     body: "OS lesson complete and quiz at the bar. SKU, GPT, and the tools you open without thinking.",
@@ -689,7 +689,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "r-security",
     type: "crest",
-    rarity: "legendary",
+    rarity: "crest",
     title: "Crest: Security",
     subtitle: "Domain gate actually earned.",
     body: "Security lesson complete and quiz at the bar. Isolate first is now a habit, not a slogan.",
@@ -703,7 +703,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "l-cinebench-die",
     type: "component",
-    rarity: "legendary",
+    rarity: "glue",
     title: "Dies after Cinebench",
     subtitle: "Thermal + storage path fused. The stick was never the whole story.",
     subtitles: [
@@ -722,7 +722,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "l-power-path",
     type: "procedure",
-    rarity: "rare",
+    rarity: "glue",
     title: "Power path",
     subtitle: "Won’t-charge + DC jack + meter. External path first.",
     subtitles: [
@@ -741,7 +741,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "l-antenna-lid",
     type: "procedure",
-    rarity: "rare",
+    rarity: "glue",
     title: "Lid antennas seated",
     subtitle: "Hinge + combo card. Range came back when the leads clicked.",
     body: "After a panel job the shed disappeared. Ethernet was fine. MAIN/AUX were off or pinched in the hinge. This close is a photo of seated leads, not a TCP/IP reinstall.",
@@ -755,7 +755,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "l-swollen-pack",
     type: "procedure",
-    rarity: "rare",
+    rarity: "glue",
     title: "Pack isolated",
     subtitle: "Swelling + Li-ion. Power down, isolate, recycle. No vice.",
     body: "Safety close. The palm rest was lifting. You powered down, isolated the pack, and did not puncture it. Calibration was never the move.",
@@ -769,7 +769,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "l-pxe-ghost",
     type: "procedure",
-    rarity: "legendary",
+    rarity: "glue",
     title: "Image with a rollback",
     subtitle: "PXE + change ticket. The mass wipe had an undo.",
     body: "You did not ghost fifty boxes on a Friday hope. Firmware PXE, correct VLAN, and a change record with a rollback image. That is a legendary close because the outage did not happen.",
@@ -823,7 +823,7 @@ export const benchCards: BenchCard[] = [
   card({
     id: "g-fraction-raid",
     type: "glue",
-    rarity: "common",
+    rarity: "glue",
     title: "Fractions of a disk",
     subtitle: "RAID 5 parity is a slice you pay for. Capacity maths is not a poster.",
     body: "Usable space on RAID 5 is not ‘all the disks minus a vibe’. You pay a disk of parity. Maths fractions and hardware share the same honesty: name the denominator.",
@@ -905,6 +905,69 @@ export function rarityWeight(rarity: CardRarity) {
   if (rarity === "uncommon") return 2;
   if (rarity === "rare") return 1;
   return 0;
+}
+
+/** Crest / glue frames. Legacy "legendary" reads as crest. */
+export function displayRarity(rarity: CardRarity): "common" | "uncommon" | "rare" | "crest" | "glue" {
+  if (rarity === "legendary") return "crest";
+  return rarity;
+}
+
+export function cardPrintCode(card: BenchCard) {
+  if (card.printCode) return card.printCode;
+  const raw = card.title.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  return (raw.slice(0, 8) || "TICKET").padEnd(Math.min(6, raw.length), "X");
+}
+
+export function cardSetNumber(card: BenchCard) {
+  const index = benchCards.findIndex((row) => row.id === card.id);
+  return index >= 0 ? index + 1 : 0;
+}
+
+export function cardSetSize() {
+  return benchCards.length;
+}
+
+export function cardHook(card: BenchCard) {
+  return card.subtitle;
+}
+
+export function cardExamTells(card: BenchCard): [string, string] {
+  if (card.examTells) return card.examTells;
+  const first = card.subtitles?.[0] ?? card.subtitle;
+  const second = card.subtitles?.[1] ?? card.subtitles?.[2] ?? card.body.split(". ").slice(0, 1)[0] ?? card.subtitle;
+  return [first, second];
+}
+
+export function cardSeenIn(card: BenchCard): { lesson?: string; ticket?: string; fusion?: string } {
+  if (card.seenIn) return card.seenIn;
+  const recipe = fusionRecipes.find((row) => row.outputId === card.id || row.inputIds.includes(card.id));
+  return {
+    lesson: card.pathId ? card.pathId.replace(/-/g, " ") : undefined,
+    ticket: card.sheetId ? card.sheetId.replace(/-/g, " ") : card.domain?.replace(/-/g, " "),
+    fusion: recipe?.title,
+  };
+}
+
+export function fusionOutputIds() {
+  return new Set(fusionRecipes.map((row) => row.outputId));
+}
+
+export function isFusionOnly(card: BenchCard) {
+  return card.rarity === "glue" || fusionOutputIds().has(card.id);
+}
+
+export function isCrestCard(card: BenchCard) {
+  return card.type === "crest" || displayRarity(card.rarity) === "crest";
+}
+
+export function collectibleForDomain(domainId: string) {
+  return benchCards.filter(
+    (card) =>
+      card.domain === domainId &&
+      !isCrestCard(card) &&
+      !isFusionOnly(card),
+  );
 }
 
 export function isSlottable(card: BenchCard) {

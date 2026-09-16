@@ -35,6 +35,10 @@ import {
   setLoadoutIn,
   fuseCardsIn,
   reviewCardIn,
+  acknowledgePrintIn,
+  setFieldNoteIn,
+  markSeenIn,
+  claimWeeklySpecialIn,
   type BrainAnswerInput,
   type BrainFeedState,
   type PathAnswerContext,
@@ -79,6 +83,10 @@ interface ProgressContextValue {
   slotBenchCard: (slot: BenchSlot, cardId: string | undefined) => void;
   setLoadout: (loadout: BenchState["loadout"]) => void;
   fuseCards: (recipeId: string) => void;
+  acknowledgePrint: () => void;
+  setFieldNote: (cardId: string, note: string) => void;
+  markSeen: (cardIds: string[]) => void;
+  claimWeeklySpecial: () => void;
   resetProgress: () => void;
   setAutoRead: (autoRead: boolean) => void;
   setSpeechMuted: (muted: boolean) => void;
@@ -252,6 +260,22 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     mutateProgress((prev) => reviewCardIn(prev, cardId, grade));
   }, []);
 
+  const acknowledgePrint = useCallback(() => {
+    mutateProgress((prev) => acknowledgePrintIn(prev));
+  }, []);
+
+  const setFieldNote = useCallback((cardId: string, note: string) => {
+    mutateProgress((prev) => setFieldNoteIn(prev, cardId, note));
+  }, []);
+
+  const markSeen = useCallback((cardIds: string[]) => {
+    mutateProgress((prev) => markSeenIn(prev, cardIds));
+  }, []);
+
+  const claimWeeklySpecial = useCallback(() => {
+    mutateProgress((prev) => claimWeeklySpecialIn(prev));
+  }, []);
+
   const exportProgress = useCallback(() => exportProgressJson(parseProgress(getProgressSnapshot())), []);
 
   const importProgress = useCallback((raw: string) => {
@@ -307,6 +331,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       setLastSubject,
       setExamTrack,
       reviewCard,
+      acknowledgePrint,
+      setFieldNote,
+      markSeen,
+      claimWeeklySpecial,
       exportProgress,
       importProgress,
       lessonDone: (lessonId) => progress.completedLessons.includes(lessonId),
@@ -359,6 +387,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     setLastSubject,
     setExamTrack,
     reviewCard,
+    acknowledgePrint,
+    setFieldNote,
+    markSeen,
+    claimWeeklySpecial,
     exportProgress,
     importProgress,
   ]);

@@ -43,13 +43,13 @@ Generation is rate-limited (8 requests / 10 minutes / IP) and the Generate butto
 - **Home** — grouped subject cards, today’s path (remembers last subject), Bench chassis, Sydney streak, level, Core 1 / Core 2 glance, Languages + Brain Gym + Projects cards
 - **Learn** — `/learn/[subject]/[path]`. Each hub is a searchable catalog with topic filters. Tech keeps nine A+ domains exam-gated; extra Tech paths have **no** `exam` tag so readiness stays on the original cores. Brain Gym is linked from Learn but is **not** a SubjectId. Subject cards include **Try a project**
 - **Projects** (`/projects`, `/projects/[id]`) — hands-on builds in every hub (3 each, 45 total). Filter with `?hub=maths`. Steps + done-when checklist; completion writes `projectChecks` / `completedProjects` on the same local progress object and awards the project’s XP. Tech’s helpdesk-reply project uses this UI, then points at Lab
-- **Binder** (`/binder`) — knowledge cards (components, symptoms, tools, procedures, gotchas, crests, glue). Flip for the back face. Equip chassis slots. Fusion spends extra copies only. Lab loadout of 3 cards
+- **Binder** (`/binder`) — 9-pocket sheets of printed tickets. Flip to review, drag onto the 3-bay Lab mat. Fusion spends extra copies only. Crests seal a full domain sheet; glue prints from named recipes.
 - **Languages (speak)** (`/lingo`) — French, Indonesian, and Icelandic skill trees (units → skills → lessons). Vocab tap, listen/read meaning, word order, match pairs, type translation (accents optional), honor-system “I said it”. **60 lessons per language**, static in-repo curriculum, no paid translation API. Progress is additive on `progress.lingo`. The `/learn/languages` hub still has the 60 linguistics paths plus a banner into `/lingo`
 - **Brain Gym** (`/brain`) — challenge mode. **Phone feed** at `/brain/feed` is a full-viewport, mobile-first scroll of mixed packs (new riddles/trivia/emoji/odd-one-out plus the original desk) hashed from the Australia/Sydney date. Skip costs a little XP so it is not empty scrolling. `/brain/today` still builds a ~**120 minute** playlist; `/brain/browse` lazy-loads packs; `/brain/play/[id]` is the player (typed mini crosswords, word reveal, cryptograms, memory flash, choices)
 - **Listen** — speaker control in every lesson / quiz / lab / challenge / Brain Gym player. Language lessons try `fr-FR` / `id-ID` / `is-IS` when the browser has a voice (Icelandic and Indonesian TTS are often missing — text + phonetic stay). **Auto-read** speaks each new prompt (not the four choices). **Choices** reads options on demand. Stop cancels speech. Browser Web Speech API (no TTS key). Preference is stored with progress
 - **Quizzes** — one problem at a time (practice or exam drill), filterable by subject, search, first 48 shown until you narrow
 - **Lab** — Tech only: generate a ticket. Investigate gather → tools → cause → fix. A full Binder loadout biases the ticket and adds XP on close
-- **Desk Shift** — 8 / 15 / 25 minutes from Home. Header pill while open. Close the desk → Night Pack (no “keep going?” nag)
+- **Desk Shift** — 8 / 15 / 25 minutes from Home. Header pill while open. Close the desk with no loot pack. Optional weekly bench special: one extra print from a rotting domain.
 - **Challenges** — authored cafe-till / bushfire / Federation-floor runs under `/play/[id]` (also linked from the subject hub)
 - **Ready** (`/ready`) — A+ exam-readiness rubric (unchanged gates)
 - **Sheets** — A+ ports/RAID plus pocket Maths / Science / History tables; Binder backs deep-link from matching sheets
@@ -176,16 +176,18 @@ Cards are parts, symptoms, tools, procedures — not stickers. Catalog: `src/con
 
 | Event | Drop |
 | --- | --- |
-| Learn bite correct | 60% common/uncommon tagged to the path |
-| First wrong on a concept | 100% gotcha once; replay from the Binder |
-| Brain correct | 40% from the category; skip (−XP) never drops |
-| Lab ticket closed | 1 symptom/procedure + 30% tool |
-| Domain lesson done + quiz ≥80% | 1 crest (exam domains that have a crest card) |
-| Desk Shift ends | Night Pack: 3 cards (1 weak-spot + 2 session/common). Early close with ≥1 card → 2. Early close with 0 cards → no pack. |
+| Learn bite finished | Exactly one ticket. Same concept → same card. Deterministic. |
+| Bite correct | Path card (not crest, not glue). First print is unique; repeats dust that unique. |
+| Bite wrong | Deterministic gotcha for that concept. Same moment, dust if already owned. |
+| Brain correct | Exactly one ticket from the category. Skip never prints. |
+| Lab ticket closed | Exactly one ticket from the ticket’s tags. Loadout cards take wear. |
+| Domain sheet full | Crest seal only — not a loot roll. |
+| Named fusion recipe | Glue ticket only. Ghost crafts stay visible on the tray. |
+| Weekly bench special | Optional one extra print from a rotting domain. Still not random rarity. |
 
-Duplicates: 2nd copy is dust; 3rd copy levels the card (subtitle evolves) and resets the extra. Fusion spends dust only — a unique never goes below 1. No shop, no IAP.
+Duplicates: later prints dust the unique (no second copy). Fusion spends dust only — a unique never goes below 1. No shop, no IAP, no Night Pack.
 
-**Add a card:** append a `BenchCard` in `src/content/bench-cards.ts` (`body` is the back face). Optional `slot` for the Home chassis, `sheetId` to deep-link from `/reference/[sheetId]`, `tags` so path/lab/brain drops can find it. Add a `FusionRecipe` if it should combine. Line-art is type-based in `KnowledgeCard`; `artHint` documents the teaching sketch.
+**Add a card:** append a `BenchCard` in `src/content/bench-cards.ts` (`body` is the back face). Add a unique diagram in `src/components/card/CardArt.tsx`. Optional `slot` for the chassis, `sheetId` to deep-link from `/reference/[sheetId]`, `tags` so path/lab/brain drops can find it. Add a `FusionRecipe` if it should combine.
 
 ## Exam-readiness rubric (Tech / A+ only)
 

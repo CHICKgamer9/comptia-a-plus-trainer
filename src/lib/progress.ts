@@ -9,7 +9,10 @@ import { levelForXp, ticketXp, XP } from "./xp";
 import { markObjectivesFromDomains, markObjectivesFromQuiz } from "./readiness";
 import { QUIZ_PASS_RATIO } from "@/content/objectives";
 import {
+  acknowledgePrint as acknowledgePrintBench,
+  addWearMany,
   applyAwards,
+  claimWeeklySpecial as claimWeeklySpecialBench,
   closeShift as closeShiftBench,
   dropFromBrain,
   dropFromLab,
@@ -17,10 +20,12 @@ import {
   emptyBench,
   fuse as fuseBench,
   loadoutBonus,
+  markSeen as markSeenBench,
   maybeAwardCrest,
   openNightPack as openNightPackBench,
   parseBench,
   reviewCard as reviewCardBench,
+  setFieldNote as setFieldNoteBench,
   setLoadout as setLoadoutBench,
   slotCard as slotCardBench,
   startShift as startShiftBench,
@@ -516,11 +521,13 @@ export function recordScenarioIn(
     total: result.total,
     domainIds: result.domainIds,
     theme: result.theme,
+    ticketId: scenarioId,
   });
   const passed = result.total > 0 && result.score / result.total >= 0.75;
+  const worn = addWearMany(drop.bench, bench.loadout.filter((id): id is string => Boolean(id)));
   const withCards: ProgressState = {
     ...next,
-    bench: applyAwards(bench, drop),
+    bench: applyAwards(worn, { ...drop, bench: worn }),
     lastSubject: "tech",
     objectivePassedAt:
       passed && (result.domainIds?.length || result.exam)
@@ -681,7 +688,31 @@ export function closeDeskShiftIn(prev: ProgressState, early = false): ProgressSt
 
 export function openNightPackIn(prev: ProgressState): ProgressState {
   const drop = openNightPackBench(prev.bench ?? emptyBench());
-  return { ...prev, bench: applyAwards(drop.bench, drop, true) };
+  return { ...prev, bench: drop.bench };
+}
+
+export function acknowledgePrintIn(prev: ProgressState): ProgressState {
+  return { ...prev, bench: acknowledgePrintBench(prev.bench ?? emptyBench()) };
+}
+
+export function setFieldNoteIn(prev: ProgressState, cardId: string, note: string): ProgressState {
+  return { ...prev, bench: setFieldNoteBench(prev.bench ?? emptyBench(), cardId, note) };
+}
+
+export function markSeenIn(prev: ProgressState, cardIds: string[]): ProgressState {
+  const bench = prev.bench ?? emptyBench();
+  const next = markSeenBench(bench, cardIds);
+  if (next === bench) return prev;
+  return { ...prev, bench: next };
+}
+
+export function claimWeeklySpecialIn(prev: ProgressState): ProgressState {
+  const drop = claimWeeklySpecialBench(
+    prev.bench ?? emptyBench(),
+    prev.completedLessons,
+    prev.lastSubject,
+  );
+  return { ...prev, bench: applyAwards(drop.bench, drop) };
 }
 
 export function slotBenchCardIn(prev: ProgressState, slot: BenchSlot, cardId: string | undefined): ProgressState {

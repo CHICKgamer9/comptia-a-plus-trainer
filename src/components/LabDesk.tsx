@@ -15,6 +15,7 @@ import { seededTicket } from "@/lib/ticket-fallback";
 import { useProgress } from "./ProgressProvider";
 import { loadoutHint } from "@/lib/binder";
 import { getBenchCard } from "@/content/bench-cards";
+import { TicketCard } from "./card/TicketCard";
 import {
   Badge,
   Card,
@@ -174,15 +175,28 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
             ]}
           />
         </div>
-        <p className="mt-4 text-xs text-muted">
-          Loadout:{" "}
-          {bench.loadout.filter(Boolean).length
-            ? bench.loadout
-                .map((id) => (id ? getBenchCard(id)?.title : undefined))
-                .filter(Boolean)
-                .join(" · ")
-            : "empty — equip three cards in the Binder for a bias and XP on close."}
-        </p>
+        <div className="mt-4">
+          <p className="text-xs text-muted">
+            Loadout — drag cards onto the binder mat. Tickets bias toward the three bays.
+          </p>
+          <div className="mt-3 flex flex-wrap justify-center gap-3">
+            {bench.loadout.some(Boolean) ? (
+              bench.loadout.map((id, index) => {
+                const card = id ? getBenchCard(id) : undefined;
+                const row = id ? bench.owned.find((item) => item.cardId === id) : undefined;
+                return card && row ? (
+                  <TicketCard key={`${id}-${index}`} card={card} owned={row} size="bay" showBack={false} />
+                ) : (
+                  <p key={`empty-${index}`} className="text-xs text-muted">
+                    Bay {index + 1} empty
+                  </p>
+                );
+              })
+            ) : (
+              <p className="text-xs text-muted">Empty — slot three tickets from the Binder mat.</p>
+            )}
+          </div>
+        </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
