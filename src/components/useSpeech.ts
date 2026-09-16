@@ -9,6 +9,7 @@ const noSubscribe = () => () => undefined;
 export function useSpeech() {
   const { progress, setAutoRead } = useProgress();
   const [speaking, setSpeaking] = useState(false);
+  const hydrated = useSyncExternalStore(noSubscribe, () => true, () => false);
   const supported = useSyncExternalStore(noSubscribe, speechSupported, () => false);
   const stopRef = useRef<(() => void) | null>(null);
 
@@ -43,6 +44,7 @@ export function useSpeech() {
   );
 
   return {
+    ready: hydrated,
     supported,
     speaking,
     speak,

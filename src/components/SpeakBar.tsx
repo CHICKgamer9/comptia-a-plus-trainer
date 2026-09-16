@@ -13,7 +13,7 @@ export interface Narration {
 }
 
 export function SpeakBar({ narration }: { narration: Narration }) {
-  const { supported, speaking, speak, stop, autoRead, setAutoRead } = useSpeech();
+  const { ready, supported, speaking, speak, stop, autoRead, setAutoRead } = useSpeech();
   const lastPrompt = useRef<string>("");
   const lastFollow = useRef<string>("");
 
@@ -38,7 +38,7 @@ export function SpeakBar({ narration }: { narration: Narration }) {
     speak(narration.followUp);
   }, [autoRead, narration.followUp, narration.id, speak, supported]);
 
-  if (!supported) {
+  if (ready && !supported) {
     return (
       <p className="text-[11px] text-muted">Voice needs a browser with speech synthesis.</p>
     );
@@ -48,7 +48,7 @@ export function SpeakBar({ narration }: { narration: Narration }) {
   const choiceScript = narration.choices?.length ? numberChoices(narration.choices) : "";
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5" data-speak-bar>
       <IconButton
         label={speaking ? "Stop" : "Listen"}
         onClick={() => (speaking ? stop() : speak(screen || narration.prompt))}
