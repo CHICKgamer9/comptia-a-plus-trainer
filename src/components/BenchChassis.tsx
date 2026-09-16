@@ -19,7 +19,7 @@ export function BenchChassis({
   const shift = state.activeShift && !state.activeShift.endedAt ? state.activeShift : undefined;
   const cards = ownedCount(state);
   const slotted = slottedCount(state);
-  const packReady = Boolean(state.pendingPack);
+  const weeklyReady = Boolean(state.lastWeeklySpecialWeek !== undefined);
 
   return (
     <div className="rounded-3xl border border-accent/30 bg-gradient-to-br from-accent-dim/80 to-surface p-5">
@@ -28,8 +28,8 @@ export function BenchChassis({
           <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Bench</p>
           <p className="mt-1 text-lg font-semibold">Chassis</p>
           <p className="mt-1 text-xs text-muted">
-            {cards} cards · {slotted} slotted
-            {packReady ? " · Night Pack ready" : shift ? " · desk open" : " · desk closed"}
+            {cards} unique · {slotted} slotted
+            {shift ? " · desk open" : weeklyReady ? " · weekly claimed" : " · desk closed"}
           </p>
         </div>
         <ChassisSvg slotted={state.slotted} />

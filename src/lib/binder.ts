@@ -1,27 +1,34 @@
 import {
   benchCards,
+  cardPrintCode,
+  collectibleForDomain,
   CREST_BY_DOMAIN,
   fusionRecipes,
   getBenchCard,
-  rarityWeight,
-  subtitleFor,
+  isCrestCard,
+  isFusionOnly,
 } from "@/content/bench-cards";
 import type {
   BenchCard,
   BenchSlot,
   CardEarnSource,
-  CardRarity,
   CardType,
   SubjectId,
 } from "@/content/types";
 import { domains, getDomain } from "@/content/registry";
 import { isCore1, isCore2 } from "@/lib/exam";
 import type { BrainCat } from "@/content/brain/types";
-import { enqueueToasts, type ToastEvent } from "./toasts";
 
 export type CardLevel = 1 | 2 | 3;
 
 export type ReviewGrade = "again" | "hard" | "easy";
+
+export type WearKind = "scuff" | "coffee" | "date";
+
+export interface WearMark {
+  kind: WearKind;
+  at: number;
+}
 
 export interface OwnedCard {
   cardId: string;
@@ -34,6 +41,10 @@ export interface OwnedCard {
   dueAt?: number;
   ease?: number;
   reps?: number;
+  serial?: string;
+  prints?: number;
+  wear?: WearMark[];
+  fieldNote?: string;
 }
 
 export interface DeskShift {
@@ -48,10 +59,21 @@ export interface DeskShift {
   tags: string[];
 }
 
+/** Legacy night-pack shape. Kept so old saves parse; no longer awarded as gacha. */
 export interface NightPack {
   cardIds: string[];
   at: number;
   weakTag: string;
+}
+
+export interface PendingPrint {
+  cardId: string;
+  isNew: boolean;
+  leveled: boolean;
+  dust: boolean;
+  source: CardEarnSource;
+  serial?: string;
+  printIndex: number;
 }
 
 export interface BenchState {
@@ -63,6 +85,9 @@ export interface BenchState {
   activeShift?: DeskShift;
   shifts: DeskShift[];
   pendingPack?: NightPack;
+  pendingPrints?: PendingPrint[];
+  seenCardIds?: string[];
+  lastWeeklySpecialWeek?: string;
 }
 
 export const emptyBench = (): BenchState => ({
@@ -72,13 +97,33 @@ export const emptyBench = (): BenchState => ({
   gotchaConcepts: [],
   crests: [],
   shifts: [],
+  pendingPrints: [],
+  seenCardIds: [],
 });
+
+function hydrateOwned(row: OwnedCard): OwnedCard {
+  const card = getBenchCard(row.cardId);
+  const first = row.firstEarnedAt || Date.now();
+  const prints = row.prints ?? row.copies ?? 1;
+  return {
+    ...row,
+    copies: row.copies || 1,
+    level: row.level || 1,
+    firstEarnedAt: first,
+    prints,
+    serial: row.serial ?? (card ? makeSerial(card, first, 1) : undefined),
+    wear: Array.isArray(row.wear) ? row.wear : [],
+    fieldNote: typeof row.fieldNote === "string" ? row.fieldNote : undefined,
+  };
+}
 
 export function parseBench(raw: unknown): BenchState {
   if (!raw || typeof raw !== "object") return emptyBench();
   const parsed = raw as Partial<BenchState>;
   const owned = Array.isArray(parsed.owned)
-    ? parsed.owned.filter((row): row is OwnedCard => Boolean(row && row.cardId))
+    ? parsed.owned
+        .filter((row): row is OwnedCard => Boolean(row && row.cardId))
+        .map(hydrateOwned)
     : [];
   const loadout = Array.isArray(parsed.loadout)
     ? ([parsed.loadout[0], parsed.loadout[1], parsed.loadout[2]] as BenchState["loadout"])
@@ -92,35 +137,62 @@ export function parseBench(raw: unknown): BenchState {
     crests: Array.isArray(parsed.crests) ? parsed.crests : [],
     activeShift: parsed.activeShift,
     shifts: Array.isArray(parsed.shifts) ? parsed.shifts : [],
-    pendingPack: parsed.pendingPack,
+    pendingPack: undefined,
+    pendingPrints: Array.isArray(parsed.pendingPrints) ? parsed.pendingPrints : [],
+    seenCardIds: Array.isArray(parsed.seenCardIds) ? parsed.seenCardIds : [],
+    lastWeeklySpecialWeek:
+      typeof parsed.lastWeeklySpecialWeek === "string" ? parsed.lastWeeklySpecialWeek : undefined,
   };
 }
 
 export interface DropResult {
   bench: BenchState;
-  awarded: { card: BenchCard; isNew: boolean; leveled: boolean; source: CardEarnSource }[];
+  awarded: {
+    card: BenchCard;
+    isNew: boolean;
+    leveled: boolean;
+    source: CardEarnSource;
+    dust: boolean;
+    serial?: string;
+    printIndex: number;
+  }[];
 }
 
 function ownedIndex(bench: BenchState, cardId: string) {
   return bench.owned.findIndex((row) => row.cardId === cardId);
 }
 
-/** 1st copy owns the card. 2nd is dust (copies=2). 3rd upgrades level and resets copies to 1. Never junk. */
+export function formatStampDate(at: number) {
+  const d = new Date(at);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}.${m}.${day}`;
+}
+
+export function makeSerial(card: BenchCard, at: number, printIndex: number) {
+  const code = cardPrintCode(card);
+  return `TB-${code}-${formatStampDate(at)}-#${String(printIndex).padStart(4, "0")}`;
+}
+
+/** 1st copy owns the card. Later prints are dust on that unique. Never junk. */
 export function addCopy(
   bench: BenchState,
   cardId: string,
   source: CardEarnSource,
   gotchaFrom?: string,
-): { bench: BenchState; isNew: boolean; leveled: boolean } {
+): { bench: BenchState; isNew: boolean; leveled: boolean; serial?: string; printIndex: number } {
   const card = getBenchCard(cardId);
-  if (!card) return { bench, isNew: false, leveled: false };
+  if (!card) return { bench, isNew: false, leveled: false, printIndex: 0 };
   const next: BenchState = {
     ...bench,
     owned: bench.owned.map((row) => ({ ...row })),
+    seenCardIds: Array.from(new Set([...(bench.seenCardIds ?? []), cardId])),
   };
   const index = ownedIndex(next, cardId);
   const now = Date.now();
   if (index < 0) {
+    const serial = makeSerial(card, now, 1);
     next.owned = [
       ...next.owned,
       {
@@ -133,24 +205,39 @@ export function addCopy(
         dueAt: now,
         ease: 2.5,
         reps: 0,
+        serial,
+        prints: 1,
+        wear: [],
       },
     ];
     noteShiftCard(next, cardId);
-    return { bench: next, isNew: true, leveled: false };
+    return { bench: next, isNew: true, leveled: false, serial, printIndex: 1 };
   }
   const row = next.owned[index];
+  row.prints = (row.prints ?? row.copies) + 1;
+  row.source = source;
   if (row.copies === 1) {
     row.copies = 2;
-    row.source = source;
     noteShiftCard(next, cardId);
-    return { bench: next, isNew: false, leveled: false };
+    return {
+      bench: next,
+      isNew: false,
+      leveled: false,
+      serial: makeSerial(card, now, row.prints),
+      printIndex: row.prints,
+    };
   }
   row.copies = 1;
   const prevLevel = row.level;
   row.level = Math.min(3, (row.level + 1) as CardLevel) as CardLevel;
-  row.source = source;
   noteShiftCard(next, cardId);
-  return { bench: next, isNew: false, leveled: row.level > prevLevel };
+  return {
+    bench: next,
+    isNew: false,
+    leveled: row.level > prevLevel,
+    serial: makeSerial(card, now, row.prints),
+    printIndex: row.prints,
+  };
 }
 
 function noteShiftCard(bench: BenchState, cardId: string) {
@@ -167,21 +254,6 @@ function noteShiftCard(bench: BenchState, cardId: string) {
       : [...shift.cardsEarned, cardId],
     tags: [...tags],
   };
-}
-
-function roll(chance: number) {
-  return Math.random() < chance;
-}
-
-function pickWeighted(cards: BenchCard[], rarities: CardRarity[]) {
-  const pool = cards.filter((card) => rarities.includes(card.rarity));
-  if (!pool.length) return cards[Math.floor(Math.random() * cards.length)];
-  const weighted: BenchCard[] = [];
-  for (const card of pool) {
-    const w = Math.max(1, rarityWeight(card.rarity));
-    for (let i = 0; i < w; i += 1) weighted.push(card);
-  }
-  return weighted[Math.floor(Math.random() * weighted.length)];
 }
 
 export function tagsForDomain(domainId?: string, subject?: SubjectId): string[] {
@@ -233,7 +305,7 @@ function matchingCards(tags: string[], types?: CardType[]) {
   ]);
   const specific = lower.filter((tag) => !subjects.has(tag));
   const candidates = benchCards.filter((card) => {
-    if (card.type === "crest") return false;
+    if (isCrestCard(card) || isFusionOnly(card)) return false;
     if (types && !types.includes(card.type)) return false;
     return true;
   });
@@ -246,6 +318,11 @@ function matchingCards(tags: string[], types?: CardType[]) {
   );
 }
 
+function pickDeterministic(cards: BenchCard[], seed: string) {
+  if (!cards.length) return undefined;
+  return cards[hash(seed) % cards.length];
+}
+
 function award(
   bench: BenchState,
   cardId: string,
@@ -256,10 +333,19 @@ function award(
   const card = getBenchCard(cardId);
   if (!card) return bench;
   const result = addCopy(bench, cardId, source, gotchaFrom);
-  awarded.push({ card, isNew: result.isNew, leveled: result.leveled, source });
+  awarded.push({
+    card,
+    isNew: result.isNew,
+    leveled: result.leveled,
+    source,
+    dust: !result.isNew,
+    serial: result.serial,
+    printIndex: result.printIndex,
+  });
   return result.bench;
 }
 
+/** Correct decide prints one ticket. Skip / wrong / try = no card. Same concept → same card. */
 export function dropFromPath(
   bench: BenchState,
   input: {
@@ -274,35 +360,18 @@ export function dropFromPath(
 ): DropResult {
   const awarded: DropResult["awarded"] = [];
   let next = { ...bench, owned: [...bench.owned] };
-  if (input.skipped) return { bench: next, awarded };
+  if (input.skipped || !input.correct) return { bench: next, awarded };
   if (input.cardId) {
-    if (input.correct) next = award(next, input.cardId, "path", awarded);
+    next = award(next, input.cardId, "path", awarded);
     return { bench: next, awarded };
   }
-  const starterDrop = Boolean(input.domainId?.endsWith("-start"));
-  if (!input.correct) {
-    if (!next.gotchaConcepts.includes(input.conceptId)) {
-      const gotchas = matchingCards(tagsForDomain(input.domainId, input.subject), ["gotcha"]);
-      const pick = gotchas[Math.abs(hash(input.conceptId)) % Math.max(1, gotchas.length)] ?? getBenchCard("k-usbc-charge-only");
-      if (pick) {
-        next = award(next, pick.id, "gotcha", awarded, input.conceptId);
-        next.gotchaConcepts = [...next.gotchaConcepts, input.conceptId];
-      }
-    }
-    return { bench: next, awarded };
-  }
-  if (!starterDrop && !roll(0.6)) return { bench: next, awarded };
-  const pool = matchingCards(tagsForDomain(input.domainId, input.subject), [
-    "component",
-    "symptom",
-    "tool",
-    "procedure",
-    "glue",
-  ]);
-  const pick = pickWeighted(pool.length ? pool : benchCards.filter((c) => c.type !== "crest" && c.type !== "gotcha"), [
-    "common",
-    "uncommon",
-  ]);
+  const seed = `${input.domainId ?? "path"}:${input.conceptId}`;
+  const tags = tagsForDomain(input.domainId, input.subject);
+  const pool = matchingCards(tags, ["component", "symptom", "tool", "procedure"]);
+  const fallback = benchCards.filter(
+    (card) => !isCrestCard(card) && !isFusionOnly(card) && card.type !== "gotcha",
+  );
+  const pick = pickDeterministic(pool.length ? pool : fallback, seed);
   if (pick) next = award(next, pick.id, "path", awarded);
   return { bench: next, awarded };
 }
@@ -314,19 +383,19 @@ export function dropFromBrain(
   const awarded: DropResult["awarded"] = [];
   let next = { ...bench, owned: [...bench.owned] };
   if (input.skipped || !input.correct) return { bench: next, awarded };
-  if (!roll(0.4)) return { bench: next, awarded };
-  const pool = matchingCards(tagsForBrain(input.cat), ["glue", "component", "procedure", "tool"]);
-  const pick = pickWeighted(pool.length ? pool : benchCards.filter((c) => c.type === "glue" || c.type === "component"), [
-    "common",
-    "uncommon",
-  ]);
+  const seed = `brain:${input.cat ?? "logic"}`;
+  const pool = matchingCards(tagsForBrain(input.cat), ["component", "procedure", "tool"]);
+  const pick = pickDeterministic(
+    pool.length ? pool : benchCards.filter((card) => !isCrestCard(card) && !isFusionOnly(card)),
+    seed,
+  );
   if (pick) next = award(next, pick.id, "brain", awarded);
   return { bench: next, awarded };
 }
 
 export function dropFromLab(
   bench: BenchState,
-  input: { score: number; total: number; domainIds?: string[]; theme?: string },
+  input: { score: number; total: number; domainIds?: string[]; theme?: string; ticketId?: string },
 ): DropResult {
   const awarded: DropResult["awarded"] = [];
   let next = { ...bench, owned: [...bench.owned] };
@@ -335,63 +404,59 @@ export function dropFromLab(
     input.theme ?? "hardware",
     "core1",
   ];
-  const guaranteed = matchingCards(tags, ["symptom", "procedure"]);
-  const first = pickWeighted(guaranteed.length ? guaranteed : benchCards.filter((c) => c.type === "symptom" || c.type === "procedure"), [
-    "common",
-    "uncommon",
-    "rare",
-  ]);
-  if (first) next = award(next, first.id, "lab", awarded);
-  if (roll(0.3)) {
-    const tools = matchingCards(tags, ["tool"]);
-    const tool = pickWeighted(tools.length ? tools : benchCards.filter((c) => c.type === "tool"), [
-      "common",
-      "uncommon",
-      "rare",
-    ]);
-    if (tool) next = award(next, tool.id, "lab", awarded);
-  }
+  const pool = matchingCards(tags, ["symptom", "procedure", "tool", "component"]);
+  const seed = `lab:${input.ticketId ?? input.theme ?? "ticket"}:${input.domainIds?.join(",") ?? ""}`;
+  const pick = pickDeterministic(
+    pool.length ? pool : benchCards.filter((card) => !isCrestCard(card) && !isFusionOnly(card)),
+    seed,
+  );
+  if (pick) next = award(next, pick.id, "lab", awarded);
   return { bench: next, awarded };
+}
+
+export function isDomainSheetFull(bench: BenchState, domainId: string) {
+  const sheet = collectibleForDomain(domainId);
+  if (!sheet.length) return false;
+  return sheet.every((card) => bench.owned.some((row) => row.cardId === card.id));
 }
 
 export function maybeAwardCrest(
   bench: BenchState,
-  input: { completedLessons: string[]; quizScores: Record<string, { score: number; total: number }> },
+  _input?: { completedLessons: string[]; quizScores: Record<string, { score: number; total: number }> },
 ): DropResult {
   const awarded: DropResult["awarded"] = [];
   let next = { ...bench, owned: [...bench.owned] };
+  void _input;
   for (const [domainId, cardId] of Object.entries(CREST_BY_DOMAIN)) {
     if (next.crests.includes(domainId)) continue;
-    const domain = getDomain(domainId);
-    if (!domain) continue;
-    const lessonDone = input.completedLessons.includes(domain.lessonId);
-    const quiz = input.quizScores[domain.quizId];
-    const quizBar = quiz && quiz.total > 0 && quiz.score / quiz.total >= 0.8;
-    if (lessonDone && quizBar) {
-      next = award(next, cardId, "path", awarded);
-      next.crests = [...next.crests, domainId];
-    }
+    if (!isDomainSheetFull(next, domainId)) continue;
+    next = award(next, cardId, "path", awarded);
+    next.crests = [...next.crests, domainId];
   }
   return { bench: next, awarded };
 }
 
-export function toastForAwards(awarded: DropResult["awarded"]): ToastEvent[] {
-  return awarded.map((row, index) => ({
-    id: `card-${row.card.id}-${Date.now()}-${index}`,
-    kind: "card" as const,
-    title: row.isNew ? row.card.title : row.leveled ? `${row.card.title} · level ${row.leveled ? "up" : ""}` : `${row.card.title} · extra copy`,
-    body: row.source === "gotcha"
-      ? `Gotcha. ${subtitleFor(row.card, 1)} Tap it in the Binder to replay the bite.`
-      : subtitleFor(row.card, 1),
-    cardId: row.card.id,
-    rarity: row.card.rarity,
-    cardType: row.card.type,
-  }));
+export function applyAwards(bench: BenchState, drop: DropResult) {
+  if (!drop.awarded.length) return drop.bench;
+  const pending = [...(drop.bench.pendingPrints ?? [])];
+  for (const row of drop.awarded) {
+    pending.push({
+      cardId: row.card.id,
+      isNew: row.isNew,
+      leveled: row.leveled,
+      dust: row.dust,
+      source: row.source,
+      serial: row.serial,
+      printIndex: row.printIndex,
+    });
+  }
+  return { ...drop.bench, pendingPrints: pending };
 }
 
-export function applyAwards(bench: BenchState, drop: DropResult, silent = false) {
-  if (!silent && drop.awarded.length) enqueueToasts(toastForAwards(drop.awarded));
-  return drop.bench;
+export function acknowledgePrint(bench: BenchState): BenchState {
+  const pending = bench.pendingPrints ?? [];
+  if (!pending.length) return bench;
+  return { ...bench, pendingPrints: pending.slice(1) };
 }
 
 export function startShift(bench: BenchState, lengthMin: 8 | 15 | 25, xp: number): BenchState {
@@ -411,24 +476,16 @@ export function startShift(bench: BenchState, lengthMin: 8 | 15 | 25, xp: number
   };
 }
 
-function weakTag(bench: BenchState, completedLessons: string[]): string {
-  const counts = new Map<string, number>();
-  for (const domain of domains.filter((item) => item.exam)) {
-    const done = completedLessons.includes(domain.lessonId) ? 1 : 0;
-    counts.set(domain.id, done);
-  }
-  let worst = "mobile-devices";
-  let worstScore = Infinity;
-  for (const [id, score] of counts) {
-    if (score < worstScore) {
-      worst = id;
-      worstScore = score;
-    }
-  }
-  void bench;
-  return worst;
+export function weekKey(at = Date.now()) {
+  const d = new Date(at);
+  const utc = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  const day = new Date(utc).getUTCDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const monday = new Date(utc + mondayOffset * 86400000);
+  return `${monday.getUTCFullYear()}.${String(monday.getUTCMonth() + 1).padStart(2, "0")}.${String(monday.getUTCDate()).padStart(2, "0")}`;
 }
 
+/** Desk close no longer rolls a Night Pack. Shift history still stamps. */
 export function closeShift(
   bench: BenchState,
   input: { xp: number; completedLessons: string[]; early?: boolean },
@@ -445,88 +502,52 @@ export function closeShift(
     endedAt: Date.now(),
     xpEarned,
     early: isEarly,
+    packOpened: true,
   };
-  const weak = weakTag(bench, input.completedLessons);
-  let packSize = 3;
-  if (isEarly) {
-    if (closed.cardsEarned.length < 1) {
-      return {
-        ...bench,
-        activeShift: undefined,
-        shifts: [closed, ...bench.shifts].slice(0, 12),
-        pendingPack: undefined,
-      };
-    }
-    packSize = 2;
-  }
-  const packIds = buildNightPack(bench, closed, weak, packSize);
   return {
     ...bench,
     activeShift: undefined,
     shifts: [closed, ...bench.shifts].slice(0, 12),
-    pendingPack: { cardIds: packIds, at: Date.now(), weakTag: weak },
+    pendingPack: undefined,
   };
 }
 
-function buildNightPack(bench: BenchState, shift: DeskShift, weak: string, size: number): string[] {
-  const ids: string[] = [];
-  const weakCards = matchingCards(tagsForDomain(weak, "tech"), ["component", "symptom", "procedure", "glue"]);
-  if (shift.cardsEarned.length === 0) {
-    const weakUncommon = (weakCards.length ? weakCards : benchCards).filter(
-      (card) => card.rarity === "uncommon" && card.type !== "crest" && card.type !== "gotcha",
-    );
-    const weakPick =
-      weakUncommon[Math.floor(Math.random() * Math.max(1, weakUncommon.length))] ??
-      pickWeighted(weakCards.length ? weakCards : benchCards, ["uncommon"]);
-    if (weakPick) ids.push(weakPick.id);
-    const commons = benchCards.filter(
-      (card) => card.rarity === "common" && card.type !== "crest" && card.type !== "gotcha",
-    );
-    while (ids.length < size) {
-      const pick = commons[Math.floor(Math.random() * commons.length)];
-      if (!pick) break;
-      if (!ids.includes(pick.id)) ids.push(pick.id);
-    }
-    return ids.slice(0, size);
-  }
-  const weakPick = pickWeighted(weakCards.length ? weakCards : benchCards.filter((c) => c.rarity === "uncommon"), [
-    "uncommon",
-    "rare",
-    "common",
+export function weeklySpecialCard(
+  bench: BenchState,
+  completedLessons: string[],
+  lastSubject?: SubjectId,
+  at = Date.now(),
+) {
+  const week = weekKey(at);
+  if (bench.lastWeeklySpecialWeek === week) return undefined;
+  const rotting = rottingDomain(completedLessons, lastSubject);
+  const pool = matchingCards(tagsForDomain(rotting.id, rotting.subject), [
+    "component",
+    "symptom",
+    "procedure",
+    "gotcha",
   ]);
-  if (weakPick) ids.push(weakPick.id);
-  const sessionTags = new Set([...shift.tags, ...tagsForDomain(weak, "tech")]);
-  const sessionPool = benchCards.filter(
-    (card) =>
-      shift.cardsEarned.includes(card.id) || card.tags.some((tag) => sessionTags.has(tag)),
-  );
-  while (ids.length < size) {
-    const pick = pickWeighted(sessionPool.length ? sessionPool : benchCards.filter((c) => c.type !== "crest"), [
-      "common",
-      "uncommon",
-      "rare",
-    ]);
-    if (!pick) break;
-    if (!ids.includes(pick.id)) ids.push(pick.id);
-    else if (ids.length < size) ids.push(pick.id);
-    else break;
-  }
-  return ids.slice(0, size);
+  const pick = pickDeterministic(pool.length ? pool : matchingCards(["tech"], ["component"]), `${rotting.id}:${week}`);
+  if (!pick) return undefined;
+  return { card: pick, domain: rotting, week };
 }
 
-export function openNightPack(bench: BenchState): DropResult {
-  const pack = bench.pendingPack;
+export function claimWeeklySpecial(
+  bench: BenchState,
+  completedLessons: string[],
+  lastSubject?: SubjectId,
+): DropResult {
+  const special = weeklySpecialCard(bench, completedLessons, lastSubject);
   const awarded: DropResult["awarded"] = [];
-  if (!pack) return { bench, awarded };
-  let next: BenchState = { ...bench, owned: [...bench.owned], pendingPack: undefined };
-  for (const id of pack.cardIds) {
-    next = award(next, id, "pack", awarded);
-  }
-  const last = next.shifts[0];
-  if (last) {
-    next.shifts = [{ ...last, packOpened: true }, ...next.shifts.slice(1)];
-  }
+  if (!special) return { bench, awarded };
+  let next = award({ ...bench, owned: [...bench.owned] }, special.card.id, "weekly", awarded);
+  next = { ...next, lastWeeklySpecialWeek: special.week };
   return { bench: next, awarded };
+}
+
+/** Legacy no-op: old night packs are not opened as loot. */
+export function openNightPack(bench: BenchState): DropResult {
+  return { bench: { ...bench, pendingPack: undefined }, awarded: [] };
 }
 
 export function slotCard(bench: BenchState, slot: BenchSlot, cardId: string | undefined): BenchState {
@@ -553,7 +574,7 @@ export function setLoadout(bench: BenchState, loadout: BenchState["loadout"]): B
   return { ...bench, loadout: cleaned };
 }
 
-/** Consume extra copies only. Never drop a unique below 1. */
+/** Glue prints only from a named fusion recipe. Spends extra copies; unique stays. */
 export function fuse(bench: BenchState, recipeId: string): DropResult {
   const awarded: DropResult["awarded"] = [];
   const recipe = fusionRecipes.find((row) => row.id === recipeId);
@@ -570,7 +591,15 @@ export function fuse(bench: BenchState, recipeId: string): DropResult {
   const result = addCopy(next, recipe.outputId, "fuse");
   const card = getBenchCard(recipe.outputId);
   if (card) {
-    awarded.push({ card, isNew: result.isNew, leveled: result.leveled, source: "fuse" });
+    awarded.push({
+      card,
+      isNew: result.isNew,
+      leveled: result.leveled,
+      source: "fuse",
+      dust: !result.isNew,
+      serial: result.serial,
+      printIndex: result.printIndex,
+    });
   }
   return { bench: result.bench, awarded };
 }
@@ -627,9 +656,49 @@ const REVIEW_DELAY: Record<ReviewGrade, number> = {
   easy: 3 * 24 * 60 * 60 * 1000,
 };
 
+const WEAR_CYCLE: WearKind[] = ["scuff", "coffee", "date"];
+
+export function addWear(bench: BenchState, cardId: string): BenchState {
+  return {
+    ...bench,
+    owned: bench.owned.map((row) => {
+      if (row.cardId !== cardId) return row;
+      const wear = [...(row.wear ?? [])];
+      const kind = WEAR_CYCLE[wear.length % WEAR_CYCLE.length];
+      wear.push({ kind, at: Date.now() });
+      return { ...row, wear: wear.slice(-8), lastUsedAt: Date.now() };
+    }),
+  };
+}
+
+export function addWearMany(bench: BenchState, cardIds: string[]): BenchState {
+  return cardIds.reduce((state, id) => addWear(state, id), bench);
+}
+
+export function setFieldNote(bench: BenchState, cardId: string, note: string): BenchState {
+  const trimmed = note.slice(0, 80);
+  return {
+    ...bench,
+    owned: bench.owned.map((row) => (row.cardId === cardId ? { ...row, fieldNote: trimmed } : row)),
+  };
+}
+
+export function markSeen(bench: BenchState, cardIds: string[]): BenchState {
+  const seen = new Set(bench.seenCardIds ?? []);
+  let changed = false;
+  for (const id of cardIds) {
+    if (!seen.has(id)) {
+      seen.add(id);
+      changed = true;
+    }
+  }
+  if (!changed) return bench;
+  return { ...bench, seenCardIds: [...seen] };
+}
+
 export function reviewCard(bench: BenchState, cardId: string, grade: ReviewGrade): BenchState {
   const now = Date.now();
-  return {
+  const reviewed: BenchState = {
     ...bench,
     owned: bench.owned.map((row) => {
       if (row.cardId !== cardId) return row;
@@ -648,6 +717,7 @@ export function reviewCard(bench: BenchState, cardId: string, grade: ReviewGrade
       };
     }),
   };
+  return addWear(reviewed, cardId);
 }
 
 export function dueLabel(dueAt: number | undefined, at = Date.now()) {
@@ -656,4 +726,8 @@ export function dueLabel(dueAt: number | undefined, at = Date.now()) {
   const days = Math.ceil((dueAt - at) / (24 * 60 * 60 * 1000));
   if (days <= 1) return "Due tomorrow";
   return `Due in ${days}d`;
+}
+
+export function toastForAwards() {
+  return [];
 }

@@ -337,7 +337,7 @@ export type CardType =
   | "crest"
   | "glue";
 
-export type CardRarity = "common" | "uncommon" | "rare" | "legendary";
+export type CardRarity = "common" | "uncommon" | "rare" | "crest" | "glue" | "legendary";
 
 export type BenchSlot =
   | "chassis"
@@ -351,7 +351,7 @@ export type BenchSlot =
   | "display"
   | "tool-wall";
 
-export type CardEarnSource = "path" | "brain" | "lab" | "pack" | "fuse" | "gotcha";
+export type CardEarnSource = "path" | "brain" | "lab" | "pack" | "fuse" | "gotcha" | "weekly";
 
 export interface BenchCard {
   id: string;
@@ -369,6 +369,15 @@ export interface BenchCard {
   slot?: BenchSlot;
   tags: string[];
   sheetId?: string;
+  /** Short stamp on the serial, e.g. USBCPD */
+  printCode?: string;
+  /** Two exam tells printed on the back. */
+  examTells?: [string, string];
+  seenIn?: {
+    lesson?: string;
+    ticket?: string;
+    fusion?: string;
+  };
 }
 
 export interface FusionRecipe {

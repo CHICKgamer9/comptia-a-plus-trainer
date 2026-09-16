@@ -125,14 +125,14 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 );
               })}
               {labOpen ? <TechLabChip active={pathname.startsWith("/lab")} /> : null}
+              <BinderChip active={pathname.startsWith("/binder")} />
               <DeskShiftChip />
               <StatusChip />
             </nav>
-            {labOpen ? (
-              <div className="md:hidden">
-                <TechLabChip active={pathname.startsWith("/lab")} />
-              </div>
-            ) : null}
+            <div className="flex items-center gap-1 md:hidden">
+              {labOpen ? <TechLabChip active={pathname.startsWith("/lab")} /> : null}
+              <BinderChip active={pathname.startsWith("/binder")} />
+            </div>
           </div>
         </div>
       </header>
@@ -178,6 +178,23 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       </nav>
       )}
     </div>
+  );
+}
+
+function BinderChip({ active }: { active: boolean }) {
+  return (
+    <Link
+      href="/binder"
+      title="Binder — printed tickets"
+      className={cn(
+        "rounded-full border px-2.5 py-1 text-[11px] font-medium",
+        active
+          ? "border-accent/40 bg-accent-dim text-accent"
+          : "border-border bg-surface text-muted hover:text-foreground",
+      )}
+    >
+      Binder
+    </Link>
   );
 }
 

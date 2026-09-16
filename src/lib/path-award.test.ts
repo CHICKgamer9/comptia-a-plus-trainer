@@ -26,6 +26,17 @@ describe("path card award contract", () => {
     expect(next.bench?.owned ?? []).toEqual([]);
   });
 
+  it("drops nothing on an incorrect decide", () => {
+    const next = recordQuizAnswerIn(emptyProgress(), "path-tech-start-check", false, {
+      domainId: "tech-start",
+      subject: "tech",
+      conceptId: "tech-start-check",
+      cardId: "c-li-ion",
+      awardCard: true,
+    });
+    expect(next.bench?.owned ?? []).toEqual([]);
+  });
+
   it("drops nothing on a try beat", () => {
     const next = recordQuizAnswerIn(emptyProgress(), "path-tech-start-try", true, {
       domainId: "tech-start",
