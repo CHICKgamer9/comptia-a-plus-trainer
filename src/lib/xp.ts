@@ -23,6 +23,8 @@ export const XP = {
   brainCorrect: 10,
   brainWrong: 2,
   brainSkip: -2,
+  brainCrossword: 40,
+  brainDayComplete: 80,
   lingoCorrectFirst: 10,
   lingoCorrectRepeat: 4,
   lingoWrong: 2,
