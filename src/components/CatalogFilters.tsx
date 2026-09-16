@@ -97,7 +97,7 @@ export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Do
   return (
     <>
       <FilterRow value={filter} onChange={setFilter} />
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-3">
         {list.map((quiz) => {
           const domain = domainById[quiz.domainId];
           const best = quizBest(quiz.id);
@@ -105,22 +105,24 @@ export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Do
             <Link
               key={quiz.id}
               href={`/practice/${quiz.id}`}
-              className="rounded-2xl border border-border bg-surface p-5 hover:border-accent/40"
+              className="flex items-center gap-4 rounded-3xl border border-border bg-surface px-4 py-3 hover:border-accent/40"
             >
-              <div className="flex flex-wrap items-center gap-2">
-                {domain ? <ExamBadge exam={domain.exam} /> : null}
-                {best ? (
-                  <Badge tone={best.score / best.total >= 0.8 ? "ok" : "warn"}>
-                    Best {best.score}/{best.total}
-                  </Badge>
-                ) : (
-                  <Badge tone="muted">Not taken</Badge>
-                )}
-              </div>
-              <h2 className="mt-3 text-lg font-semibold">{quiz.title}</h2>
-              <p className="mt-2 text-sm text-muted">
-                {quiz.questions.length} questions · explanations after each answer
-              </p>
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-border text-sm font-semibold">
+                {domain?.number ?? "?"}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-semibold">{quiz.title}</span>
+                <span className="block text-xs text-muted">
+                  {quiz.questions.length} problems · practice or exam drill
+                </span>
+              </span>
+              {best ? (
+                <Badge tone={best.score / best.total >= 0.8 ? "ok" : "warn"}>
+                  {best.score}/{best.total}
+                </Badge>
+              ) : (
+                <Badge tone="muted">Start</Badge>
+              )}
             </Link>
           );
         })}

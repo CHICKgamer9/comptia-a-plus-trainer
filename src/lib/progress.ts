@@ -39,6 +39,7 @@ export interface ProgressState {
   lastQuizId?: string;
   lastScenarioId?: string;
   quizHistory?: Record<string, QuizResult[]>;
+  lessonCursor?: Record<string, number>;
   game?: GameState;
 }
 
@@ -59,6 +60,7 @@ export const emptyProgress = (): ProgressState => ({
   quizScores: {},
   scenarioScores: {},
   quizHistory: {},
+  lessonCursor: {},
   game: emptyGame(),
 });
 
@@ -80,6 +82,7 @@ export function parseProgress(raw: string): ProgressState {
       lastQuizId: parsed.lastQuizId,
       lastScenarioId: parsed.lastScenarioId,
       quizHistory: parsed.quizHistory ?? {},
+      lessonCursor: parsed.lessonCursor ?? {},
       game: parsed.game ? { ...emptyGame(), ...parsed.game } : undefined,
     };
     if (!base.game) {
@@ -194,6 +197,18 @@ function finalizeGame(prev: ProgressState, next: ProgressState): ProgressState {
   if (toasts.length) enqueueToasts(toasts);
   void prev;
   return next;
+}
+
+export function saveLessonCursorIn(
+  prev: ProgressState,
+  lessonId: string,
+  index: number,
+): ProgressState {
+  return {
+    ...prev,
+    lastLessonId: lessonId,
+    lessonCursor: { ...prev.lessonCursor, [lessonId]: index },
+  };
 }
 
 export function markLessonCompleteIn(prev: ProgressState, lessonId: string): ProgressState {

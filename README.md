@@ -1,8 +1,8 @@
 # TicketBench
 
-Independent study lab for **CompTIA A+ Core 1 (220-1101)** and **Core 2 (220-1102)**. Lessons in plain language, exam-style quizzes with explanations, and an **AI helpdesk lab** that writes a new ticket each run.
+Independent study lab for **CompTIA A+ Core 1 (220-1101)** and **Core 2 (220-1102)**. Lessons are **interactive paths** (one concept, then a try, then a short why), exam-style practice problems, and an **AI helpdesk lab** that writes a new ticket each run.
 
-This is **not** an official CompTIA product and is not affiliated with, endorsed by, or sponsored by CompTIA. CompTIA A+® is a registered trademark of CompTIA. AI tickets are study aids, not exam dumps.
+This is **not** an official CompTIA product and is not affiliated with, endorsed by, or sponsored by CompTIA **or Brilliant**. CompTIA A+® is a registered trademark of CompTIA. AI tickets are study aids, not exam dumps. The teaching style is inspired by bite-sized learn-by-doing platforms, not a copy of any commercial course.
 
 ## Run locally
 
@@ -37,10 +37,10 @@ Generation is rate-limited (8 requests / 10 minutes / IP) and the Generate butto
 
 ## What you can do
 
-- **Home** — XP / level / Sydney streak, badges, Core 1 / Core 2 / both readiness
-- **Learn** — one lesson per domain
-- **Quizzes** — 10 questions per domain; XP per answer (first correct pays more)
-- **Lab** — generate a ticket (Core 1/2, theme, difficulty, or surprise). Interactive gather → tools → cause → fix
+- **Home** — today’s path, Sydney streak, level, Core 1 / Core 2 readiness glance
+- **Learn** — nine domain paths; one beat per screen; you tap Continue (checks gate the next beat)
+- **Quizzes** — one problem at a time (practice feedback now, or exam drill)
+- **Lab** — generate a ticket (Core 1/2, theme, difficulty, or surprise). Investigate gather → tools → cause → fix
 - **Ready** (`/ready`) — full readiness rubric
 - **Sheets** — ports, RAID, Windows tools, etc.
 
@@ -76,7 +76,7 @@ If those gates fail, status caps at **Almost** even if the weighted % is high.
 
 ## Adding lessons / quizzes
 
-Typed modules under `src/content/` (domains, lessons, quizzes, cheatsheets). Lab tickets are **not** a static catalog — extend generation via `src/lib/ai-tickets.ts` and `src/lib/ticket-schema.ts`.
+Typed modules under `src/content/` (domains, lessons, quizzes, cheatsheets). Lessons are compiled into paths by `src/lib/lesson-path.ts` plus interactive checks in `src/content/path-checks.ts`. Lab tickets are **not** a static catalog — extend generation via `src/lib/ai-tickets.ts` and `src/lib/ticket-schema.ts`.
 
 ## Stack
 

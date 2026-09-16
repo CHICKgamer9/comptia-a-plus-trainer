@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s · TicketBench",
   },
   description:
-    "Independent CompTIA A+ (220-1101 / 220-1102) trainer: lessons, quizzes, and helpdesk-style troubleshooting tickets. Not affiliated with CompTIA.",
+    "Independent CompTIA A+ trainer: interactive lesson paths, quizzes, and AI helpdesk tickets. Not affiliated with CompTIA or Brilliant.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -15,8 +15,8 @@ export function ReadyView() {
     <div>
       <PageHeader
         kicker="Readiness"
-        title="Are you ready to sit?"
-        description="Honest gates, not vibes. Core 1 and Core 2 are scored separately. Exam-ready only when lessons, quizzes, lab volume, and coverage all clear the bar."
+        title="Honest gates, not vibes"
+        description="Core 1 and Core 2 are separate. Exam-ready only when the path, quizzes, lab volume, and coverage all clear the bar."
       />
       <RubricNote className="mb-6 max-w-3xl" />
       <div className="grid gap-4 lg:grid-cols-3">

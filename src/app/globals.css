@@ -35,7 +35,9 @@ html {
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgb(45 212 191 / 0.08), transparent 55%),
+    var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
@@ -51,18 +53,17 @@ body {
   background-size: 28px 28px;
 }
 
-.confetti-bit {
-  position: absolute;
-  top: -6px;
-  width: 6px;
-  height: 6px;
-  border-radius: 1px;
-  animation: confetti-fall 900ms ease-out forwards;
+.beat-in {
+  animation: beat-in 320ms ease-out;
 }
 
-@keyframes confetti-fall {
-  to {
-    transform: translateY(92px) rotate(120deg);
+@keyframes beat-in {
+  from {
     opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

@@ -4,38 +4,38 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Quiz } from "@/content/types";
 import { useProgress } from "./ProgressProvider";
-import { Badge, Card, ProgressBar } from "./ui";
+import { PlayerButton, PlayerFrame } from "./PlayerFrame";
+import { Badge } from "./ui";
 import { cn } from "@/lib/cn";
 
 export function QuizRunner({ quiz }: { quiz: Quiz }) {
   const { recordQuiz, recordQuizAnswer, quizBest } = useProgress();
+  const [examMode, setExamMode] = useState(false);
+  const [started, setStarted] = useState(false);
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
+  const [log, setLog] = useState<{ pick: number; ok: boolean }[]>([]);
   const best = quizBest(quiz.id);
-
   const question = quiz.questions[index];
   const locked = picked !== null;
   const correct = picked === question?.correctIndex;
-
   const letters = useMemo(() => ["A", "B", "C", "D", "E"], []);
 
   function choose(choiceIndex: number) {
     if (locked || !question) return;
     setPicked(choiceIndex);
-    recordQuizAnswer(question.id, choiceIndex === question.correctIndex);
-    if (choiceIndex === question.correctIndex) {
-      setScore((value) => value + 1);
-    }
+    const ok = choiceIndex === question.correctIndex;
+    recordQuizAnswer(question.id, ok);
+    if (ok) setScore((value) => value + 1);
+    setLog((value) => [...value, { pick: choiceIndex, ok }]);
   }
 
   function next() {
     if (!question) return;
-    const last = index >= quiz.questions.length - 1;
-    if (last) {
-      const finalScore = score + (picked === question.correctIndex ? 0 : 0);
-      recordQuiz(quiz.id, finalScore, quiz.questions.length);
+    if (index >= quiz.questions.length - 1) {
+      recordQuiz(quiz.id, score, quiz.questions.length);
       setDone(true);
       return;
     }
@@ -48,107 +48,144 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
     setPicked(null);
     setScore(0);
     setDone(false);
+    setLog([]);
+    setStarted(false);
+  }
+
+  if (!started) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <p className="text-lg leading-8 text-foreground/90">
+          One problem at a time. In practice you see why immediately. Exam drill hides the key until the end.
+        </p>
+        {best ? (
+          <p className="mt-2 text-sm text-muted">
+            Best on this device: {best.score}/{best.total}
+          </p>
+        ) : null}
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => {
+              setExamMode(false);
+              setStarted(true);
+            }}
+            className="rounded-3xl border border-accent/40 bg-accent-dim p-5 text-left hover:border-accent"
+          >
+            <p className="text-xs uppercase tracking-wider text-accent">Practice</p>
+            <p className="mt-2 font-semibold">Feedback after each try</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setExamMode(true);
+              setStarted(true);
+            }}
+            className="rounded-3xl border border-border bg-surface p-5 text-left hover:border-accent/40"
+          >
+            <p className="text-xs uppercase tracking-wider text-muted">Exam drill</p>
+            <p className="mt-2 font-semibold">Score at the end</p>
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (done) {
     const percent = Math.round((score / quiz.questions.length) * 100);
     return (
-      <Card className="space-y-4">
+      <PlayerFrame kicker={quiz.title} index={quiz.questions.length - 1} total={quiz.questions.length}>
         <Badge tone={percent >= 80 ? "ok" : percent >= 60 ? "warn" : "danger"}>
-            {percent >= 80 ? "Strong score" : percent >= 60 ? "Keep drilling" : "Review the lesson"}
+          {percent >= 80 ? "Strong set" : percent >= 60 ? "Keep going" : "Replay the path"}
         </Badge>
-        <h2 className="text-2xl font-semibold">
-          {score} / {quiz.questions.length} ({percent}%)
+        <h2 className="mt-4 text-3xl font-semibold">
+          {score}/{quiz.questions.length}
         </h2>
-        <p className="text-sm text-muted">
-          Best recorded on this device:{" "}
-          {best ? `${best.score}/${best.total}` : `${score}/${quiz.questions.length}`}.
-          Explanations stay with each item — retake whenever you want.
+        <p className="mt-2 text-sm text-muted">
+          Best recorded: {best ? `${best.score}/${best.total}` : `${score}/${quiz.questions.length}`}.
         </p>
-        <ProgressBar value={percent} />
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={restart}
-            className="rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-background"
-          >
-            Retake quiz
-          </button>
+        {examMode ? (
+          <ul className="mt-5 space-y-3">
+            {quiz.questions.map((item, itemIndex) => (
+              <li key={item.id} className="rounded-2xl border border-border px-4 py-3 text-sm leading-6">
+                <p className="font-medium">{item.prompt}</p>
+                <p className={cn("mt-1", log[itemIndex]?.ok ? "text-ok" : "text-danger")}>
+                  {log[itemIndex]?.ok ? "Correct" : "Miss"} · {item.explanation}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <div className="mt-6 grid gap-2 sm:grid-cols-2">
+          <PlayerButton onClick={restart}>Try again</PlayerButton>
           <Link
             href={`/learn/${quiz.domainId}`}
-            className="rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-surface-2"
+            className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
           >
-            Review the lesson
-          </Link>
-          <Link
-            href="/lab"
-            className="rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-surface-2"
-          >
-            Practice a ticket
+            Back to the path
           </Link>
         </div>
-      </Card>
+      </PlayerFrame>
     );
   }
 
   if (!question) {
-    return (
-      <Card>
-        <p className="text-muted">This quiz has no questions yet.</p>
-      </Card>
-    );
+    return <p className="text-muted">This set has no problems yet.</p>;
   }
 
+  const showWhy = locked && !examMode;
+
   return (
-    <div className="space-y-5">
-      <ProgressBar
-        value={((index + (locked ? 1 : 0)) / quiz.questions.length) * 100}
-        label={`Question ${index + 1} of ${quiz.questions.length}`}
-      />
-      <Card>
-        <p className="text-lg font-medium leading-8">{question.prompt}</p>
-        <div className="mt-5 space-y-2">
-          {question.choices.map((choice, choiceIndex) => {
-            const isPick = picked === choiceIndex;
-            const isAnswer = choiceIndex === question.correctIndex;
-            return (
-              <button
-                key={choice}
-                type="button"
-                onClick={() => choose(choiceIndex)}
-                disabled={locked}
-                className={cn(
-                  "flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left text-sm leading-6 transition-colors",
-                  !locked && "border-border hover:border-accent/50 hover:bg-surface-2",
-                  locked && isAnswer && "border-ok/50 bg-ok/10",
-                  locked && isPick && !isAnswer && "border-danger/50 bg-danger/10",
-                  locked && !isPick && !isAnswer && "border-border opacity-70",
-                )}
-              >
-                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-surface-2 font-mono text-xs">
-                  {letters[choiceIndex]}
-                </span>
-                <span>{choice}</span>
-              </button>
-            );
-          })}
-        </div>
-        {locked ? (
-          <div className="mt-5 space-y-3">
-            <p className={cn("text-sm font-medium", correct ? "text-ok" : "text-danger")}>
-              {correct ? "Correct" : "Not quite"}
-            </p>
-            <p className="text-sm leading-6 text-foreground/85">{question.explanation}</p>
+    <PlayerFrame
+      kicker={quiz.title}
+      index={index}
+      total={quiz.questions.length}
+      footer={
+        locked ? (
+          <PlayerButton onClick={next}>
+            {index === quiz.questions.length - 1 ? "See score" : "Continue"}
+          </PlayerButton>
+        ) : (
+          <p className="text-center text-xs text-muted">Pick one to lock it in.</p>
+        )
+      }
+    >
+      <p className="text-lg font-medium leading-8 sm:text-xl">{question.prompt}</p>
+      <div className="mt-5 space-y-2">
+        {question.choices.map((choice, choiceIndex) => {
+          const isPick = picked === choiceIndex;
+          const isAnswer = choiceIndex === question.correctIndex;
+          return (
             <button
+              key={choice}
               type="button"
-              onClick={next}
-              className="rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-background"
+              onClick={() => choose(choiceIndex)}
+              disabled={locked}
+              className={cn(
+                "flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm leading-6 transition",
+                !locked && "border-border hover:border-accent/50 hover:bg-surface-2",
+                locked && examMode && isPick && "border-accent/50 bg-accent-dim",
+                locked && !examMode && isAnswer && "border-ok/50 bg-ok/10",
+                locked && !examMode && isPick && !isAnswer && "border-danger/50 bg-danger/10",
+                locked && !examMode && !isPick && !isAnswer && "border-border opacity-60",
+              )}
             >
-              {index === quiz.questions.length - 1 ? "See score" : "Next question"}
+              <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-2 font-mono text-xs">
+                {letters[choiceIndex]}
+              </span>
+              <span>{choice}</span>
             </button>
-          </div>
-        ) : null}
-      </Card>
-    </div>
+          );
+        })}
+      </div>
+      {showWhy ? (
+        <div className="mt-5 rounded-2xl border border-border bg-surface-2/40 px-4 py-3">
+          <p className={cn("text-sm font-medium", correct ? "text-ok" : "text-danger")}>
+            {correct ? "Nice." : "Not quite."}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-foreground/85">{question.explanation}</p>
+        </div>
+      ) : null}
+    </PlayerFrame>
   );
 }

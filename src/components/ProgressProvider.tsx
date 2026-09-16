@@ -11,6 +11,7 @@ import {
   recordQuizAnswerIn,
   recordQuizIn,
   recordScenarioIn,
+  saveLessonCursorIn,
   saveProgress,
   subscribeProgress,
   type ProgressState,
@@ -25,6 +26,7 @@ interface ProgressContextValue {
   ready: boolean;
   progress: ProgressState;
   markLessonComplete: (lessonId: string) => void;
+  saveLessonCursor: (lessonId: string, index: number) => void;
   recordQuizAnswer: (questionId: string, correct: boolean) => void;
   recordQuiz: (quizId: string, score: number, total: number) => void;
   recordScenario: (scenarioId: string, result: ScenarioResult) => void;
@@ -64,6 +66,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     mutateProgress((prev) => markLessonCompleteIn(prev, lessonId));
   }, []);
 
+  const saveLessonCursor = useCallback((lessonId: string, index: number) => {
+    mutateProgress((prev) => saveLessonCursorIn(prev, lessonId, index));
+  }, []);
+
   const recordQuizAnswer = useCallback((questionId: string, correct: boolean) => {
     mutateProgress((prev) => recordQuizAnswerIn(prev, questionId, correct));
   }, []);
@@ -100,6 +106,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       ready: true,
       progress,
       markLessonComplete,
+      saveLessonCursor,
       recordQuizAnswer,
       recordQuiz,
       recordScenario,
@@ -125,6 +132,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   }, [
     progress,
     markLessonComplete,
+    saveLessonCursor,
     recordQuizAnswer,
     recordQuiz,
     recordScenario,

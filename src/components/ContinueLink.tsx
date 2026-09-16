@@ -4,14 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { domains, quizzes } from "@/content";
 import { useProgress } from "./ProgressProvider";
+import { nextDomain } from "./CoursePath";
 
 export function useContinueHref() {
   const { progress } = useProgress();
-
-  const nextLesson = domains.find(
-    (domain) => !progress.completedLessons.includes(domain.lessonId),
-  );
-  if (nextLesson) return `/learn/${nextLesson.id}`;
+  const upcoming = nextDomain(progress.completedLessons);
+  if (upcoming) return `/learn/${upcoming.id}`;
 
   const nextQuiz = quizzes.find((quiz) => !progress.quizScores[quiz.id]);
   if (nextQuiz) return `/practice/${nextQuiz.id}`;

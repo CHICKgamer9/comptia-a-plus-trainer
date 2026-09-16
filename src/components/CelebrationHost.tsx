@@ -8,7 +8,6 @@ import {
   getToastSnapshot,
   subscribeToasts,
 } from "@/lib/toasts";
-import { cn } from "@/lib/cn";
 
 export function CelebrationHost() {
   const toasts = useSyncExternalStore(
@@ -27,10 +26,9 @@ export function CelebrationHost() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex justify-center px-4 md:bottom-8">
       <div
-        className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-2xl border border-accent/30 bg-surface p-4 shadow-xl"
+        className="pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-3xl border border-accent/20 bg-surface/95 p-4 shadow-xl backdrop-blur"
         role="status"
       >
-        <ConfettiLite />
         <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
           {current.kind === "level" ? "Level" : "Badge"}
         </p>
@@ -40,36 +38,19 @@ export function CelebrationHost() {
           <button
             type="button"
             onClick={skip}
-            className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-background"
+            className="rounded-xl bg-accent px-3 py-1.5 text-xs font-medium text-background"
           >
-            Nice
+            Continue
           </button>
           <button
             type="button"
             onClick={() => dismissAllToasts()}
-            className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-foreground"
+            className="rounded-xl px-3 py-1.5 text-xs text-muted hover:text-foreground"
           >
-            Skip celebrations
+            Hide for now
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ConfettiLite() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      {Array.from({ length: 12 }).map((_, index) => (
-        <i
-          key={index}
-          className={cn("confetti-bit", index % 2 ? "bg-accent" : "bg-warn")}
-          style={{
-            left: `${8 + index * 7}%`,
-            animationDelay: `${index * 40}ms`,
-          }}
-        />
-      ))}
     </div>
   );
 }

@@ -94,11 +94,11 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
     .filter(Boolean) as Scenario[];
 
   return (
-    <div>
+    <div className="mx-auto max-w-xl">
       <PageHeader
         kicker="Lab"
-        title="Fresh tickets, not a canned pack"
-        description="Each run asks the model for a new A+ helpdesk scenario: gather info, pick tools, name the cause, apply the fix. Completions count toward XP and exam readiness."
+        title="A new ticket every run"
+        description="The model writes a four-beat investigation. You work it one move at a time. Completions feed XP and readiness."
       />
 
       {configured === false ? (
@@ -111,8 +111,9 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
         </Card>
       ) : null}
 
-      <Card className="mb-6">
-        <p className="text-xs uppercase tracking-wider text-muted">New ticket</p>
+      <Card className="mb-6 rounded-3xl p-6">
+        <p className="text-xs uppercase tracking-wider text-accent">Generate</p>
+        <p className="mt-1 text-lg font-semibold">What kind of puzzle?</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           <FilterSelect
             label="Exam"
@@ -156,7 +157,7 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
             disabled={busy}
             onClick={() => generate()}
             className={cn(
-              "rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-background",
+              "rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-background",
               busy && "opacity-60",
             )}
           >
@@ -166,15 +167,18 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
             type="button"
             disabled={busy}
             onClick={() => generate(true)}
-            className="rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-surface-2"
+            className="rounded-2xl border border-border px-5 py-3 text-sm hover:bg-surface-2"
           >
             Use practice stub
           </button>
         </div>
         {busy ? (
-          <p className="mt-3 text-sm text-muted">
-            Building gather → tools → cause → fix. This can take a few seconds.
-          </p>
+          <div className="mt-4 overflow-hidden rounded-2xl border border-accent/20 bg-accent-dim/30 px-4 py-3">
+            <p className="text-sm text-accent">Building gather → tools → cause → fix…</p>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-background/40">
+              <div className="h-full w-1/2 animate-pulse rounded-full bg-accent" />
+            </div>
+          </div>
         ) : null}
         {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
         {warning ? <p className="mt-3 text-sm text-warn">{warning}</p> : null}

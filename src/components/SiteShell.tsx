@@ -21,6 +21,10 @@ function isActive(pathname: string, href: string) {
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const player =
+    /^\/learn\/[^/]+$/.test(pathname) ||
+    /^\/practice\/[^/]+$/.test(pathname) ||
+    pathname.startsWith("/lab/t/");
 
   return (
     <div className="flex min-h-full flex-col">
@@ -60,15 +64,20 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-24 md:py-10 md:pb-10">
+      <main className={cn(
+        "mx-auto w-full flex-1 px-4 py-6 pb-24 md:pb-10",
+        player ? "max-w-3xl md:py-6" : "max-w-6xl md:py-10",
+      )}>
         {children}
       </main>
 
-      <footer className="border-t border-border pb-20 md:pb-0">
-        <div className="mx-auto max-w-6xl px-4 py-6">
-          <Disclaimer compact />
-        </div>
-      </footer>
+      {player ? null : (
+        <footer className="border-t border-border pb-20 md:pb-0">
+          <div className="mx-auto max-w-6xl px-4 py-6">
+            <Disclaimer compact />
+          </div>
+        </footer>
+      )}
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 backdrop-blur-xl md:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5 px-1 pb-[env(safe-area-inset-bottom)]">
