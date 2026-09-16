@@ -19,7 +19,7 @@ import {
   type ProgressState,
   type ScenarioResult,
 } from "@/lib/progress";
-import { domains, quizzes } from "@/content";
+import { domains } from "@/content/registry";
 import type { SubjectId } from "@/content/types";
 import { levelForXp } from "@/lib/xp";
 import { overallReadiness } from "@/lib/readiness";
@@ -84,8 +84,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const recordQuiz = useCallback((quizId: string, score: number, total: number) => {
-    const quiz = quizzes.find((item) => item.id === quizId);
-    const domain = quiz ? domains.find((item) => item.id === quiz.domainId) : undefined;
+    const domain = domains.find((item) => item.quizId === quizId);
     mutateProgress((prev) => {
       const next = recordQuizIn(prev, quizId, score, total);
       return domain ? setLastSubjectIn(next, domain.subject) : next;
@@ -118,7 +117,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       domains.some((domain) => domain.lessonId === id),
     ).length;
     const quizzesDone = Object.keys(progress.quizScores).filter((id) =>
-      quizzes.some((quiz) => quiz.id === id),
+      domains.some((domain) => domain.quizId === id),
     ).length;
     const scenariosDone = Object.keys(progress.scenarioScores).length;
     const xp = progress.game?.xp ?? 0;
@@ -142,7 +141,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         lessonsDone,
         lessonsTotal,
         quizzesDone,
-        quizzesTotal: quizzes.length,
+        quizzesTotal: domains.length,
         scenariosDone,
         percent: both.percent,
         xp,

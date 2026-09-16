@@ -1,4 +1,4 @@
-import { domains, quizzes } from "@/content";
+import { domains } from "@/content/registry";
 import type { ExamId, SubjectId } from "@/content/types";
 
 export interface BadgeDef {
@@ -163,7 +163,7 @@ export function unlockedBadgeIds(input: BadgeInput): string[] {
     core2.every((d) => input.completedLessons.includes(d.lessonId))) {
     ids.push("all-lessons");
   }
-  if (quizzes.some((quiz) => quizPct(quiz.id) >= 0.8)) ids.push("quiz-80");
+  if (domains.some((domain) => quizPct(domain.quizId) >= 0.8)) ids.push("quiz-80");
   if (allQuizzesAt("220-1101", 0.8)) ids.push("quiz-80-core1");
   if (allQuizzesAt("220-1102", 0.8)) ids.push("quiz-80-core2");
   if (input.streakCount >= 3) ids.push("streak-3");

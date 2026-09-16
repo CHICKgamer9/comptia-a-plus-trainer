@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { domains, getDomain, getLessonByDomain, isSubjectId } from "@/content";
+import { domains, getDomain, isSubjectId } from "@/content/registry";
+import { getLessonByDomain } from "@/content/lessons";
+import { PATH_CHECKS } from "@/content/path-checks";
 import { LessonView } from "@/components/LessonView";
 
 export function generateStaticParams() {
@@ -28,5 +30,5 @@ export default async function SubjectLessonPage({
   const lesson = getLessonByDomain(domainId);
   if (!domain || !lesson || domain.subject !== subject) notFound();
 
-  return <LessonView domain={domain} lesson={lesson} />;
+  return <LessonView domain={domain} lesson={lesson} checks={PATH_CHECKS[domainId] ?? []} />;
 }

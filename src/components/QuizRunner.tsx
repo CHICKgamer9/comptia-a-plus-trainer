@@ -7,7 +7,7 @@ import { useProgress } from "./ProgressProvider";
 import { PlayerButton, PlayerFrame } from "./PlayerFrame";
 import { Badge } from "./ui";
 import { cn } from "@/lib/cn";
-import { getDomain, pathHref } from "@/content";
+import { getDomain, pathHref } from "@/content/registry";
 import { joinSpeech } from "@/lib/speech";
 
 export function QuizRunner({ quiz }: { quiz: Quiz }) {

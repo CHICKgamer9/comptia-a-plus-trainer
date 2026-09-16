@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDomain, getQuiz, pathHref, quizzes } from "@/content";
+import { getDomain, pathHref } from "@/content/registry";
+import { getQuiz, quizzes } from "@/content/quizzes";
 import { QuizRunner } from "@/components/QuizRunner";
 
 export function generateStaticParams() {

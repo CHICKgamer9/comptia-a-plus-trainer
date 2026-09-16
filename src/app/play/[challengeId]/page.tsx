@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { challenges, getChallenge } from "@/content";
+import { challenges, getChallenge } from "@/content/challenges";
 import { ScenarioRunner } from "@/components/ScenarioRunner";
 
 export function generateStaticParams() {

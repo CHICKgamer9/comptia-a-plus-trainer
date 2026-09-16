@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "TicketBench · Tech, Maths, Science, History",
+    default: "TicketBench · Interactive paths",
     template: "%s · TicketBench",
   },
   description:
-    "Interactive paths for CompTIA A+, Maths, Science, and History. Quizzes, a helpdesk lab, and Listen/Auto-read. Not affiliated with CompTIA or Brilliant.",
+    "Interactive paths for CompTIA A+ and a shelf of school subjects. Quizzes, a helpdesk lab, and Listen/Auto-read. Not affiliated with CompTIA or Brilliant.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

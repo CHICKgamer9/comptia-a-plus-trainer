@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { domains, getSubject, pathHref } from "@/content";
+import { domains, getSubject, pathHref } from "@/content/registry";
 import type { Domain, ExamId, SubjectId } from "@/content/types";
 import { useProgress } from "./ProgressProvider";
 import { cn } from "@/lib/cn";

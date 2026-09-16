@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Disclaimer } from "./ui";
 import { StatusChip } from "./StatusChip";
-import { getSubject, isSubjectId } from "@/content";
+import { getSubject, isSubjectId } from "@/content/registry";
 
 const links = [
   { href: "/", label: "Home", icon: HomeIcon },
@@ -34,7 +34,7 @@ function subjectFromPath(pathname: string) {
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const player =
-    /^\/learn\/(tech|maths|science|history)\/[^/]+$/.test(pathname) ||
+    /^\/learn\/[^/]+\/[^/]+$/.test(pathname) ||
     /^\/practice\/[^/]+$/.test(pathname) ||
     /^\/play\/[^/]+$/.test(pathname) ||
     pathname.startsWith("/lab/t/");
@@ -61,7 +61,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             <span className="leading-tight">
               <span className="block text-sm font-semibold">TicketBench</span>
               <span className="hidden text-[11px] text-muted sm:block">
-                Tech · Maths · Science · History
+                Tech · many subjects
               </span>
             </span>
           </Link>

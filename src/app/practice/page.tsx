@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { domains, quizzes } from "@/content";
+import { domains } from "@/content/registry";
+import { quizzes } from "@/content/quizzes";
 import { QuizCatalog } from "@/components/CatalogFilters";
 
 export const metadata: Metadata = {
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function PracticePage() {
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-3xl">
       <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
         Practice
       </p>
@@ -17,7 +18,15 @@ export default function PracticePage() {
         Practice mode explains immediately. Exam drill waits until the end. Same questions, less
         form-filling.
       </p>
-      <QuizCatalog quizzes={quizzes} domains={domains} />
+      <QuizCatalog
+        quizzes={quizzes.map((quiz) => ({
+          id: quiz.id,
+          title: quiz.title,
+          domainId: quiz.domainId,
+          questionCount: quiz.questions.length,
+        }))}
+        domains={domains}
+      />
     </div>
   );
 }

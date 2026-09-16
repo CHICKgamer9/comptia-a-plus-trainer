@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cheatsheets } from "@/content";
+import { cheatsheets } from "@/content/cheatsheets";
 import { PageHeader } from "@/components/ui";
 
 export const metadata: Metadata = {

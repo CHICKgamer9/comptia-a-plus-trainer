@@ -1,3 +1,4 @@
+import { generatedQuizzes } from "../factory/generated-quizzes";
 import type { Quiz } from "../types";
 import { core1Quizzes } from "./core1";
 import { core2Quizzes } from "./core2";
@@ -11,6 +12,7 @@ export const quizzes: Quiz[] = [
   ...mathsQuizzes,
   ...scienceQuizzes,
   ...historyQuizzes,
+  ...generatedQuizzes,
 ];
 
 export function getQuiz(id: string) {
