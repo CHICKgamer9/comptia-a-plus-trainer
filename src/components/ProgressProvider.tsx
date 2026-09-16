@@ -8,6 +8,7 @@ import {
   markLessonCompleteIn,
   mutateProgress,
   parseProgress,
+  recordBrainAnswerIn,
   recordQuizAnswerIn,
   recordQuizIn,
   recordScenarioIn,
@@ -16,6 +17,7 @@ import {
   setAutoReadIn,
   setLastSubjectIn,
   subscribeProgress,
+  type BrainAnswerInput,
   type ProgressState,
   type ScenarioResult,
 } from "@/lib/progress";
@@ -33,6 +35,7 @@ interface ProgressContextValue {
   recordQuizAnswer: (questionId: string, correct: boolean) => void;
   recordQuiz: (quizId: string, score: number, total: number) => void;
   recordScenario: (scenarioId: string, result: ScenarioResult) => void;
+  recordBrainAnswer: (input: BrainAnswerInput) => void;
   resetProgress: () => void;
   setAutoRead: (autoRead: boolean) => void;
   setLastSubject: (subject: SubjectId) => void;
@@ -98,6 +101,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const recordBrainAnswer = useCallback((input: BrainAnswerInput) => {
+    mutateProgress((prev) => recordBrainAnswerIn(prev, input));
+  }, []);
+
   const resetProgress = useCallback(() => {
     saveProgress(emptyProgress());
     clearTickets();
@@ -131,6 +138,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       recordQuizAnswer,
       recordQuiz,
       recordScenario,
+      recordBrainAnswer,
       resetProgress,
       setAutoRead,
       setLastSubject,
@@ -159,6 +167,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     recordQuizAnswer,
     recordQuiz,
     recordScenario,
+    recordBrainAnswer,
     resetProgress,
     setAutoRead,
     setLastSubject,

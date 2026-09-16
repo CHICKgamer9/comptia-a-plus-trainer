@@ -20,6 +20,10 @@ export const XP = {
   ticketBase: 100,
   ticketClean: 50,
   ticketSolid: 20,
+  brainCorrect: 10,
+  brainWrong: 2,
+  brainCrossword: 40,
+  brainDayComplete: 80,
 } as const;
 
 export function levelForXp(xp: number) {

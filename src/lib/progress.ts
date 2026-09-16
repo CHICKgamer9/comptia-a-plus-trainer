@@ -32,6 +32,33 @@ export interface GameState {
   correctQuestions: string[];
 }
 
+export interface BrainDayRecord {
+  ids: string[];
+  answered: string[];
+  minutesTarget: number;
+  minutesDone: number;
+  completed: boolean;
+  at: number;
+}
+
+export interface BrainState {
+  answeredIds: string[];
+  days: Record<string, BrainDayRecord>;
+  bestDay?: { ymd: string; minutes: number };
+  crosswordSolved: string[];
+}
+
+export interface BrainAnswerInput {
+  id: string;
+  ymd: string;
+  playlistIds: string[];
+  minutes: number;
+  minutesTarget: number;
+  correct: boolean;
+  penalty?: number;
+  crossword?: boolean;
+}
+
 export interface ProgressState {
   completedLessons: string[];
   quizScores: Record<string, QuizResult>;
@@ -44,6 +71,7 @@ export interface ProgressState {
   autoRead?: boolean;
   lastSubject?: SubjectId;
   game?: GameState;
+  brain?: BrainState;
 }
 
 const listeners = new Set<() => void>();
@@ -58,6 +86,12 @@ export const emptyGame = (): GameState => ({
   correctQuestions: [],
 });
 
+export const emptyBrain = (): BrainState => ({
+  answeredIds: [],
+  days: {},
+  crosswordSolved: [],
+});
+
 export const emptyProgress = (): ProgressState => ({
   completedLessons: [],
   quizScores: {},
@@ -66,6 +100,7 @@ export const emptyProgress = (): ProgressState => ({
   lessonCursor: {},
   autoRead: false,
   game: emptyGame(),
+  brain: emptyBrain(),
 });
 
 function defaultGame(): GameState {
@@ -93,6 +128,17 @@ export function parseProgress(raw: string): ProgressState {
           ? parsed.lastSubject
           : undefined,
       game: parsed.game ? { ...emptyGame(), ...parsed.game } : undefined,
+      brain: parsed.brain
+        ? {
+            ...emptyBrain(),
+            ...parsed.brain,
+            answeredIds: Array.isArray(parsed.brain.answeredIds) ? parsed.brain.answeredIds : [],
+            days: parsed.brain.days ?? {},
+            crosswordSolved: Array.isArray(parsed.brain.crosswordSolved)
+              ? parsed.brain.crosswordSolved
+              : [],
+          }
+        : undefined,
     };
     if (!base.game) {
       return backfillGame(base);
@@ -162,19 +208,23 @@ function withActivity(prev: ProgressState, xpGain: number): ProgressState {
   const streak = updateStreak(game.lastSydneyDate || undefined, game.streakCount);
   game.streakCount = streak.count;
   game.lastSydneyDate = streak.lastSydneyDate;
-  game.xp += Math.max(0, xpGain);
+  game.xp = Math.max(0, game.xp + xpGain);
   const next: ProgressState = { ...prev, game };
   return finalizeGame(prev, next);
 }
 
 function finalizeGame(prev: ProgressState, next: ProgressState): ProgressState {
   const game = { ...(next.game ?? defaultGame()) };
+  const brain = next.brain;
   const badges = unlockedBadgeIds({
     completedLessons: next.completedLessons,
     quizScores: next.quizScores,
     scenarioScores: next.scenarioScores,
     streakCount: game.streakCount,
     xp: game.xp,
+    brainAnswered: brain?.answeredIds.length ?? 0,
+    brainDays: Object.values(brain?.days ?? {}).filter((day) => day.completed).length,
+    brainCrosswords: brain?.crosswordSolved.length ?? 0,
   });
   const newBadges = badges.filter((id) => !game.badges.includes(id));
   game.badges = badges;
@@ -300,6 +350,44 @@ export function setAutoReadIn(prev: ProgressState, autoRead: boolean): ProgressS
 
 export function setLastSubjectIn(prev: ProgressState, lastSubject: SubjectId): ProgressState {
   return { ...prev, lastSubject };
+}
+
+export function recordBrainAnswerIn(prev: ProgressState, input: BrainAnswerInput): ProgressState {
+  const brain: BrainState = { ...(prev.brain ?? emptyBrain()), days: { ...(prev.brain?.days ?? {}) } };
+  const already = brain.answeredIds.includes(input.id);
+  if (!already) brain.answeredIds = [...brain.answeredIds, input.id];
+  if (input.crossword && input.correct && !brain.crosswordSolved.includes(input.id)) {
+    brain.crosswordSolved = [...brain.crosswordSolved, input.id];
+  }
+
+  const existing = brain.days[input.ymd];
+  const ids = existing?.ids?.length ? existing.ids : input.playlistIds;
+  const answered = existing?.answered ?? [];
+  const onPlaylist = ids.includes(input.id);
+  const nextAnswered = onPlaylist && !answered.includes(input.id) ? [...answered, input.id] : answered;
+  let minutesDone = existing?.minutesDone ?? 0;
+  if (onPlaylist && !answered.includes(input.id)) minutesDone += input.minutes;
+  const minutesTarget = existing?.minutesTarget ?? input.minutesTarget;
+  const wasComplete = existing?.completed ?? false;
+  const completed = wasComplete || minutesDone >= minutesTarget;
+  brain.days[input.ymd] = {
+    ids,
+    answered: nextAnswered,
+    minutesTarget,
+    minutesDone,
+    completed,
+    at: existing?.at ?? Date.now(),
+  };
+  if (!brain.bestDay || minutesDone > brain.bestDay.minutes) {
+    brain.bestDay = { ymd: input.ymd, minutes: minutesDone };
+  }
+
+  let xpGain = input.correct ? XP.brainCorrect : XP.brainWrong;
+  if (input.crossword && input.correct) xpGain += XP.brainCrossword;
+  xpGain += input.penalty ?? 0;
+  if (completed && !wasComplete) xpGain += XP.brainDayComplete;
+
+  return withActivity({ ...prev, brain }, xpGain);
 }
 
 export function mutateProgress(mutator: (prev: ProgressState) => ProgressState) {

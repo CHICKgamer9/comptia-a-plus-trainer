@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { Disclaimer } from "./ui";
 import { StatusChip } from "./StatusChip";
 import { getSubject, isSubjectId } from "@/content/registry";
+import { BRAIN_ACCENT, BRAIN_ACCENT_DIM } from "@/content/brain/types";
 
 const links = [
   { href: "/", label: "Home", icon: HomeIcon },
   { href: "/learn", label: "Learn", icon: BookIcon },
+  { href: "/brain", label: "Brain", icon: BrainIcon },
   { href: "/practice", label: "Quizzes", icon: QuizIcon },
   { href: "/lab", label: "Lab", icon: TicketIcon },
   { href: "/reference", label: "Sheets", icon: SheetIcon },
@@ -37,18 +40,25 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     /^\/learn\/[^/]+\/[^/]+$/.test(pathname) ||
     /^\/practice\/[^/]+$/.test(pathname) ||
     /^\/play\/[^/]+$/.test(pathname) ||
+    /^\/brain\/play\//.test(pathname) ||
     pathname.startsWith("/lab/t/");
   const subject = subjectFromPath(pathname);
+  const brain = pathname.startsWith("/brain");
 
   return (
     <div
       className="flex min-h-full flex-col"
       style={
-        subject
+        brain
+          ? ({
+              "--accent": BRAIN_ACCENT,
+              "--accent-dim": BRAIN_ACCENT_DIM,
+            } as CSSProperties)
+          : subject
           ? ({
               "--accent": subject.accent,
               "--accent-dim": subject.accentDim,
-            } as React.CSSProperties)
+            } as CSSProperties)
           : undefined
       }
     >
@@ -104,7 +114,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       )}
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 backdrop-blur-xl md:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-5 px-1 pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto grid max-w-lg grid-cols-6 px-1 pb-[env(safe-area-inset-bottom)]">
           {links.map((link) => {
             const active = isActive(pathname, link.href);
             const Icon = link.icon;
@@ -133,6 +143,18 @@ function HomeIcon({ active }: { active: boolean }) {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"
+        stroke="currentColor"
+        strokeWidth={active ? 2 : 1.6}
+      />
+    </svg>
+  );
+}
+
+function BrainIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M9 4.5a3 3 0 0 0-3 3v.4A3.2 3.2 0 0 0 4 10.8c0 1.4.9 2.6 2.1 3.1v2.6A2.5 2.5 0 0 0 8.6 19h2.2v-7.2H9.4V9.4h4.2V19h2.1A2.5 2.5 0 0 0 18.2 16.5v-2.5A3.2 3.2 0 0 0 20 10.8a3.2 3.2 0 0 0-2-3v-.3a3 3 0 0 0-3.2-3c-.7 0-1.4.2-1.9.6A3 3 0 0 0 9 4.5Z"
         stroke="currentColor"
         strokeWidth={active ? 2 : 1.6}
       />
