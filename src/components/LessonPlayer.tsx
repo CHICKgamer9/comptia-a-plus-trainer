@@ -104,7 +104,11 @@ export function LessonPlayer({
           onCheck={(correct, checkId, spoken) => {
             setCheckOk(true);
             setFollowUp(spoken);
-            recordQuizAnswer(`path-${checkId}`, correct);
+            recordQuizAnswer(`path-${checkId}`, correct, {
+              domainId: domain.id,
+              subject: domain.subject,
+              conceptId: checkId,
+            });
           }}
         />
       </PlayerFrame>

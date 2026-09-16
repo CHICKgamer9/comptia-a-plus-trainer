@@ -12,6 +12,8 @@ import {
   subscribeTickets,
 } from "@/lib/ticket-store";
 import { useProgress } from "./ProgressProvider";
+import { loadoutHint } from "@/lib/binder";
+import { getBenchCard } from "@/content/bench-cards";
 import {
   Badge,
   Card,
@@ -29,7 +31,7 @@ type DiffFilter = Difficulty | "surprise";
 export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
   const router = useRouter();
   const search = useSearchParams();
-  const { progress } = useProgress();
+  const { progress, bench } = useProgress();
   const raw = useSyncExternalStore(
     subscribeTickets,
     getTicketSnapshot,
@@ -66,6 +68,7 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
           theme,
           difficulty,
           forceStub,
+          loadoutHint: loadoutHint(bench) || undefined,
         }),
       });
       const data = (await res.json()) as {
@@ -151,6 +154,15 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
             ]}
           />
         </div>
+        <p className="mt-4 text-xs text-muted">
+          Loadout:{" "}
+          {bench.loadout.filter(Boolean).length
+            ? bench.loadout
+                .map((id) => (id ? getBenchCard(id)?.title : undefined))
+                .filter(Boolean)
+                .join(" · ")
+            : "empty — equip three cards in the Binder for a bias and XP on close."}
+        </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"

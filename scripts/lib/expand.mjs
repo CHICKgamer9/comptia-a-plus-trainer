@@ -124,6 +124,15 @@ export function expandSeed(seed, number) {
     keyTakeaways: takeaways(seed),
   };
 
+  if (String(seed.id).startsWith("vx-") && Math.abs(hash(seed.id + "fig")) % 5 === 0) {
+    lesson.figure = {
+      kind: "diagram",
+      diagram: diagramForSubject(seed.subject),
+      alt: `Labelled teaching diagram for “${seed.title}”. Read the labels; colour is not the legend.`,
+      caption: `${clip(seed.fact, 140)} Labels carry the meaning.`,
+    };
+  }
+
   /** @type {import("../src/content/types").PathCheck[]} */
   const checks = [
     {
@@ -288,6 +297,28 @@ function hash(text) {
   let h = 0;
   for (let i = 0; i < text.length; i += 1) h = (h * 31 + text.charCodeAt(i)) | 0;
   return h;
+}
+
+/** @param {string} subject */
+function diagramForSubject(subject) {
+  const map = {
+    tech: "rear-io",
+    maths: "number-line",
+    science: "food-web",
+    history: "scroll",
+    english: "clipboard",
+    geography: "suburb-map",
+    coding: "timer-wire",
+    business: "cash-flow",
+    health: "leaf",
+    music: "four-bar",
+    art: "prism",
+    civics: "claim-test",
+    languages: "window",
+    logic: "claim-test",
+    digital: "privacy-stack",
+  };
+  return map[subject] || "prism";
 }
 
 export function assertSeeds(seeds, reserved) {

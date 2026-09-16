@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ProgressProvider } from "@/components/ProgressProvider";
 import { SiteShell } from "@/components/SiteShell";
 import { CelebrationHost } from "@/components/CelebrationHost";
+import { NightPackHost } from "@/components/NightPack";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ProgressProvider>
           <SiteShell>{children}</SiteShell>
           <CelebrationHost />
+          <NightPackHost />
         </ProgressProvider>
       </body>
     </html>

@@ -2,9 +2,12 @@ import { getBadge } from "./badges";
 
 export interface ToastEvent {
   id: string;
-  kind: "level" | "badge";
+  kind: "level" | "badge" | "card";
   title: string;
   body: string;
+  cardId?: string;
+  rarity?: string;
+  cardType?: string;
 }
 
 const listeners = new Set<() => void>();

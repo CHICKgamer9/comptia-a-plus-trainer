@@ -1,10 +1,28 @@
-import type { DomainId, ExamId, ScenarioTheme, SubjectId } from "@/content/types";
+import type { BenchSlot, DomainId, ExamId, ScenarioTheme, SubjectId } from "@/content/types";
 import type { LingoLangId } from "@/content/lingo/types";
 import { isLingoLangId } from "@/content/lingo/types";
+import type { BrainCat } from "@/content/brain/types";
 import { isSubjectId } from "@/content/subjects";
 import { unlockedBadgeIds } from "./badges";
 import { updateStreak } from "./sydney-date";
 import { levelForXp, ticketXp, XP } from "./xp";
+import {
+  applyAwards,
+  closeShift as closeShiftBench,
+  dropFromBrain,
+  dropFromLab,
+  dropFromPath,
+  emptyBench,
+  fuse as fuseBench,
+  loadoutBonus,
+  maybeAwardCrest,
+  openNightPack as openNightPackBench,
+  parseBench,
+  setLoadout as setLoadoutBench,
+  slotCard as slotCardBench,
+  startShift as startShiftBench,
+  type BenchState,
+} from "./binder";
 import { enqueueToasts, type ToastEvent } from "./toasts";
 
 export const PROGRESS_KEY = "ticketbench-progress-v1";
@@ -68,6 +86,7 @@ export interface BrainAnswerInput {
   correct: boolean;
   penalty?: number;
   crossword?: boolean;
+  cat?: BrainCat;
 }
 
 export interface LingoLangProgress {
@@ -99,6 +118,14 @@ export interface ProgressState {
   lingo?: LingoState;
   projectChecks?: Record<string, string[]>;
   completedProjects?: string[];
+  bench?: BenchState;
+}
+
+export interface PathAnswerContext {
+  domainId?: string;
+  subject?: SubjectId;
+  conceptId?: string;
+  skipped?: boolean;
 }
 
 const listeners = new Set<() => void>();
@@ -171,6 +198,7 @@ export const emptyProgress = (): ProgressState => ({
   brain: emptyBrain(),
   projectChecks: {},
   completedProjects: [],
+  bench: emptyBench(),
 });
 
 function defaultGame(): GameState {
@@ -221,6 +249,7 @@ export function parseProgress(raw: string): ProgressState {
             )
           : {},
       completedProjects: Array.isArray(parsed.completedProjects) ? parsed.completedProjects : [],
+      bench: parseBench(parsed.bench),
     };
     if (!base.game) {
       return backfillGame(base);
@@ -362,13 +391,15 @@ export function markLessonCompleteIn(prev: ProgressState, lessonId: string): Pro
       ? prev.completedLessons
       : [...prev.completedLessons, lessonId],
   };
-  return already ? next : withActivity(next, XP.lesson);
+  const withXp = already ? next : withActivity(next, XP.lesson);
+  return withCrests(withXp);
 }
 
 export function recordQuizAnswerIn(
   prev: ProgressState,
   questionId: string,
   correct: boolean,
+  ctx?: PathAnswerContext,
 ): ProgressState {
   const game = { ...(prev.game ?? defaultGame()) };
   const firstCorrect = correct && !game.correctQuestions.includes(questionId);
@@ -380,7 +411,19 @@ export function recordQuizAnswerIn(
       ? XP.quizCorrectFirst
       : XP.quizCorrectRepeat
     : XP.quizWrong;
-  return withActivity({ ...prev, game }, xpGain);
+  let next = withActivity({ ...prev, game }, xpGain);
+  const isPath = questionId.startsWith("path-") || Boolean(ctx?.domainId);
+  if (isPath && !ctx?.skipped) {
+    const drop = dropFromPath(next.bench ?? emptyBench(), {
+      correct,
+      skipped: ctx?.skipped,
+      domainId: ctx?.domainId,
+      subject: ctx?.subject,
+      conceptId: ctx?.conceptId ?? questionId,
+    });
+    next = { ...next, bench: applyAwards(next.bench ?? emptyBench(), drop) };
+  }
+  return next;
 }
 
 export function recordQuizIn(
@@ -406,7 +449,7 @@ export function recordQuizIn(
     },
     quizHistory: { ...prev.quizHistory, [quizId]: history },
   };
-  return withActivity(next, xpGain);
+  return withCrests(withActivity(next, xpGain));
 }
 
 export function recordScenarioIn(
@@ -416,6 +459,8 @@ export function recordScenarioIn(
 ): ProgressState {
   const existing = prev.scenarioScores[scenarioId];
   const keepExisting = existing && existing.score >= result.score;
+  const bench = prev.bench ?? emptyBench();
+  const bonus = loadoutBonus(bench);
   const next: ProgressState = {
     ...prev,
     lastScenarioId: scenarioId,
@@ -424,7 +469,14 @@ export function recordScenarioIn(
       [scenarioId]: keepExisting ? existing : result,
     },
   };
-  return withActivity(next, ticketXp(result.score, result.total));
+  const drop = dropFromLab(bench, {
+    score: result.score,
+    total: result.total,
+    domainIds: result.domainIds,
+    theme: result.theme,
+  });
+  const withCards: ProgressState = { ...next, bench: applyAwards(bench, drop) };
+  return withCrests(withActivity(withCards, ticketXp(result.score, result.total) + bonus));
 }
 
 export function setAutoReadIn(prev: ProgressState, autoRead: boolean): ProgressState {
@@ -503,7 +555,57 @@ export function recordBrainAnswerIn(prev: ProgressState, input: BrainAnswerInput
   xpGain += input.penalty ?? 0;
   if (completed && !wasComplete) xpGain += XP.brainDayComplete;
 
-  return withActivity({ ...prev, brain }, xpGain);
+  const withXp = withActivity({ ...prev, brain }, xpGain);
+  const drop = dropFromBrain(withXp.bench ?? emptyBench(), {
+    correct: input.correct,
+    cat: input.cat,
+  });
+  return { ...withXp, bench: applyAwards(withXp.bench ?? emptyBench(), drop) };
+}
+
+function withCrests(state: ProgressState): ProgressState {
+  const drop = maybeAwardCrest(state.bench ?? emptyBench(), {
+    completedLessons: state.completedLessons,
+    quizScores: state.quizScores,
+  });
+  if (!drop.awarded.length) return state;
+  return { ...state, bench: applyAwards(state.bench ?? emptyBench(), drop) };
+}
+
+export function startDeskShiftIn(prev: ProgressState, lengthMin: 8 | 15 | 25): ProgressState {
+  return {
+    ...prev,
+    bench: startShiftBench(prev.bench ?? emptyBench(), lengthMin, prev.game?.xp ?? 0),
+  };
+}
+
+export function closeDeskShiftIn(prev: ProgressState, early = false): ProgressState {
+  return {
+    ...prev,
+    bench: closeShiftBench(prev.bench ?? emptyBench(), {
+      xp: prev.game?.xp ?? 0,
+      completedLessons: prev.completedLessons,
+      early,
+    }),
+  };
+}
+
+export function openNightPackIn(prev: ProgressState): ProgressState {
+  const drop = openNightPackBench(prev.bench ?? emptyBench());
+  return { ...prev, bench: applyAwards(drop.bench, drop, true) };
+}
+
+export function slotBenchCardIn(prev: ProgressState, slot: BenchSlot, cardId: string | undefined): ProgressState {
+  return { ...prev, bench: slotCardBench(prev.bench ?? emptyBench(), slot, cardId) };
+}
+
+export function setLoadoutIn(prev: ProgressState, loadout: BenchState["loadout"]): ProgressState {
+  return { ...prev, bench: setLoadoutBench(prev.bench ?? emptyBench(), loadout) };
+}
+
+export function fuseCardsIn(prev: ProgressState, recipeId: string): ProgressState {
+  const drop = fuseBench(prev.bench ?? emptyBench(), recipeId);
+  return { ...prev, bench: applyAwards(prev.bench ?? emptyBench(), drop) };
 }
 
 export function saveBrainFeedIn(prev: ProgressState, feed: BrainFeedState): ProgressState {

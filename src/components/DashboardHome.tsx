@@ -8,6 +8,7 @@ import { nextDomainPreferring } from "./CoursePath";
 import { examReadiness, overallReadiness } from "@/lib/readiness";
 import { Disclaimer, ProgressBar } from "./ui";
 import { cn } from "@/lib/cn";
+import { BenchChassis } from "./BenchChassis";
 
 export function DashboardHome() {
   const { ready, stats, progress, resetProgress } = useProgress();
@@ -34,6 +35,10 @@ export function DashboardHome() {
         <StatPill label="Streak" value={`${stats.streak}d`} hint="Sydney calendar" />
         <StatPill label="Level" value={stats.levelTitle} hint={`${stats.xp} XP`} />
         <StatPill label="A+ ready" value={`${overall.percent}%`} hint={overall.status} />
+      </div>
+
+      <div className="mb-4">
+        <BenchChassis />
       </div>
 
       <div className="mb-4 rounded-3xl border border-accent/30 bg-gradient-to-br from-accent-dim/80 to-surface p-6">
@@ -141,7 +146,7 @@ export function DashboardHome() {
         <button
           type="button"
           onClick={() => {
-            if (window.confirm("Reset all local progress and tickets on this device?")) {
+            if (window.confirm("Reset all local progress, tickets, and the Binder on this device?")) {
               resetProgress();
             }
           }}
@@ -152,7 +157,7 @@ export function DashboardHome() {
       </div>
       <p className="mt-3 text-[11px] text-muted">
         {stats.lessonsDone} paths finished · {stats.quizzesDone} quizzes · {stats.projectsDone}{" "}
-        projects · {stats.scenariosDone} tickets/challenges
+        projects · {stats.scenariosDone} tickets/challenges · {stats.cardsOwned} cards
       </p>
     </div>
   );

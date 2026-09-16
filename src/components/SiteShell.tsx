@@ -6,6 +6,7 @@ import type { CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 import { Disclaimer } from "./ui";
 import { StatusChip } from "./StatusChip";
+import { DeskShiftChip } from "./DeskShiftChip";
 import { getSubject, isSubjectId } from "@/content/registry";
 import { getProject } from "@/content/projects";
 import { BRAIN_ACCENT, BRAIN_ACCENT_DIM } from "@/content/brain/types";
@@ -19,6 +20,7 @@ const links = [
   { href: "/brain", label: "Brain", icon: BrainIcon },
   { href: "/practice", label: "Quizzes", icon: QuizIcon },
   { href: "/lab", label: "Lab", icon: TicketIcon },
+  { href: "/binder", label: "Binder", icon: BinderIcon },
   { href: "/reference", label: "Sheets", icon: SheetIcon },
 ];
 
@@ -116,6 +118,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
+            <DeskShiftChip />
             <StatusChip />
           </nav>
         </div>
@@ -140,7 +143,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
       {immersive ? null : (
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 backdrop-blur-xl md:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-7 px-0.5 pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto flex max-w-lg gap-0 overflow-x-auto px-0.5 pb-[env(safe-area-inset-bottom)]">
           {links.map((link) => {
             const active = isActive(pathname, link.href);
             const Icon = link.icon;
@@ -149,7 +152,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex min-h-11 flex-col items-center justify-center gap-1 py-2 text-[11px]",
+                  "flex min-h-11 min-w-[3.15rem] flex-1 flex-col items-center justify-center gap-1 py-2 text-[9px]",
                   active ? "text-accent" : "text-muted",
                 )}
               >
@@ -240,6 +243,23 @@ function TicketIcon({ active }: { active: boolean }) {
         stroke="currentColor"
         strokeWidth={active ? 2 : 1.6}
       />
+    </svg>
+  );
+}
+
+function BinderIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect
+        x="5"
+        y="4"
+        width="14"
+        height="16"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth={active ? 2 : 1.6}
+      />
+      <path d="M8 8h8M8 12h6" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   );
 }

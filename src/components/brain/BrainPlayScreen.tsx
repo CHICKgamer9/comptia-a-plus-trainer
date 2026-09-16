@@ -81,6 +81,7 @@ export function BrainPlayScreen({ id }: { id: string }) {
             correct,
             penalty: penalty ? -penalty : 0,
             crossword: item.kind === "crossword",
+            cat: item.cat,
           });
         }}
       />

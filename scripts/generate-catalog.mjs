@@ -17,9 +17,11 @@ import { CIVICS_SEEDS } from "./topics/civics.mjs";
 import { LANGUAGES_SEEDS } from "./topics/languages.mjs";
 import { LOGIC_SEEDS } from "./topics/logic.mjs";
 import { DIGITAL_SEEDS } from "./topics/digital.mjs";
+import { VOLUME_SEEDS } from "./topics/extra/index.mjs";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const MIN_PATHS = 60;
+const VOLUME_FLOOR = 1400;
 const SUBJECTS = [
   "tech",
   "maths",
@@ -88,6 +90,7 @@ const ALL = [
   ...LANGUAGES_SEEDS,
   ...LOGIC_SEEDS,
   ...DIGITAL_SEEDS,
+  ...VOLUME_SEEDS,
 ];
 
 assertSeeds(ALL, RESERVED);
@@ -123,6 +126,9 @@ for (const subject of SUBJECTS) {
 if (under.length) {
   throw new Error(`Subjects under ${MIN_PATHS} paths: ${under.join(", ")}`);
 }
+if (VOLUME_SEEDS.length < VOLUME_FLOOR) {
+  throw new Error(`Volume seeds ${VOLUME_SEEDS.length} under floor ${VOLUME_FLOOR}`);
+}
 
 const generatedAt = new Date().toISOString();
 const outDir = join(root, "../src/content/factory");
@@ -145,8 +151,11 @@ if (existsSync(stale)) {
   console.log("Removed stale catalog.json");
 }
 
-console.log("Total new paths:", domains.length);
+console.log("Factory seeds:", domains.length);
+console.log("Volume extras:", VOLUME_SEEDS.length);
 console.log("Path totals (existing + generated):");
 for (const subject of SUBJECTS) {
   console.log(`  ${subject.padEnd(12)} ${String(totals[subject]).padStart(3)}`);
 }
+const grand = Object.values(totals).reduce((sum, n) => sum + n, 0);
+console.log("Grand total paths:", grand);

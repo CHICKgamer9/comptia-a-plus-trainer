@@ -31,6 +31,7 @@ export const XP = {
   lingoLesson: 50,
   lingoSpeak: 8,
   projectDefault: 120,
+  labLoadout: 20,
 } as const;
 
 export function levelForXp(xp: number) {

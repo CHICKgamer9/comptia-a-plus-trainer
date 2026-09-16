@@ -276,22 +276,54 @@ export interface Project {
   figure?: ContentFigure;
 }
 
-export interface ProjectCheck {
+/** Knowledge cards for the Binder / Bench chassis. Not stickers. */
+export type CardType =
+  | "component"
+  | "symptom"
+  | "tool"
+  | "procedure"
+  | "gotcha"
+  | "crest"
+  | "glue";
+
+export type CardRarity = "common" | "uncommon" | "rare" | "legendary";
+
+export type BenchSlot =
+  | "chassis"
+  | "psu"
+  | "cpu"
+  | "ram-a"
+  | "ram-b"
+  | "storage-m2"
+  | "storage-sata"
+  | "wifi"
+  | "display"
+  | "tool-wall";
+
+export type CardEarnSource = "path" | "brain" | "lab" | "pack" | "fuse" | "gotcha";
+
+export interface BenchCard {
   id: string;
-  label: string;
+  type: CardType;
+  rarity: CardRarity;
+  title: string;
+  subtitle: string;
+  /** Level 1 / 2 / 3 back-face lines. Falls back to subtitle. */
+  subtitles?: [string, string, string];
+  body: string;
+  subject: SubjectId;
+  domain?: DomainId;
+  pathId?: DomainId;
+  artHint: string;
+  slot?: BenchSlot;
+  tags: string[];
+  sheetId?: string;
 }
 
-export interface Project {
+export interface FusionRecipe {
   id: string;
-  subject: SubjectId;
   title: string;
+  inputIds: [string, string] | [string, string, string];
+  outputId: string;
   blurb: string;
-  goal: string;
-  materials: string[];
-  steps: ProjectStep[];
-  checklist: ProjectCheck[];
-  pathIds?: DomainId[];
-  difficulty: Difficulty;
-  minutes: number;
-  xp: number;
 }

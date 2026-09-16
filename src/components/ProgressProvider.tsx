@@ -24,14 +24,22 @@ import {
   subscribeProgress,
   toggleProjectCheckIn,
   markProjectCompleteIn,
+  startDeskShiftIn,
+  closeDeskShiftIn,
+  openNightPackIn,
+  slotBenchCardIn,
+  setLoadoutIn,
+  fuseCardsIn,
   type BrainAnswerInput,
   type BrainFeedState,
+  type PathAnswerContext,
   type ProgressState,
   type ScenarioResult,
 } from "@/lib/progress";
+import { emptyBench, type BenchState } from "@/lib/binder";
 import { domains } from "@/content/registry";
 import { projects } from "@/content/projects";
-import type { SubjectId } from "@/content/types";
+import type { BenchSlot, SubjectId } from "@/content/types";
 import type { LingoLangId } from "@/content/lingo/types";
 import { levelForXp } from "@/lib/xp";
 import { overallReadiness } from "@/lib/readiness";
@@ -40,9 +48,10 @@ import { clearTickets } from "@/lib/ticket-store";
 interface ProgressContextValue {
   ready: boolean;
   progress: ProgressState;
+  bench: BenchState;
   markLessonComplete: (lessonId: string) => void;
   saveLessonCursor: (lessonId: string, index: number) => void;
-  recordQuizAnswer: (questionId: string, correct: boolean) => void;
+  recordQuizAnswer: (questionId: string, correct: boolean, ctx?: PathAnswerContext) => void;
   recordQuiz: (quizId: string, score: number, total: number) => void;
   recordScenario: (scenarioId: string, result: ScenarioResult) => void;
   recordBrainAnswer: (input: BrainAnswerInput) => void;
@@ -59,6 +68,12 @@ interface ProgressContextValue {
   saveLingoCursor: (lang: LingoLangId, nodeId: string, index: number) => void;
   toggleProjectCheck: (projectId: string, checkId: string) => void;
   markProjectComplete: (projectId: string, xp?: number) => void;
+  startDeskShift: (lengthMin: 8 | 15 | 25) => void;
+  closeDeskShift: (early?: boolean) => void;
+  openNightPack: () => void;
+  slotBenchCard: (slot: BenchSlot, cardId: string | undefined) => void;
+  setLoadout: (loadout: BenchState["loadout"]) => void;
+  fuseCards: (recipeId: string) => void;
   resetProgress: () => void;
   setAutoRead: (autoRead: boolean) => void;
   setLastSubject: (subject: SubjectId) => void;
@@ -84,6 +99,7 @@ interface ProgressContextValue {
     nextTitle?: string;
     nextAt?: number;
     streak: number;
+    cardsOwned: number;
   };
 }
 
@@ -109,8 +125,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     mutateProgress((prev) => saveLessonCursorIn(prev, lessonId, index));
   }, []);
 
-  const recordQuizAnswer = useCallback((questionId: string, correct: boolean) => {
-    mutateProgress((prev) => recordQuizAnswerIn(prev, questionId, correct));
+  const recordQuizAnswer = useCallback((questionId: string, correct: boolean, ctx?: PathAnswerContext) => {
+    mutateProgress((prev) => recordQuizAnswerIn(prev, questionId, correct, ctx));
   }, []);
 
   const recordQuiz = useCallback((quizId: string, score: number, total: number) => {
@@ -177,6 +193,30 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const startDeskShift = useCallback((lengthMin: 8 | 15 | 25) => {
+    mutateProgress((prev) => startDeskShiftIn(prev, lengthMin));
+  }, []);
+
+  const closeDeskShift = useCallback((early = false) => {
+    mutateProgress((prev) => closeDeskShiftIn(prev, early));
+  }, []);
+
+  const openNightPack = useCallback(() => {
+    mutateProgress((prev) => openNightPackIn(prev));
+  }, []);
+
+  const slotBenchCard = useCallback((slot: BenchSlot, cardId: string | undefined) => {
+    mutateProgress((prev) => slotBenchCardIn(prev, slot, cardId));
+  }, []);
+
+  const setLoadout = useCallback((loadout: BenchState["loadout"]) => {
+    mutateProgress((prev) => setLoadoutIn(prev, loadout));
+  }, []);
+
+  const fuseCards = useCallback((recipeId: string) => {
+    mutateProgress((prev) => fuseCardsIn(prev, recipeId));
+  }, []);
+
   const resetProgress = useCallback(() => {
     saveProgress(emptyProgress());
     clearTickets();
@@ -206,9 +246,11 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     const xp = progress.game?.xp ?? 0;
     const level = levelForXp(xp);
     const both = overallReadiness(progress);
+    const bench = progress.bench ?? emptyBench();
     return {
       ready: true,
       progress,
+      bench,
       markLessonComplete,
       saveLessonCursor,
       recordQuizAnswer,
@@ -222,6 +264,12 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       saveLingoCursor,
       toggleProjectCheck,
       markProjectComplete,
+      startDeskShift,
+      closeDeskShift,
+      openNightPack,
+      slotBenchCard,
+      setLoadout,
+      fuseCards,
       resetProgress,
       setAutoRead,
       setLastSubject,
@@ -245,6 +293,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         nextTitle: level.nextTitle,
         nextAt: level.nextAt,
         streak: progress.game?.streakCount ?? 0,
+        cardsOwned: bench.owned.length,
       },
     };
   }, [
@@ -262,6 +311,12 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     saveLingoCursor,
     toggleProjectCheck,
     markProjectComplete,
+    startDeskShift,
+    closeDeskShift,
+    openNightPack,
+    slotBenchCard,
+    setLoadout,
+    fuseCards,
     resetProgress,
     setAutoRead,
     setLastSubject,
