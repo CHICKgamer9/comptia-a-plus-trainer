@@ -118,6 +118,7 @@ export interface ProgressState {
   quizHistory?: Record<string, QuizResult[]>;
   lessonCursor?: Record<string, number>;
   autoRead?: boolean;
+  speechMuted?: boolean;
   lastSubject?: SubjectId;
   examTrack?: ExamTrack;
   objectivePassedAt?: Record<string, number>;
@@ -134,6 +135,9 @@ export interface PathAnswerContext {
   subject?: SubjectId;
   conceptId?: string;
   skipped?: boolean;
+  cardId?: string;
+  /** When false, record XP but do not drop a card (try beats). */
+  awardCard?: boolean;
 }
 
 const listeners = new Set<() => void>();
@@ -202,6 +206,7 @@ export const emptyProgress = (): ProgressState => ({
   quizHistory: {},
   lessonCursor: {},
   autoRead: false,
+  speechMuted: false,
   game: emptyGame(),
   brain: emptyBrain(),
   projectChecks: {},
@@ -230,6 +235,7 @@ export function parseProgress(raw: string): ProgressState {
       quizHistory: parsed.quizHistory ?? {},
       lessonCursor: parsed.lessonCursor ?? {},
       autoRead: parsed.autoRead === true,
+      speechMuted: parsed.speechMuted === true,
       lastSubject:
         typeof parsed.lastSubject === "string" && isSubjectId(parsed.lastSubject)
           ? parsed.lastSubject
@@ -441,13 +447,14 @@ export function recordQuizAnswerIn(
     : XP.quizWrong;
   let next = withActivity({ ...prev, game }, xpGain);
   const isPath = questionId.startsWith("path-") || Boolean(ctx?.domainId);
-  if (isPath && !ctx?.skipped) {
+  if (isPath && !ctx?.skipped && ctx?.awardCard !== false) {
     const drop = dropFromPath(next.bench ?? emptyBench(), {
       correct,
       skipped: ctx?.skipped,
       domainId: ctx?.domainId,
       subject: ctx?.subject,
       conceptId: ctx?.conceptId ?? questionId,
+      cardId: ctx?.cardId,
     });
     next = { ...next, bench: applyAwards(next.bench ?? emptyBench(), drop) };
   }
@@ -530,6 +537,10 @@ export function recordScenarioIn(
 
 export function setAutoReadIn(prev: ProgressState, autoRead: boolean): ProgressState {
   return { ...prev, autoRead };
+}
+
+export function setSpeechMutedIn(prev: ProgressState, speechMuted: boolean): ProgressState {
+  return { ...prev, speechMuted };
 }
 
 export function setLastSubjectIn(prev: ProgressState, lastSubject: SubjectId): ProgressState {

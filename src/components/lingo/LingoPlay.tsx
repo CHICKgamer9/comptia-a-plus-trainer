@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useEffect } from "react";
 import type { LingoLangId, LingoStep } from "@/content/lingo/types";
+import { lingoItemType } from "@/content/lingo/types";
 import { answersMatch } from "@/lib/lingo-normalize";
 import { cn } from "@/lib/cn";
+import { speakIntroduce, speakTarget } from "@/lib/tts/speak";
 import { useSpeech } from "../useSpeech";
 import { PlayerButton } from "../PlayerFrame";
 
@@ -25,7 +28,7 @@ export function LingoListen({
   lang: string;
   label?: string;
 }) {
-  const { ready, supported, speaking, speak, stop } = useSpeech();
+  const { ready, supported, speaking, stop } = useSpeech();
   if (!text) return null;
   if (ready && !supported) {
     return <p className="text-[11px] text-muted">Voice not in this browser — read it instead.</p>;
@@ -33,7 +36,7 @@ export function LingoListen({
   return (
     <button
       type="button"
-      onClick={() => (speaking ? stop() : speak(text, lang))}
+      onClick={() => (speaking ? stop() : speakTarget(text, lang))}
       className={cn(
         "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border px-4 text-sm font-medium",
         speaking
@@ -51,17 +54,65 @@ export function LingoPlay({
   lang,
   speechLang,
   onResolved,
+  onIntroReady,
+  autoplayTarget,
 }: {
   step: LingoStep;
   lang: LingoLangId;
   speechLang: string;
-  onResolved: (correct: boolean, speak?: boolean) => void;
+  onResolved: (correct: boolean, speak?: boolean, feedback?: string) => void;
+  onIntroReady?: () => void;
+  autoplayTarget?: boolean;
 }) {
+  const type = lingoItemType(step);
+  if (type === "introduce") {
+    return <IntroducePlay step={step} speechLang={speechLang} onReady={onIntroReady} autoplay={autoplayTarget} />;
+  }
   if (step.kind === "order") return <OrderPlay step={step} onResolved={onResolved} />;
-  if (step.kind === "match") return <MatchPlay step={step} onResolved={onResolved} />;
-  if (step.kind === "type") return <TypePlay step={step} lang={lang} onResolved={onResolved} />;
-  if (step.kind === "speak") return <SpeakPlay step={step} speechLang={speechLang} onResolved={onResolved} />;
+  if (type === "match") return <MatchPlay step={step} onResolved={onResolved} />;
+  if (type === "produce" || step.kind === "type") return <TypePlay step={step} lang={lang} onResolved={onResolved} />;
+  if (type === "speak") return <SpeakPlay step={step} speechLang={speechLang} onResolved={onResolved} />;
   return <ChoicePlay step={step} speechLang={speechLang} onResolved={onResolved} />;
+}
+
+function IntroducePlay({
+  step,
+  speechLang,
+  onReady,
+  autoplay,
+}: {
+  step: LingoStep;
+  speechLang: string;
+  onReady?: () => void;
+  autoplay?: boolean;
+}) {
+  useEffect(() => {
+    onReady?.();
+  }, [onReady, step.id]);
+
+  useEffect(() => {
+    if (!autoplay || !step.speakTarget) return;
+    const handle = step.speakGloss
+      ? speakIntroduce(step.speakTarget, step.speakGloss, speechLang)
+      : speakTarget(step.speakTarget, speechLang);
+    return () => handle.stop();
+  }, [autoplay, step.speakGloss, step.speakTarget, speechLang, step.id]);
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted">{step.prompt}</p>
+      {step.image ? (
+        // eslint-disable-next-line @next/next/no-img-element -- lingo situation art
+        <img src={step.image} alt={step.native ?? "Word picture"} className="mx-auto max-h-40 w-full object-contain" />
+      ) : null}
+      <p className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">{step.native}</p>
+      {step.phonetic ? <p className="text-center text-sm text-muted">{step.phonetic}</p> : null}
+      {step.meaning ? <p className="text-center text-lg text-foreground/85">{step.meaning}</p> : null}
+      <div className="flex justify-center">
+        <LingoListen text={step.speakTarget ?? step.native} lang={speechLang} />
+      </div>
+    </div>
+  );
 }
 
 function NativeBlock({
@@ -80,7 +131,7 @@ function NativeBlock({
         {step.native}
       </p>
       {step.phonetic ? <p className="text-sm text-muted">{step.phonetic}</p> : null}
-      <LingoListen text={step.speech ?? step.native} lang={speechLang} />
+      <LingoListen text={step.speakTarget ?? step.speech ?? step.native} lang={speechLang} />
     </div>
   );
 }
@@ -92,21 +143,22 @@ function ChoicePlay({
 }: {
   step: LingoStep;
   speechLang: string;
-  onResolved: (correct: boolean) => void;
+  onResolved: (correct: boolean, speak?: boolean, feedback?: string) => void;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const choices = step.choices ?? [];
   const locked = picked !== null;
   const selected = choices.find((choice) => choice.id === picked);
+  const type = lingoItemType(step);
 
   return (
     <div className="space-y-4">
       <p className="text-lg font-medium leading-8">{step.prompt}</p>
-      {step.kind === "listen" ? (
+      {type === "listen-pick" || step.kind === "listen" ? (
         <NativeBlock step={step} speechLang={speechLang} huge />
-      ) : step.native && step.kind === "vocab" && !(step.choices ?? []).some((choice) => choice.label === step.native) ? (
+      ) : step.native && type !== "contrast" && !(step.choices ?? []).some((choice) => choice.label === step.native) ? (
         <div className="flex flex-wrap items-center gap-2">
-          <LingoListen text={step.speech ?? step.native} lang={speechLang} />
+          <LingoListen text={step.speakTarget ?? step.speech ?? step.native} lang={speechLang} />
         </div>
       ) : null}
       <div className="space-y-2">
@@ -119,7 +171,11 @@ function ChoicePlay({
               disabled={locked}
               onClick={() => {
                 setPicked(choice.id);
-                onResolved(choice.correct);
+                onResolved(
+                  choice.correct,
+                  false,
+                  choice.correct ? step.speakFeedbackCorrect ?? step.why : step.speakFeedbackWrong ?? step.why,
+                );
               }}
               className={cn(
                 "w-full rounded-2xl border px-4 py-4 text-left text-base leading-6 transition min-h-14",
@@ -136,7 +192,7 @@ function ChoicePlay({
       </div>
       {selected ? (
         <p className={cn("text-sm leading-6", selected.correct ? "text-ok" : "text-danger")}>
-          {selected.correct ? "Nice." : "Not quite."} {step.why}
+          {selected.correct ? step.speakFeedbackCorrect ?? step.why : step.speakFeedbackWrong ?? step.why}
         </p>
       ) : null}
     </div>
@@ -370,6 +426,10 @@ function TypePlay({
   );
 }
 
+function hasMic() {
+  return typeof navigator !== "undefined" && Boolean(navigator.mediaDevices?.getUserMedia);
+}
+
 function SpeakPlay({
   step,
   speechLang,
@@ -377,9 +437,12 @@ function SpeakPlay({
 }: {
   step: LingoStep;
   speechLang: string;
-  onResolved: (correct: boolean, speak?: boolean) => void;
+  onResolved: (correct: boolean, speak?: boolean, feedback?: string) => void;
 }) {
   const [done, setDone] = useState(false);
+  if (!hasMic()) {
+    return <ProduceFallback step={step} onResolved={onResolved} speechLang={speechLang} />;
+  }
 
   return (
     <div className="space-y-5">
@@ -387,17 +450,37 @@ function SpeakPlay({
       <NativeBlock step={step} speechLang={speechLang} huge />
       {step.meaning ? <p className="text-base text-muted">{step.meaning}</p> : null}
       {done ? (
-        <p className="text-sm leading-6 text-ok">Logged. {step.why}</p>
+        <p className="text-sm leading-6 text-ok">{step.speakFeedbackCorrect ?? step.why}</p>
       ) : (
         <PlayerButton
           onClick={() => {
             setDone(true);
-            onResolved(true, true);
+            onResolved(true, true, step.speakFeedbackCorrect ?? step.why);
           }}
         >
           I said it
         </PlayerButton>
       )}
+    </div>
+  );
+}
+
+function ProduceFallback({
+  step,
+  speechLang,
+  onResolved,
+}: {
+  step: LingoStep;
+  speechLang: string;
+  onResolved: (correct: boolean, speak?: boolean, feedback?: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <p className="text-lg font-medium leading-8">{step.prompt}</p>
+      <NativeBlock step={step} speechLang={speechLang} huge />
+      <PlayerButton onClick={() => onResolved(true, false, step.speakFeedbackCorrect ?? step.why)}>
+        Continue
+      </PlayerButton>
     </div>
   );
 }

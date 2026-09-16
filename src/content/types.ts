@@ -108,7 +108,11 @@ export type TeachDiagramId =
   | "four-bar"
   | "claim-test"
   | "cash-flow"
-  | "suburb-map";
+  | "suburb-map"
+  | "swollen-pack"
+  | "soldered-cpu"
+  | "heat-flow"
+  | "door-hello";
 
 export interface ContentFigure {
   kind: FigureKind;
@@ -119,6 +123,8 @@ export interface ContentFigure {
   alt: string;
   caption: string;
   credit?: string;
+  /** Labels drawn on a see-beat diagram. Empty labels fail the linter. */
+  labels?: string[];
 }
 
 export interface LessonSection {
@@ -128,6 +134,33 @@ export interface LessonSection {
   table?: LessonTable;
   callout?: LessonCallout;
   figure?: ContentFigure;
+}
+
+export type LearnBeatType = "hook" | "see" | "try" | "name" | "contrast" | "decide" | "lock";
+
+export type SpeakLine = string | { silent: true };
+
+export interface LearnBeat {
+  id: string;
+  type: LearnBeatType;
+  title: string;
+  /** Six-word completion after “I can”. */
+  iCan: string;
+  speak: SpeakLine;
+  body?: string[];
+  bullets?: string[];
+  figure?: ContentFigure;
+  table?: LessonTable;
+  check?: PathCheck;
+  termsIntroduced?: string[];
+  /** Cluster lock line. Decide.cardHook must equal the following lock.lockLine. */
+  lockLine?: string;
+  /** Decide only. Awards this card on a correct answer. Skip still drops nothing. */
+  cardId?: string;
+  cardHook?: string;
+  objective?: string;
+  speakFeedbackCorrect?: string;
+  speakFeedbackWrong?: string;
 }
 
 export interface Lesson {
@@ -140,6 +173,10 @@ export interface Lesson {
   keyTakeaways: string[];
   /** Opening figure for the path hook beat */
   figure?: ContentFigure;
+  objective?: string;
+  /** Authored pedagogy beats. When present, the player uses these instead of compiling sections. */
+  beats?: LearnBeat[];
+  lockLine?: string;
 }
 
 export type PathCheckType = "choice" | "truefalse" | "order" | "match";
@@ -172,8 +209,11 @@ export interface PathCheck {
 
 export interface PathBeat {
   id: string;
-  kind: "hook" | "check" | "explain" | "tip" | "recap";
+  kind: "hook" | "check" | "explain" | "tip" | "recap" | LearnBeatType;
+  type?: LearnBeatType;
   title: string;
+  iCan?: string;
+  speak?: SpeakLine;
   body?: string[];
   bullets?: string[];
   diagram?: DiagramId;
@@ -181,6 +221,13 @@ export interface PathBeat {
   table?: LessonTable;
   check?: PathCheck;
   callout?: LessonCallout;
+  termsIntroduced?: string[];
+  lockLine?: string;
+  cardId?: string;
+  cardHook?: string;
+  objective?: string;
+  speakFeedbackCorrect?: string;
+  speakFeedbackWrong?: string;
 }
 
 export interface QuizQuestion {

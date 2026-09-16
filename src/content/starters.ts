@@ -1,5 +1,8 @@
 import type { Domain, Lesson, PathCheck, Quiz, SubjectId } from "./types";
 import { SUBJECTS } from "./subjects";
+import { techStartLesson } from "./learn/gold/tech-start";
+import { scienceStartLesson } from "./learn/gold/science-start";
+import { starterLessonFromSeed } from "./learn/starter-beats";
 
 interface StarterSeed {
   id: SubjectId;
@@ -215,21 +218,11 @@ export const starterDomains: Domain[] = SUBJECTS.map((subject) => {
   };
 });
 
-export const starterLessons: Lesson[] = SEEDS.map((seed) => ({
-  id: `${seed.id}-start-essentials`,
-  domainId: `${seed.id}-start`,
-  title: seed.title,
-  minutes: 4,
-  intro: seed.hook,
-  sections: [
-    {
-      heading: "See it once",
-      paragraphs: [seed.hook, seed.takeaway],
-      callout: { type: "tip", text: "This bite is four minutes on purpose. Finish it so XP, streak, and Binder can move." },
-    },
-  ],
-  keyTakeaways: [seed.takeaway, "Come back tomorrow for the next path in this hub."],
-}));
+export const starterLessons: Lesson[] = SEEDS.map((seed) => {
+  if (seed.id === "tech") return techStartLesson;
+  if (seed.id === "science") return scienceStartLesson;
+  return starterLessonFromSeed(seed);
+});
 
 export const starterChecks: Record<string, PathCheck[]> = Object.fromEntries(
   SEEDS.map((seed) => [

@@ -1,7 +1,27 @@
 export const LINGO_LANGS = ["fr", "id", "is"] as const;
 export type LingoLangId = (typeof LINGO_LANGS)[number];
 
-export type LingoStepKind = "vocab" | "listen" | "order" | "match" | "type" | "speak";
+export type LingoStepKind =
+  | "vocab"
+  | "listen"
+  | "order"
+  | "match"
+  | "type"
+  | "speak"
+  | "introduce"
+  | "listen-pick"
+  | "contrast"
+  | "produce"
+  | "reuse";
+
+export type LingoItemType =
+  | "introduce"
+  | "listen-pick"
+  | "contrast"
+  | "produce"
+  | "speak"
+  | "match"
+  | "reuse";
 
 export interface LingoChoice {
   id: string;
@@ -22,11 +42,20 @@ export interface LingoOrderItem {
 export interface LingoStep {
   id: string;
   kind: LingoStepKind;
+  type?: LingoItemType;
   prompt: string;
   native?: string;
   phonetic?: string;
   meaning?: string;
   speech?: string;
+  speak?: string | { silent: true };
+  speakTarget?: string;
+  speakGloss?: string;
+  speakFeedbackCorrect?: string;
+  speakFeedbackWrong?: string;
+  new?: boolean;
+  lemma?: string;
+  image?: string;
   choices?: LingoChoice[];
   items?: LingoOrderItem[];
   correctOrder?: string[];
@@ -71,4 +100,16 @@ export interface LingoPack extends LingoCourseMeta {
 
 export function isLingoLangId(value: string): value is LingoLangId {
   return (LINGO_LANGS as readonly string[]).includes(value);
+}
+
+export function lingoItemType(step: LingoStep): LingoItemType {
+  if (step.type) return step.type;
+  if (step.kind === "introduce") return "introduce";
+  if (step.kind === "listen" || step.kind === "listen-pick") return "listen-pick";
+  if (step.kind === "contrast") return "contrast";
+  if (step.kind === "type" || step.kind === "produce") return "produce";
+  if (step.kind === "speak") return "speak";
+  if (step.kind === "match") return "match";
+  if (step.kind === "reuse") return "reuse";
+  return step.new ? "introduce" : "reuse";
 }

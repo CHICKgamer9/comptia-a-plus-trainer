@@ -1,7 +1,9 @@
 import type { Lesson } from "../types";
 import { diagramFigure, videoFigure } from "../figures";
+import { mobileDevicesLesson } from "../learn/gold/mobile-devices";
+import { core1AuthoredBeats } from "../learn/tech/core1-beats";
 
-export const core1Lessons: Lesson[] = [
+const rawCore1: Lesson[] = [
   {
     id: "mobile-devices-essentials",
     domainId: "mobile-devices",
@@ -435,3 +437,10 @@ export const core1Lessons: Lesson[] = [
     ],
   },
 ];
+
+export const core1Lessons: Lesson[] = rawCore1.map((lesson) => {
+  if (lesson.domainId === "mobile-devices") return mobileDevicesLesson;
+  const beats = core1AuthoredBeats[lesson.domainId];
+  if (!beats) return lesson;
+  return { ...lesson, beats, objective: lesson.beats?.[0]?.objective ?? lesson.title, lockLine: beats.find((b) => b.lockLine)?.lockLine };
+});

@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useProgress } from "../ProgressProvider";
 import { loadLingoPack } from "@/content/lingo/load";
-import type { LingoLangId, LingoPack } from "@/content/lingo/types";
+import { lingoItemType, type LingoLangId, type LingoPack } from "@/content/lingo/types";
 import { continueNode, langProgress } from "@/lib/lingo";
+import { speakTextOf } from "@/lib/tts/script";
+import { cancelAll } from "@/lib/tts/speak";
 import { EmptyState } from "../ui";
 import { PlayerButton, PlayerFrame } from "../PlayerFrame";
 import { LingoPlay } from "./LingoPlay";
@@ -17,6 +19,9 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
   const [localIndex, setLocalIndex] = useState<number | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [lessonDone, setLessonDone] = useState(false);
+  const [gestured, setGestured] = useState(false);
+  const [followUp, setFollowUp] = useState<string | undefined>();
+  const [endedFor, setEndedFor] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -27,6 +32,16 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
       alive = false;
     };
   }, [lang]);
+
+  useEffect(() => {
+    const mark = () => setGestured(true);
+    window.addEventListener("pointerdown", mark, { once: true });
+    window.addEventListener("keydown", mark, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", mark);
+      window.removeEventListener("keydown", mark);
+    };
+  }, []);
 
   const node = pack?.nodes.find((item) => item.id === nodeId);
   const row = langProgress(progress.lingo, lang);
@@ -41,6 +56,11 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
     const cont = continueNode(pack, done, nodeId);
     return cont.id === nodeId ? undefined : cont;
   }, [pack, row.completedNodes, nodeId]);
+
+  const intro = step ? lingoItemType(step) === "introduce" : false;
+  const script = speakTextOf(step?.speak);
+  const speechEnded =
+    !progress.autoRead || progress.speechMuted || !script || intro || endedFor === step?.id;
 
   if (pack === undefined) {
     return <p className="text-sm text-muted">Loading lesson…</p>;
@@ -57,12 +77,17 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
 
   const last = index >= node.steps.length - 1;
   const current = step;
+  const type = lingoItemType(current);
+  const isIntro = type === "introduce";
+  const autoRead = progress.autoRead === true && !progress.speechMuted;
+  const continueDisabled = (!waiting && !isIntro) || (autoRead && !speechEnded && !isIntro);
 
-  function resolve(correct: boolean, speak?: boolean) {
+  function resolve(correct: boolean, speak?: boolean, feedback?: string) {
     if (recorded.current === current.id) return;
     recorded.current = current.id;
     recordLingoStep({ lang, nodeId, stepId: current.id, correct, speak });
     setWaiting(true);
+    if (feedback) setFollowUp(feedback);
     if (last && !lessonDone) {
       setLessonDone(true);
       completeLingoNode(lang, nodeId);
@@ -70,13 +95,21 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
   }
 
   function advance() {
-    if (!waiting || last) return;
+    if (continueDisabled && !isIntro) return;
+    if (isIntro && !waiting) resolve(true);
+    if (last) return;
+    cancelAll();
     const next = index + 1;
     setLocalIndex(next);
     saveLingoCursor(lang, nodeId, next);
     recorded.current = null;
     setWaiting(false);
+    setFollowUp(undefined);
   }
+
+  const narrationPrompt = current.speakTarget
+    ? { silent: true as const }
+    : (current.speak ?? { silent: true as const });
 
   return (
     <div>
@@ -88,17 +121,37 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
           {node.unitTitle} · {node.skill}
         </p>
       </div>
-      <PlayerFrame kicker={node.title} index={index} total={node.steps.length}>
+      <PlayerFrame
+        kicker={node.title}
+        index={index}
+        total={node.steps.length}
+        narration={{
+          id: current.id,
+          prompt: narrationPrompt,
+          followUp,
+          lang: pack.speechLang,
+          role: current.speakTarget ? "target" : "narrator",
+          onEnded: () => setEndedFor(current.id),
+        }}
+      >
         <LingoPlay
           key={current.id}
           step={current}
           lang={lang}
           speechLang={pack.speechLang}
           onResolved={resolve}
+          onIntroReady={() => {
+            if (!waiting) resolve(true);
+          }}
+          autoplayTarget={gestured && (isIntro || type === "listen-pick")}
         />
       </PlayerFrame>
       <div className="mx-auto mt-5 max-w-xl space-y-2">
-        {waiting && !last ? <PlayerButton onClick={advance}>Continue</PlayerButton> : null}
+        {(waiting || isIntro) && !lessonDone ? (
+          <PlayerButton onClick={advance} disabled={continueDisabled && !isIntro}>
+            {autoRead && !speechEnded && !isIntro ? "Listening…" : last ? "Finish lesson" : "Continue"}
+          </PlayerButton>
+        ) : null}
         {lessonDone ? (
           <>
             <p className="text-center text-sm text-ok">Lesson done. XP is on this device.</p>

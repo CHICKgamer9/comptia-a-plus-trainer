@@ -3,25 +3,29 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import type { Domain, Lesson, PathBeat, PathCheck } from "@/content/types";
+import type { Domain, LearnBeatType, Lesson, PathBeat, PathCheck } from "@/content/types";
 import { lessonToPath } from "@/lib/lesson-path";
 import { challengeHref, labThemeForDomain, quizHref } from "@/content/registry";
 import { getChallengesBySubject } from "@/content/challenges";
 import { projectHref, suggestedProjectForPath } from "@/content/projects";
+import { speakTextOf } from "@/lib/tts/script";
+import { cancelAll } from "@/lib/tts/speak";
 import { useProgress } from "./ProgressProvider";
 import { CheckPlay } from "./CheckPlay";
 import { PathDiagram } from "./PathDiagram";
 import { TeachFigure } from "./TeachFigure";
-import { joinSpeech } from "@/lib/speech";
 import { PlayerButton, PlayerFrame } from "./PlayerFrame";
 import { Badge, ExamBadge } from "./ui";
-import { cn } from "@/lib/cn";
 
 function resumeIndex(cursor: number | undefined, total: number) {
   const stored = cursor ?? 0;
   if (total <= 0) return 0;
   if (stored < 0) return total - 1;
   return Math.min(stored, total - 1);
+}
+
+function beatType(beat: PathBeat): LearnBeatType | PathBeat["kind"] {
+  return beat.type ?? beat.kind;
 }
 
 export function LessonPlayer({
@@ -36,12 +40,14 @@ export function LessonPlayer({
   const { progress, markLessonComplete, saveLessonCursor, recordQuizAnswer, lessonDone } =
     useProgress();
   const search = useSearchParams();
-  const hunt = search.get("hunt") === "1";
+  const huntRequested = search.get("hunt") === "1";
   const replayCheck = search.get("check");
+  const done = lessonDone(lesson.id);
+  const hunt = huntRequested && done;
   const beats = useMemo(() => {
     const all = lessonToPath(lesson, checks, domain.subject, domain.cluster);
     if (!hunt) return all;
-    const checksOnly = all.filter((item) => item.kind === "check").slice(0, 3);
+    const checksOnly = all.filter((item) => item.check).slice(0, 3);
     return checksOnly.length ? checksOnly : all.slice(0, 3);
   }, [lesson, checks, domain.subject, domain.cluster, hunt]);
   const [index, setIndex] = useState(() => {
@@ -54,16 +60,22 @@ export function LessonPlayer({
   });
   const [checkOk, setCheckOk] = useState(false);
   const [followUp, setFollowUp] = useState<string | undefined>();
+  const [endedFor, setEndedFor] = useState<string | null>(null);
   const beat = beats[index];
   const last = index >= beats.length - 1;
-  const done = lessonDone(lesson.id);
+  const autoRead = progress.autoRead === true;
+  const muted = progress.speechMuted === true;
+  const script = speakTextOf(beat?.speak);
+  const speechEnded = !autoRead || muted || !script || endedFor === beat?.id;
 
   function continuePath() {
-    if (beat?.kind === "check" && !checkOk) return;
+    if (beat?.check && !checkOk) return;
+    if (autoRead && !speechEnded && !muted) return;
     if (last) {
       if (!hunt) markLessonComplete(lesson.id);
       return;
     }
+    cancelAll();
     const next = index + 1;
     setIndex(next);
     setCheckOk(false);
@@ -72,7 +84,8 @@ export function LessonPlayer({
   }
 
   function skipBeat() {
-    if (beat?.kind !== "check" || !beat.check || checkOk) return;
+    if (!beat?.check || checkOk) return;
+    if (beatType(beat) !== "decide" && beatType(beat) !== "try") return;
     setCheckOk(true);
     setFollowUp("Skipped. No card.");
     recordQuizAnswer(`path-${beat.check.id}`, false, {
@@ -80,10 +93,16 @@ export function LessonPlayer({
       subject: domain.subject,
       conceptId: beat.check.id,
       skipped: true,
+      cardId: beat.cardId,
     });
   }
 
   if (!beat) return null;
+
+  const type = beatType(beat);
+  const waitingOnCheck = Boolean(beat.check) && !checkOk;
+  const waitingOnSpeech = autoRead && !muted && !speechEnded;
+  const continueDisabled = waitingOnCheck || waitingOnSpeech;
 
   return (
     <div>
@@ -104,14 +123,14 @@ export function LessonPlayer({
         total={beats.length}
         narration={{
           id: beat.id,
-          prompt: beatSpeech(beat),
-          choices: beatChoices(beat),
+          prompt: beat.speak ?? { silent: true },
           followUp,
+          onEnded: () => setEndedFor(beat.id),
         }}
         footer={
           last && done && !hunt ? (
             <EndLinks domain={domain} restart={() => { setIndex(0); setCheckOk(false); setFollowUp(undefined); }} />
-          ) : last && hunt && (beat.kind !== "check" || checkOk) ? (
+          ) : last && hunt && (!beat.check || checkOk) ? (
             <div className="grid gap-2 sm:grid-cols-2">
               <Link
                 href="/binder"
@@ -128,16 +147,18 @@ export function LessonPlayer({
             </div>
           ) : (
             <div className="grid gap-2">
-              <PlayerButton onClick={continuePath} disabled={beat.kind === "check" && !checkOk}>
-                {beat.kind === "check" && !checkOk
+              <PlayerButton onClick={continuePath} disabled={continueDisabled}>
+                {waitingOnCheck
                   ? "Answer to continue"
-                  : last
-                    ? hunt
-                      ? "Finish hunt"
-                      : "Finish path · +80 XP"
-                    : "Continue"}
+                  : waitingOnSpeech
+                    ? "Listening…"
+                    : last
+                      ? hunt
+                        ? "Finish hunt"
+                        : "Finish path · +80 XP"
+                      : "Continue"}
               </PlayerButton>
-              {beat.kind === "check" && !checkOk ? (
+              {type === "decide" && beat.check && !checkOk ? (
                 <button
                   type="button"
                   onClick={skipBeat}
@@ -155,11 +176,16 @@ export function LessonPlayer({
           onCheck={(correct, checkId, spoken) => {
             if (checkOk) return;
             setCheckOk(true);
-            setFollowUp(spoken);
+            const feedback = correct
+              ? beat.speakFeedbackCorrect ?? spoken
+              : beat.speakFeedbackWrong ?? spoken;
+            setFollowUp(feedback);
             recordQuizAnswer(`path-${checkId}`, correct, {
               domainId: domain.id,
               subject: domain.subject,
               conceptId: checkId,
+              cardId: type === "decide" ? beat.cardId : undefined,
+              awardCard: type === "decide",
             });
           }}
         />
@@ -168,24 +194,15 @@ export function LessonPlayer({
   );
 }
 
-function beatSpeech(beat: PathBeat) {
-  if (beat.kind === "check" && beat.check) {
-    return beat.check.prompt;
-  }
-  const table = beat.table
-    ? beat.table.rows.slice(0, 4).map((row) => row.join(", ")).join(". ")
-    : "";
-  return joinSpeech([beat.title, ...(beat.body ?? []), ...(beat.bullets ?? []), table]);
-}
-
-function beatChoices(beat: PathBeat) {
-  const check = beat.check;
-  if (!check) return undefined;
-  if (check.choices?.length) return check.choices.map((choice) => choice.label);
-  if (check.type === "truefalse") return ["True", "False"];
-  if (check.items?.length) return check.items.map((item) => item.label);
-  if (check.pairs?.length) return check.pairs.map((pair) => `${pair.left}. ${pair.right}`);
-  return undefined;
+function typeLabel(type: LearnBeatType | PathBeat["kind"]) {
+  if (type === "see") return "See";
+  if (type === "try") return "Try";
+  if (type === "name") return "Name";
+  if (type === "contrast") return "Contrast";
+  if (type === "decide") return "Decide";
+  if (type === "lock" || type === "recap") return "Lock";
+  if (type === "tip") return "Watch";
+  return "Hook";
 }
 
 function BeatView({
@@ -195,13 +212,18 @@ function BeatView({
   beat: PathBeat;
   onCheck: (correct: boolean, checkId: string, spoken?: string) => void;
 }) {
-  if (beat.kind === "check" && beat.check) {
+  const type = beatType(beat);
+  if (beat.check) {
     return (
-      <CheckPlay
-        key={beat.check.id}
-        check={beat.check}
-        onResolved={(correct, spoken) => onCheck(correct, beat.check!.id, spoken)}
-      />
+      <div className="space-y-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">{typeLabel(type)}</p>
+        {beat.iCan ? <p className="text-sm text-muted">I can {beat.iCan}.</p> : null}
+        <CheckPlay
+          key={beat.check.id}
+          check={beat.check}
+          onResolved={(correct, spoken) => onCheck(correct, beat.check!.id, spoken)}
+        />
+      </div>
     );
   }
 
@@ -214,15 +236,16 @@ function BeatView({
           <PathDiagram id={beat.diagram} />
         </div>
       ) : null}
-      <p
-        className={cn(
-          "text-[11px] font-semibold uppercase tracking-[0.18em]",
-          beat.kind === "tip" ? "text-warn" : "text-accent",
-        )}
-      >
-        {beat.kind === "tip" ? beat.title : beat.kind === "recap" ? "Recap" : beat.kind === "explain" ? "Why it matters" : "Concept"}
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
+        {typeLabel(type)}
       </p>
       <h2 className="text-2xl font-semibold tracking-tight text-balance">{beat.title}</h2>
+      {beat.iCan ? <p className="text-sm text-muted">I can {beat.iCan}.</p> : null}
+      {type === "lock" && beat.lockLine ? (
+        <p className="rounded-2xl border border-accent/30 bg-accent-dim/40 px-4 py-3 text-base font-medium leading-7">
+          {beat.lockLine}
+        </p>
+      ) : null}
       {beat.body?.map((paragraph) => (
         <p key={paragraph.slice(0, 48)} className="text-[16px] leading-8 text-foreground/90">
           {paragraph}

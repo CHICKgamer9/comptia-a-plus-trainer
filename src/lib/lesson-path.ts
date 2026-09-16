@@ -120,9 +120,46 @@ function fallbackFigure(lesson: Lesson, subject?: SubjectId, cluster?: string): 
     kind: "diagram",
     diagram,
     alt: `Diagram for ${lesson.title}`,
-    caption:
-      "A pocket picture for this path. Read the labels in the drawing — colour is extra, not the legend.",
+    caption: "Read the labels in the drawing. Colour is extra, not the legend.",
   };
+}
+
+function authoredToPath(lesson: Lesson): PathBeat[] {
+  return (lesson.beats ?? []).map((beat) => ({
+    id: beat.id,
+    kind: beat.check ? "check" : beat.type,
+    type: beat.type,
+    title: beat.title,
+    iCan: beat.iCan,
+    speak: beat.speak,
+    body: beat.body,
+    bullets: beat.bullets,
+    figure: beat.figure,
+    table: beat.table,
+    check: beat.check,
+    termsIntroduced: beat.termsIntroduced,
+    lockLine: beat.lockLine,
+    cardId: beat.cardId,
+    cardHook: beat.cardHook,
+    objective: beat.objective,
+    speakFeedbackCorrect: beat.speakFeedbackCorrect,
+    speakFeedbackWrong: beat.speakFeedbackWrong,
+  }));
+}
+
+function speakFromBody(parts: Array<string | undefined>): string {
+  const text = parts
+    .map((part) => (part ?? "").replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\u2014|\u2013/g, ". ")
+    .replace(/\s*\/\s*/g, ", ");
+  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [];
+  return sentences
+    .slice(0, 2)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence && !/^(CONCEPT|WHY|FIELD TIP|RECAP)$/i.test(sentence))
+    .join(" ");
 }
 
 export function lessonToPath(
@@ -131,6 +168,8 @@ export function lessonToPath(
   subject?: SubjectId,
   cluster?: string,
 ): PathBeat[] {
+  if (lesson.beats?.length) return authoredToPath(lesson);
+
   const beats: PathBeat[] = [];
   const intro = firstSentences(lesson.intro, 2);
   const usedAuthored = new Set<string>();
@@ -139,7 +178,9 @@ export function lessonToPath(
   beats.push({
     id: `${lesson.id}-open`,
     kind: "hook",
+    type: "hook",
     title: lesson.title,
+    speak: speakFromBody([intro.hook]),
     body: [intro.hook],
     figure: opening,
   });
@@ -148,7 +189,9 @@ export function lessonToPath(
     beats.push({
       id: `${lesson.id}-open-more`,
       kind: "explain",
+      type: "name",
       title: "What this path is for",
+      speak: speakFromBody([intro.rest]),
       body: [intro.rest],
     });
   }
@@ -159,7 +202,9 @@ export function lessonToPath(
     beats.push({
       id: `${lesson.id}-s${sectionIndex}-hook`,
       kind: "hook",
+      type: "hook",
       title: section.heading,
+      speak: speakFromBody([split.hook || first]),
       body: [split.hook || first],
       figure: section.figure,
     });
@@ -172,7 +217,9 @@ export function lessonToPath(
       beats.push({
         id: `${lesson.id}-check-${check.id}`,
         kind: "check",
+        type: "decide",
         title: "Try this",
+        speak: speakFromBody([check.prompt]),
         check,
       });
     });
@@ -186,7 +233,9 @@ export function lessonToPath(
       beats.push({
         id: `${lesson.id}-s${sectionIndex}-order`,
         kind: "check",
+        type: "try",
         title: "Try this",
+        speak: "Put these steps in order.",
         check: {
           id: `${lesson.id}-order-${sectionIndex}`,
           type: "order",
@@ -204,7 +253,9 @@ export function lessonToPath(
       beats.push({
         id: `${lesson.id}-s${sectionIndex}-table`,
         kind: "check",
+        type: "try",
         title: "Try this",
+        speak: speakFromBody([tableCheck.prompt]),
         check: tableCheck,
       });
     }
@@ -215,7 +266,9 @@ export function lessonToPath(
       beats.push({
         id: `${lesson.id}-s${sectionIndex}-explain`,
         kind: "explain",
+        type: "name",
         title: section.heading,
+        speak: speakFromBody(explainBody),
         body: explainBody.length ? explainBody : undefined,
         bullets: leftoverBullets,
         table: section.table,
@@ -233,7 +286,8 @@ export function lessonToPath(
             : "Test cue"
           : section.callout.type === "watch"
             ? "Watch out"
-            : "Field tip",
+            : "Watch this",
+        speak: speakFromBody([section.callout.text]),
         callout: section.callout,
         body: [section.callout.text],
       });
@@ -246,7 +300,9 @@ export function lessonToPath(
       beats.push({
         id: `${lesson.id}-check-${check.id}`,
         kind: "check",
+        type: "decide",
         title: "Try this",
+        speak: speakFromBody([check.prompt]),
         check,
       });
     });
@@ -254,12 +310,14 @@ export function lessonToPath(
   beats.push({
     id: `${lesson.id}-recap`,
     kind: "recap",
+    type: "lock",
     title: "You can close this path",
+    speak: speakFromBody(lesson.keyTakeaways.slice(0, 2)),
     bullets: lesson.keyTakeaways,
     body: [
       subject === "tech"
-        ? "Keep these in your pocket. The quiz and a live ticket will ask them again, not as an essay."
-        : "Keep these in your pocket. The quiz — and a challenge, if there is one — will ask them again.",
+        ? "Keep these lines. A later ticket will ask them again, not as an essay."
+        : "Keep these lines. A later quiz will ask them again.",
     ],
   });
 

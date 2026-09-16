@@ -262,11 +262,23 @@ function award(
 
 export function dropFromPath(
   bench: BenchState,
-  input: { correct: boolean; skipped?: boolean; domainId?: string; subject?: SubjectId; conceptId: string },
+  input: {
+    correct: boolean;
+    skipped?: boolean;
+    domainId?: string;
+    subject?: SubjectId;
+    conceptId: string;
+    /** When set, award this card on a correct answer and skip the random pool. */
+    cardId?: string;
+  },
 ): DropResult {
   const awarded: DropResult["awarded"] = [];
   let next = { ...bench, owned: [...bench.owned] };
   if (input.skipped) return { bench: next, awarded };
+  if (input.cardId) {
+    if (input.correct) next = award(next, input.cardId, "path", awarded);
+    return { bench: next, awarded };
+  }
   const starterDrop = Boolean(input.domainId?.endsWith("-start"));
   if (!input.correct) {
     if (!next.gotchaConcepts.includes(input.conceptId)) {

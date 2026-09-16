@@ -22,6 +22,7 @@ import {
   exportProgressJson,
   saveProgress,
   setAutoReadIn,
+  setSpeechMutedIn,
   setLastSubjectIn,
   setExamTrackIn,
   subscribeProgress,
@@ -80,6 +81,7 @@ interface ProgressContextValue {
   fuseCards: (recipeId: string) => void;
   resetProgress: () => void;
   setAutoRead: (autoRead: boolean) => void;
+  setSpeechMuted: (muted: boolean) => void;
   setLastSubject: (subject: SubjectId) => void;
   setExamTrack: (track: import("@/content/types").ExamTrack) => void;
   reviewCard: (cardId: string, grade: ReviewGrade) => void;
@@ -234,6 +236,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     mutateProgress((prev) => setAutoReadIn(prev, autoRead));
   }, []);
 
+  const setSpeechMuted = useCallback((muted: boolean) => {
+    mutateProgress((prev) => setSpeechMutedIn(prev, muted));
+  }, []);
+
   const setLastSubject = useCallback((subject: SubjectId) => {
     mutateProgress((prev) => setLastSubjectIn(prev, subject));
   }, []);
@@ -297,6 +303,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       fuseCards,
       resetProgress,
       setAutoRead,
+      setSpeechMuted,
       setLastSubject,
       setExamTrack,
       reviewCard,
@@ -348,6 +355,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     fuseCards,
     resetProgress,
     setAutoRead,
+    setSpeechMuted,
     setLastSubject,
     setExamTrack,
     reviewCard,
