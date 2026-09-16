@@ -205,11 +205,36 @@ export function tagsForBrain(cat?: BrainCat): string[] {
 
 function matchingCards(tags: string[], types?: CardType[]) {
   const lower = tags.map((tag) => tag.toLowerCase());
-  return benchCards.filter((card) => {
+  const subjects = new Set([
+    "tech",
+    "maths",
+    "science",
+    "history",
+    "english",
+    "geography",
+    "coding",
+    "business",
+    "health",
+    "music",
+    "art",
+    "civics",
+    "languages",
+    "logic",
+    "digital",
+  ]);
+  const specific = lower.filter((tag) => !subjects.has(tag));
+  const candidates = benchCards.filter((card) => {
     if (card.type === "crest") return false;
     if (types && !types.includes(card.type)) return false;
-    return card.tags.some((tag) => lower.includes(tag.toLowerCase()) || lower.includes(card.subject));
+    return true;
   });
+  const tagged = candidates.filter((card) =>
+    card.tags.some((tag) => specific.includes(tag.toLowerCase())),
+  );
+  if (tagged.length) return tagged;
+  return candidates.filter((card) =>
+    card.tags.some((tag) => lower.includes(tag.toLowerCase()) || lower.includes(card.subject)),
+  );
 }
 
 function award(

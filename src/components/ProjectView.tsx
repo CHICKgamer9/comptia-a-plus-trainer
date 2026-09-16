@@ -86,12 +86,24 @@ export function ProjectView({ project }: { project: Project }) {
       <section className="mt-8">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">Steps</h2>
         <ol className="mt-3 grid gap-3">
-          {project.steps.map((step, index) => (
+          {project.steps.map((step, index) => {
+            const on = checked.includes(step.id);
+            return (
             <li key={step.id} className="rounded-3xl border border-border bg-surface p-5">
-              <p className="font-mono text-xs text-accent">
-                {index + 1} / {project.steps.length}
-              </p>
-              <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
+              <label className="flex cursor-pointer items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]"
+                  checked={on}
+                  onChange={() => toggleProjectCheck(project.id, step.id)}
+                />
+                <span>
+                  <p className="font-mono text-xs text-accent">
+                    {index + 1} / {project.steps.length}
+                  </p>
+                  <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
+                </span>
+              </label>
               {step.figure ? (
                 <div className="mt-3">
                   <TeachFigure figure={step.figure} />
@@ -99,7 +111,8 @@ export function ProjectView({ project }: { project: Project }) {
               ) : null}
               <p className="mt-2 text-sm leading-6 text-foreground/90">{step.body}</p>
             </li>
-          ))}
+            );
+          })}
         </ol>
       </section>
 
