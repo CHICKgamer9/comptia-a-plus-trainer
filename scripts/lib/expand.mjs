@@ -124,7 +124,10 @@ export function expandSeed(seed, number) {
     keyTakeaways: takeaways(seed),
   };
 
-  if (String(seed.id).startsWith("vx-") && Math.abs(hash(seed.id + "fig")) % 5 === 0) {
+  if (
+    (String(seed.id).startsWith("vx-") || String(seed.id).startsWith("vy-")) &&
+    Math.abs(hash(seed.id + "fig")) % 5 === 0
+  ) {
     lesson.figure = {
       kind: "diagram",
       diagram: diagramForSubject(seed.subject),

@@ -13,6 +13,7 @@ import { CIVICS_VOLUME } from "./civics.mjs";
 import { LANGUAGES_VOLUME } from "./languages.mjs";
 import { LOGIC_VOLUME } from "./logic.mjs";
 import { DIGITAL_VOLUME } from "./digital.mjs";
+import { MORE_SEEDS } from "./more/index.mjs";
 
 export const VOLUME_SEEDS = [
   ...TECH_VOLUME,
@@ -30,4 +31,5 @@ export const VOLUME_SEEDS = [
   ...LANGUAGES_VOLUME,
   ...LOGIC_VOLUME,
   ...DIGITAL_VOLUME,
+  ...MORE_SEEDS,
 ];

@@ -60,27 +60,27 @@ Old `/learn/mobile-devices` URLs redirect to `/learn/tech/mobile-devices`.
 
 ## Path count per subject
 
-Hard floor: **60 distinct interactive paths in every hub.** Volume pass adds **1,444** extra factory seeds (`scripts/topics/extra/`). Before this pass: **901**. After: **2,345**.
+Hard floor: **60 distinct interactive paths in every hub.** Extra factory seeds (`scripts/topics/extra/`, including the `more/` balance pass) add **1,799** lessons. Before volume: **901**. After: **2,700**. Every major hub is topped to **180** so coverage is complete, not just past the 1,400 floor.
 
 | Subject | Paths | Notes |
 | --- | --- | --- |
-| Tech | **160** | 9 original A+ domains (exam-gated) + 51 shop-craft + 100 volume (no exam tag) |
-| Maths | **157** | 5 original + 56 factory + 96 volume |
-| Science | **156** | 5 original + 55 factory + 96 volume |
-| History | **156** | 5 original + 55 factory + 96 volume |
-| English | **156** | 60 factory + 96 volume |
-| Geography | **156** | 60 factory + 96 volume |
-| Coding | **156** | 60 factory + 96 volume |
-| Business | **156** | 60 factory + 96 volume |
-| Health | **156** | 60 factory + 96 volume |
-| Music | **156** | 60 factory + 96 volume |
-| Art | **156** | 60 factory + 96 volume |
-| Civics | **156** | 60 factory + 96 volume |
-| Languages | **156** | 60 factory + 96 volume. Speak courses are extra, under `/lingo` |
-| Logic | **156** | 60 factory + 96 volume |
-| Digital | **156** | 60 factory + 96 volume |
+| Tech | **180** | 9 original A+ domains (exam-gated) + 51 shop-craft + 120 volume (no exam tag) |
+| Maths | **180** | 5 original + 56 factory + 119 volume |
+| Science | **180** | 5 original + 55 factory + 120 volume |
+| History | **180** | 5 original + 55 factory + 120 volume |
+| English | **180** | 60 factory + 120 volume |
+| Geography | **180** | 60 factory + 120 volume |
+| Coding | **180** | 60 factory + 120 volume |
+| Business | **180** | 60 factory + 120 volume |
+| Health | **180** | 60 factory + 120 volume |
+| Music | **180** | 60 factory + 120 volume |
+| Art | **180** | 60 factory + 120 volume |
+| Civics | **180** | 60 factory + 120 volume |
+| Languages | **180** | 60 factory + 120 volume. Speak courses are extra, under `/lingo` |
+| Logic | **180** | 60 factory + 120 volume |
+| Digital | **180** | 60 factory + 120 volume |
 
-**None under 60.** Grand total **2,345** paths (**+1,444** new). About one in five volume lessons ships a captioned teaching diagram.
+**None under 60.** Grand total **2,700** paths (**+1,799** new). About one in five volume lessons ships a captioned teaching diagram.
 
 Browse by topic chips and search inside each hub so 60+ stays usable.
 
@@ -204,7 +204,7 @@ Extra Tech paths are additive study; they do not change those gates. If those ga
 
 **Factory (preferred at this scale):** add a unique seed row in `scripts/topics/<subject>.mjs`, then `npm run catalog`. Seeds must not reuse reserved original IDs (`mobile-devices`, `number-sense`, …). Extra Tech seeds must omit `exam`.
 
-**Factory volume (same schema):** add a unique `vx-` seed in `scripts/topics/extra/<subject>.mjs` (`pack()` rows: id, cluster, title, fact, trap, move, extra), then `npm run catalog`. Floor for that extra pass is **1,400** new seeds (`VOLUME_FLOOR` in `scripts/generate-catalog.mjs`). About one in five volume lessons also gets a captioned `ContentFigure` diagram.
+**Factory volume (same schema):** add a unique `vx-` or `vy-` seed in `scripts/topics/extra/<subject>.mjs` (first pass) or `scripts/topics/extra/more/<subject>.mjs` (balance pass) — `pack()` rows: id, cluster, title, fact, trap, move, extra — then `npm run catalog`. Floor for extra seeds is **1,400** (`VOLUME_FLOOR`). A later balance pass tops every hub to **180** paths. About one in five volume lessons also gets a captioned `ContentFigure` diagram.
 
 **Hand-authored (originals):**
 
