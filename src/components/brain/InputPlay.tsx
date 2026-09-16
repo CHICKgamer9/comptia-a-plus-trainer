@@ -41,7 +41,7 @@ export function InputPlay({
         onKeyDown={(event) => {
           if (event.key === "Enter") submit();
         }}
-        className="w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 font-mono text-lg uppercase tracking-wide outline-none focus:border-accent"
+        className="min-h-12 w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 font-mono text-base uppercase tracking-wide outline-none focus:border-accent"
         placeholder="Type the answer"
       />
       {item.kind === "crypto" && item.cipher ? (

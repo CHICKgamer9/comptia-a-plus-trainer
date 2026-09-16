@@ -88,7 +88,7 @@ export function BrainPlayer({
   );
 }
 
-function BrainKindPlay({
+export function BrainKindPlay({
   item,
   onResolved,
 }: {

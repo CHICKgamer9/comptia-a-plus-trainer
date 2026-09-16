@@ -126,7 +126,7 @@ function OrderFlash({
               key={item.id}
               type="button"
               onClick={() => tap(item.id)}
-              className="rounded-full border border-border bg-surface-2 px-3 py-2 text-sm hover:border-accent/50"
+              className="min-h-11 rounded-full border border-border bg-surface-2 px-3 py-2 text-sm active:border-accent/50 hover:border-accent/50"
             >
               {item.label}
             </button>

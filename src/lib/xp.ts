@@ -24,6 +24,7 @@ export const XP = {
   brainWrong: 2,
   brainCrossword: 40,
   brainDayComplete: 80,
+  brainSkip: -2,
 } as const;
 
 export function levelForXp(xp: number) {

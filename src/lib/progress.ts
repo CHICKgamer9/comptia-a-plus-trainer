@@ -41,11 +41,20 @@ export interface BrainDayRecord {
   at: number;
 }
 
+export interface BrainFeedState {
+  ymd: string;
+  cursor: number;
+  startedAt: number;
+  activeMs: number;
+  lastSkipAt?: number;
+}
+
 export interface BrainState {
   answeredIds: string[];
   days: Record<string, BrainDayRecord>;
   bestDay?: { ymd: string; minutes: number };
   crosswordSolved: string[];
+  feed?: BrainFeedState;
 }
 
 export interface BrainAnswerInput {
@@ -92,6 +101,18 @@ export const emptyBrain = (): BrainState => ({
   crosswordSolved: [],
 });
 
+function parseFeed(raw: BrainFeedState | undefined): BrainFeedState | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  if (typeof raw.ymd !== "string" || typeof raw.cursor !== "number") return undefined;
+  return {
+    ymd: raw.ymd,
+    cursor: Math.max(0, Math.floor(raw.cursor)),
+    startedAt: typeof raw.startedAt === "number" ? raw.startedAt : Date.now(),
+    activeMs: typeof raw.activeMs === "number" ? Math.max(0, raw.activeMs) : 0,
+    lastSkipAt: typeof raw.lastSkipAt === "number" ? raw.lastSkipAt : undefined,
+  };
+}
+
 export const emptyProgress = (): ProgressState => ({
   completedLessons: [],
   quizScores: {},
@@ -137,6 +158,7 @@ export function parseProgress(raw: string): ProgressState {
             crosswordSolved: Array.isArray(parsed.brain.crosswordSolved)
               ? parsed.brain.crosswordSolved
               : [],
+            feed: parseFeed(parsed.brain.feed),
           }
         : undefined,
     };
@@ -388,6 +410,19 @@ export function recordBrainAnswerIn(prev: ProgressState, input: BrainAnswerInput
   if (completed && !wasComplete) xpGain += XP.brainDayComplete;
 
   return withActivity({ ...prev, brain }, xpGain);
+}
+
+export function saveBrainFeedIn(prev: ProgressState, feed: BrainFeedState): ProgressState {
+  const brain: BrainState = { ...(prev.brain ?? emptyBrain()), feed };
+  return { ...prev, brain };
+}
+
+export function recordBrainSkipIn(
+  prev: ProgressState,
+  feed: BrainFeedState,
+): ProgressState {
+  const brain: BrainState = { ...(prev.brain ?? emptyBrain()), feed };
+  return withActivity({ ...prev, brain }, XP.brainSkip);
 }
 
 export function mutateProgress(mutator: (prev: ProgressState) => ProgressState) {

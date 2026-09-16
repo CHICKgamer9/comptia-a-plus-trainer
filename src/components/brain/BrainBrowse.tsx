@@ -41,7 +41,7 @@ export function BrainBrowse() {
             key={id}
             href={`/brain/browse?cat=${id}`}
             className={cn(
-              "rounded-full border px-3 py-1.5 text-xs font-medium",
+              "inline-flex min-h-11 items-center rounded-full border px-3 py-1.5 text-xs font-medium",
               id === cat ? "border-accent bg-accent-dim text-accent" : "border-border text-muted hover:text-foreground",
             )}
           >
@@ -82,7 +82,7 @@ function BrowseList({ cat, answered }: { cat: BrainCat; answered: Set<string> })
             <li key={item.id}>
               <Link
                 href={`/brain/play/${item.id}`}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-3 hover:border-accent/40"
+                className="flex min-h-11 items-start justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-3 active:border-accent/40"
               >
                 <span>
                   <span className="block text-sm font-medium">{item.title}</span>
@@ -100,7 +100,7 @@ function BrowseList({ cat, answered }: { cat: BrainCat; answered: Set<string> })
       {shown < items.length ? (
         <button
           type="button"
-          className="mt-4 w-full rounded-2xl border border-border px-4 py-3 text-sm hover:bg-surface-2"
+          className="mt-4 min-h-12 w-full rounded-2xl border border-border px-4 py-3 text-sm active:bg-surface-2"
           onClick={() => setShown((n) => n + PAGE)}
         >
           Show more ({items.length - shown} left)

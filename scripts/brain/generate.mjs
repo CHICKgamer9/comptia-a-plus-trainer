@@ -18,12 +18,25 @@ import {
   buildSpatial,
   buildSyllogisms,
 } from "./families.mjs";
+import {
+  buildBeats,
+  buildEmoji,
+  buildEthics,
+  buildFacts,
+  buildLies,
+  buildMicro,
+  buildOdd,
+  buildPatterns,
+  buildRiddles,
+  buildSpell,
+  buildTrivia,
+} from "./scroll.mjs";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const outDir = join(root, "../../src/content/brain/packs");
 mkdirSync(outDir, { recursive: true });
 
-const MIN = 8000;
+const MIN = 20000;
 const TARGETS = {
   maths: 2400,
   sequence: 1400,
@@ -39,6 +52,17 @@ const TARGETS = {
   logic: 700,
   words: 3200,
   crossword: 1000,
+  riddle: 800,
+  trivia: 1400,
+  emoji: 700,
+  odd: 900,
+  lie: 650,
+  micro: 700,
+  spell: 900,
+  fact: 900,
+  pattern: 800,
+  ethic: 550,
+  beat: 550,
 };
 
 function fingerprint(item) {
@@ -82,6 +106,17 @@ const packs = {
   reading: stamp("reading", buildReading(TARGETS.reading, "read-v1")),
   lateral: stamp("lateral", buildLateral(TARGETS.lateral, "lat-v1")),
   logic: stamp("logic", buildLogic(TARGETS.logic, "log-v1")),
+  riddle: stamp("riddle", buildRiddles(TARGETS.riddle, "riddle-v1")),
+  trivia: stamp("trivia", buildTrivia(TARGETS.trivia, "trivia-v1")),
+  emoji: stamp("emoji", buildEmoji(TARGETS.emoji, "emoji-v1")),
+  odd: stamp("odd", buildOdd(TARGETS.odd, "odd-v1")),
+  lie: stamp("lie", buildLies(TARGETS.lie, "lie-v1")),
+  micro: stamp("micro", buildMicro(TARGETS.micro, "micro-v1")),
+  spell: stamp("spell", buildSpell(TARGETS.spell, "spell-v1")),
+  fact: stamp("fact", buildFacts(TARGETS.fact, "fact-v1")),
+  pattern: stamp("pattern", buildPatterns(TARGETS.pattern, "pattern-v1")),
+  ethic: stamp("ethic", buildEthics(TARGETS.ethic, "ethic-v1")),
+  beat: stamp("beat", buildBeats(TARGETS.beat, "beat-v1")),
   words,
   crossword,
 };
@@ -101,6 +136,17 @@ const categories = [
   ["logic", "Logic grids", "Tiny deduction tables"],
   ["words", "Word puzzles", "Anagrams, ladders, cryptos, reveal"],
   ["crossword", "Crosswords", "Playable mini grids, across and down"],
+  ["riddle", "Riddles", "Lateral one-liners, not arithmetic"],
+  ["trivia", "Trivia sparks", "Science, history, geo, tech — short MCQ"],
+  ["emoji", "Emoji equations", "Rebus-lite and digit sums"],
+  ["odd", "Odd one out", "Words, numbers, concepts"],
+  ["lie", "Two truths, one lie", "Pick the lie"],
+  ["micro", "Micro reading", "Two to four sentences, then a trap"],
+  ["spell", "Spelling", "Aussie-friendly spelling and word choice"],
+  ["fact", "Quick facts", "True/false with a one-line why"],
+  ["pattern", "Pattern find", "Letters, symbols, tiny grids"],
+  ["ethic", "What would you do?", "Micro ethics and digital citizenship"],
+  ["beat", "Beats", "Count, rest, note values — tap, not audio"],
 ];
 
 const meta = categories.map(([id, title, blurb]) => {
@@ -116,20 +162,31 @@ if (total < MIN) {
 }
 
 const recipe = [
-  { cat: "crossword", minutes: 12 },
-  { cat: "words", minutes: 18 },
-  { cat: "maths", minutes: 16 },
-  { cat: "sequence", minutes: 10 },
-  { cat: "analogy", minutes: 8 },
-  { cat: "syllogism", minutes: 8 },
-  { cat: "estimate", minutes: 6 },
-  { cat: "chance", minutes: 8 },
-  { cat: "code", minutes: 8 },
-  { cat: "spatial", minutes: 6 },
-  { cat: "memory", minutes: 6 },
-  { cat: "reading", minutes: 6 },
-  { cat: "lateral", minutes: 4 },
-  { cat: "logic", minutes: 4 },
+  { cat: "crossword", minutes: 10 },
+  { cat: "words", minutes: 12 },
+  { cat: "maths", minutes: 12 },
+  { cat: "sequence", minutes: 8 },
+  { cat: "analogy", minutes: 6 },
+  { cat: "syllogism", minutes: 6 },
+  { cat: "estimate", minutes: 5 },
+  { cat: "chance", minutes: 6 },
+  { cat: "code", minutes: 6 },
+  { cat: "spatial", minutes: 5 },
+  { cat: "memory", minutes: 4 },
+  { cat: "reading", minutes: 5 },
+  { cat: "lateral", minutes: 3 },
+  { cat: "logic", minutes: 3 },
+  { cat: "riddle", minutes: 4 },
+  { cat: "trivia", minutes: 5 },
+  { cat: "emoji", minutes: 3 },
+  { cat: "odd", minutes: 3 },
+  { cat: "spell", minutes: 3 },
+  { cat: "fact", minutes: 3 },
+  { cat: "lie", minutes: 2 },
+  { cat: "micro", minutes: 2 },
+  { cat: "pattern", minutes: 2 },
+  { cat: "ethic", minutes: 1 },
+  { cat: "beat", minutes: 1 },
 ];
 
 const avgAll = total
@@ -144,7 +201,7 @@ const manifest = {
   targetMinutes: 120,
   categories: meta,
   recipe,
-  wordMinutes: 18,
+  wordMinutes: 12,
   crosswordCount: packs.crossword.length,
   uniqueDaysAt60,
   avgMinutes: Math.round(avgAll * 100) / 100,

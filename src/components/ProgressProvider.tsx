@@ -9,15 +9,18 @@ import {
   mutateProgress,
   parseProgress,
   recordBrainAnswerIn,
+  recordBrainSkipIn,
   recordQuizAnswerIn,
   recordQuizIn,
   recordScenarioIn,
+  saveBrainFeedIn,
   saveLessonCursorIn,
   saveProgress,
   setAutoReadIn,
   setLastSubjectIn,
   subscribeProgress,
   type BrainAnswerInput,
+  type BrainFeedState,
   type ProgressState,
   type ScenarioResult,
 } from "@/lib/progress";
@@ -36,6 +39,8 @@ interface ProgressContextValue {
   recordQuiz: (quizId: string, score: number, total: number) => void;
   recordScenario: (scenarioId: string, result: ScenarioResult) => void;
   recordBrainAnswer: (input: BrainAnswerInput) => void;
+  saveBrainFeed: (feed: BrainFeedState) => void;
+  recordBrainSkip: (feed: BrainFeedState) => void;
   resetProgress: () => void;
   setAutoRead: (autoRead: boolean) => void;
   setLastSubject: (subject: SubjectId) => void;
@@ -105,6 +110,14 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     mutateProgress((prev) => recordBrainAnswerIn(prev, input));
   }, []);
 
+  const saveBrainFeed = useCallback((feed: BrainFeedState) => {
+    mutateProgress((prev) => saveBrainFeedIn(prev, feed));
+  }, []);
+
+  const recordBrainSkip = useCallback((feed: BrainFeedState) => {
+    mutateProgress((prev) => recordBrainSkipIn(prev, feed));
+  }, []);
+
   const resetProgress = useCallback(() => {
     saveProgress(emptyProgress());
     clearTickets();
@@ -139,6 +152,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       recordQuiz,
       recordScenario,
       recordBrainAnswer,
+      saveBrainFeed,
+      recordBrainSkip,
       resetProgress,
       setAutoRead,
       setLastSubject,
@@ -168,6 +183,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     recordQuiz,
     recordScenario,
     recordBrainAnswer,
+    saveBrainFeed,
+    recordBrainSkip,
     resetProgress,
     setAutoRead,
     setLastSubject,

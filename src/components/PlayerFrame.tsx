@@ -75,7 +75,7 @@ export function PlayerButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-full rounded-2xl px-4 py-3.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40",
+        "min-h-12 w-full rounded-2xl px-4 py-3.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40",
         tone === "accent"
           ? "bg-accent text-background hover:brightness-110"
           : "border border-border text-foreground hover:bg-surface-2",
