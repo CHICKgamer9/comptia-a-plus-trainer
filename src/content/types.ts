@@ -17,7 +17,9 @@ export type SubjectId =
   | "logic"
   | "digital";
 
-export type ExamId = "220-1101" | "220-1102";
+export type ExamId = "220-1101" | "220-1102" | "220-1201" | "220-1202";
+export type ExamTrack = "v15" | "v14";
+export type ExamCore = 1 | 2;
 
 export type AplusDomainId =
   | "mobile-devices"
@@ -187,6 +189,8 @@ export interface QuizQuestion {
   choices: string[];
   correctIndex: number;
   explanation: string;
+  /** Official-style objective code, e.g. 220-1201 2.1 — study-aid mapping, not an exam item id. */
+  objective?: string;
 }
 
 export interface Quiz {

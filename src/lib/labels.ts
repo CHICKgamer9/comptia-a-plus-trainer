@@ -1,7 +1,8 @@
 import type { Difficulty, ExamId, ScenarioKind, ScenarioPhase, ScenarioTheme } from "@/content/types";
+import { coreLabel } from "@/lib/exam";
 
 export function examShort(exam: ExamId) {
-  return exam === "220-1101" ? "Core 1" : "Core 2";
+  return coreLabel(exam);
 }
 
 export function examCode(exam: ExamId) {

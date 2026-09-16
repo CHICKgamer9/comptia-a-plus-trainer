@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { domains, pathHref } from "@/content/registry";
+import { pathHref } from "@/content/registry";
 import { useProgress } from "./ProgressProvider";
 import { nextDomainPreferring } from "./CoursePath";
 
@@ -10,14 +10,7 @@ export function useContinueHref() {
   const { progress } = useProgress();
   const upcoming = nextDomainPreferring(progress.completedLessons, progress.lastSubject);
   if (upcoming) return pathHref(upcoming);
-
-  const nextQuiz = domains.find((domain) => !progress.quizScores[domain.quizId]);
-  if (nextQuiz) return `/practice/${nextQuiz.quizId}`;
-
-  if (progress.lastLessonId) {
-    const domain = domains.find((item) => item.lessonId === progress.lastLessonId);
-    if (domain) return pathHref(domain);
-  }
+  if (progress.lastSubject) return `/learn/${progress.lastSubject}`;
   return "/learn";
 }
 

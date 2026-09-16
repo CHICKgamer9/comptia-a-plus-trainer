@@ -32,7 +32,7 @@ export function BrainHub() {
       <PageHeader
         kicker="Brain Gym"
         title="Daily challenge desk"
-        description="A two-hour Sydney playlist of short puzzles — minis you can type, not posters. Or open the phone feed and scroll challenges instead of an empty app."
+        description="A two-hour playlist of short puzzles — minis you can type, not posters. Or open the phone feed and scroll challenges instead of an empty app."
       />
       <Card className="mb-6 border-accent/40 bg-gradient-to-br from-accent-dim/90 to-surface">
         <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Replace the scroll</p>

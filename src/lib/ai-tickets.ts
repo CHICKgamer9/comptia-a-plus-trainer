@@ -22,7 +22,7 @@ const THEME_HINT: Record<string, string> = {
 };
 
 function resolveFilters(input: GenerateRequest) {
-  const exams = ["220-1101", "220-1102"] as const;
+  const exams = ["220-1201", "220-1202"] as const;
   const themes = ["hardware", "network", "os", "security", "printer", "mobile"] as const;
   const diffs = ["easy", "medium", "hard"] as const;
   const pick = <T,>(list: readonly T[]) => list[Math.floor(Math.random() * list.length)];
@@ -48,7 +48,7 @@ function promptFor(
     : "";
   return `Create one original CompTIA A+ style helpdesk ticket for study practice.
 
-Exam: ${filters.exam} (${filters.exam === "220-1101" ? "Core 1" : "Core 2"})
+Exam: ${filters.exam} (${filters.exam.endsWith("1201") || filters.exam.endsWith("1101") ? "Core 1" : "Core 2"})
 Theme: ${filters.theme} (${THEME_HINT[filters.theme]})
 Difficulty: ${filters.difficulty}
 Variety seed (do not mention in the ticket): ${seed}

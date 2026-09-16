@@ -18,9 +18,12 @@ import {
   recordScenarioIn,
   saveBrainFeedIn,
   saveLessonCursorIn,
+  importProgressJson,
+  exportProgressJson,
   saveProgress,
   setAutoReadIn,
   setLastSubjectIn,
+  setExamTrackIn,
   subscribeProgress,
   toggleProjectCheckIn,
   markProjectCompleteIn,
@@ -30,13 +33,14 @@ import {
   slotBenchCardIn,
   setLoadoutIn,
   fuseCardsIn,
+  reviewCardIn,
   type BrainAnswerInput,
   type BrainFeedState,
   type PathAnswerContext,
   type ProgressState,
   type ScenarioResult,
 } from "@/lib/progress";
-import { emptyBench, type BenchState } from "@/lib/binder";
+import { emptyBench, type BenchState, type ReviewGrade } from "@/lib/binder";
 import { domains } from "@/content/registry";
 import { projects } from "@/content/projects";
 import type { BenchSlot, SubjectId } from "@/content/types";
@@ -77,6 +81,10 @@ interface ProgressContextValue {
   resetProgress: () => void;
   setAutoRead: (autoRead: boolean) => void;
   setLastSubject: (subject: SubjectId) => void;
+  setExamTrack: (track: import("@/content/types").ExamTrack) => void;
+  reviewCard: (cardId: string, grade: ReviewGrade) => void;
+  exportProgress: () => string;
+  importProgress: (raw: string) => string | null;
   lessonDone: (lessonId: string) => boolean;
   projectDone: (projectId: string) => boolean;
   projectChecked: (projectId: string) => string[];
@@ -230,6 +238,23 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     mutateProgress((prev) => setLastSubjectIn(prev, subject));
   }, []);
 
+  const setExamTrack = useCallback((track: import("@/content/types").ExamTrack) => {
+    mutateProgress((prev) => setExamTrackIn(prev, track));
+  }, []);
+
+  const reviewCard = useCallback((cardId: string, grade: ReviewGrade) => {
+    mutateProgress((prev) => reviewCardIn(prev, cardId, grade));
+  }, []);
+
+  const exportProgress = useCallback(() => exportProgressJson(parseProgress(getProgressSnapshot())), []);
+
+  const importProgress = useCallback((raw: string) => {
+    const result = importProgressJson(raw);
+    if (!result.ok) return result.error;
+    saveProgress(result.state);
+    return null;
+  }, []);
+
   const value = useMemo<ProgressContextValue>(() => {
     const lessonsTotal = domains.length;
     const lessonsDone = progress.completedLessons.filter((id) =>
@@ -273,6 +298,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       resetProgress,
       setAutoRead,
       setLastSubject,
+      setExamTrack,
+      reviewCard,
+      exportProgress,
+      importProgress,
       lessonDone: (lessonId) => progress.completedLessons.includes(lessonId),
       projectDone: (projectId) => (progress.completedProjects ?? []).includes(projectId),
       projectChecked: (projectId) => progress.projectChecks?.[projectId] ?? [],
@@ -320,6 +349,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     resetProgress,
     setAutoRead,
     setLastSubject,
+    setExamTrack,
+    reviewCard,
+    exportProgress,
+    importProgress,
   ]);
 
   return (

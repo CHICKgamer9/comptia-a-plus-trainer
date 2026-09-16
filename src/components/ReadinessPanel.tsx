@@ -61,7 +61,7 @@ export function ReadinessCard({
         </div>
       ) : (
         <p className="mt-4 text-sm text-ok">
-          Gates passed for this exam on this device. Retake weak quizzes the week you sit.
+          Gates passed for this exam. Retake weak quizzes the week you sit.
         </p>
       )}
       {report.gaps[0] ? (

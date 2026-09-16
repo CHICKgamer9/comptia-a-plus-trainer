@@ -4,10 +4,10 @@ export const techDomains: Domain[] = [
   {
     id: "mobile-devices",
     subject: "tech",
-    exam: "220-1101",
+    exam: "220-1201",
     number: 1,
     title: "Mobile Devices",
-    weight: "15%",
+    weight: "13%",
     summary:
       "Laptops, phones, and tablets: hardware parts, docks, wireless radios, and how they connect to everything else.",
     lessonId: "mobile-devices-essentials",
@@ -16,10 +16,10 @@ export const techDomains: Domain[] = [
   {
     id: "networking",
     subject: "tech",
-    exam: "220-1101",
+    exam: "220-1201",
     number: 2,
     title: "Networking",
-    weight: "20%",
+    weight: "23%",
     summary:
       "How packets move: ports, IP addressing, SOHO gear, Wi-Fi standards, and the tools that prove a path is up.",
     lessonId: "networking-essentials",
@@ -28,7 +28,7 @@ export const techDomains: Domain[] = [
   {
     id: "hardware",
     subject: "tech",
-    exam: "220-1101",
+    exam: "220-1201",
     number: 3,
     title: "Hardware",
     weight: "25%",
@@ -40,7 +40,7 @@ export const techDomains: Domain[] = [
   {
     id: "virtualization-cloud",
     subject: "tech",
-    exam: "220-1101",
+    exam: "220-1201",
     number: 4,
     title: "Virtualization & Cloud",
     weight: "11%",
@@ -52,10 +52,10 @@ export const techDomains: Domain[] = [
   {
     id: "hw-net-troubleshooting",
     subject: "tech",
-    exam: "220-1101",
+    exam: "220-1201",
     number: 5,
     title: "Hardware & Network Troubleshooting",
-    weight: "29%",
+    weight: "28%",
     summary:
       "A method you can reuse: identify, theorize, test, fix, verify, document — plus the common failure patterns.",
     lessonId: "hw-net-troubleshooting-essentials",
@@ -64,10 +64,10 @@ export const techDomains: Domain[] = [
   {
     id: "operating-systems",
     subject: "tech",
-    exam: "220-1102",
+    exam: "220-1202",
     number: 1,
     title: "Operating Systems",
-    weight: "31%",
+    weight: "28%",
     summary:
       "Windows 10/11 in depth, plus enough macOS and Linux to install, navigate, and support a mixed shop.",
     lessonId: "operating-systems-essentials",
@@ -76,10 +76,10 @@ export const techDomains: Domain[] = [
   {
     id: "security",
     subject: "tech",
-    exam: "220-1102",
+    exam: "220-1202",
     number: 2,
     title: "Security",
-    weight: "25%",
+    weight: "28%",
     summary:
       "Malware, social engineering, wireless hardening, account controls, and the physical side of a locked-down desk.",
     lessonId: "security-essentials",
@@ -88,10 +88,10 @@ export const techDomains: Domain[] = [
   {
     id: "software-troubleshooting",
     subject: "tech",
-    exam: "220-1102",
+    exam: "220-1202",
     number: 3,
     title: "Software Troubleshooting",
-    weight: "22%",
+    weight: "23%",
     summary:
       "BSODs, failed boots, broken apps, and mobile OS problems — diagnose with logs and known-good tools.",
     lessonId: "software-troubleshooting-essentials",
@@ -100,10 +100,10 @@ export const techDomains: Domain[] = [
   {
     id: "operational-procedures",
     subject: "tech",
-    exam: "220-1102",
+    exam: "220-1202",
     number: 4,
     title: "Operational Procedures",
-    weight: "22%",
+    weight: "21%",
     summary:
       "Safety, change control, backups, documentation, and how a professional ticket should actually get closed.",
     lessonId: "operational-procedures-essentials",

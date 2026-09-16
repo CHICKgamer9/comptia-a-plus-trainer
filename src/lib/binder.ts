@@ -15,10 +15,13 @@ import type {
   SubjectId,
 } from "@/content/types";
 import { domains, getDomain } from "@/content/registry";
+import { isCore1, isCore2 } from "@/lib/exam";
 import type { BrainCat } from "@/content/brain/types";
 import { enqueueToasts, type ToastEvent } from "./toasts";
 
 export type CardLevel = 1 | 2 | 3;
+
+export type ReviewGrade = "again" | "hard" | "easy";
 
 export interface OwnedCard {
   cardId: string;
@@ -28,6 +31,9 @@ export interface OwnedCard {
   lastUsedAt?: number;
   source: CardEarnSource;
   gotchaFrom?: string;
+  dueAt?: number;
+  ease?: number;
+  reps?: number;
 }
 
 export interface DeskShift {
@@ -124,6 +130,9 @@ export function addCopy(
         firstEarnedAt: now,
         source,
         gotchaFrom,
+        dueAt: now,
+        ease: 2.5,
+        reps: 0,
       },
     ];
     noteShiftCard(next, cardId);
@@ -183,8 +192,8 @@ export function tagsForDomain(domainId?: string, subject?: SubjectId): string[] 
     tags.add(domain.id);
     tags.add(domain.subject);
     if (domain.cluster) tags.add(domain.cluster.toLowerCase());
-    if (domain.exam === "220-1101") tags.add("core1");
-    if (domain.exam === "220-1102") tags.add("core2");
+    if (isCore1(domain.exam)) tags.add("core1");
+    if (isCore2(domain.exam)) tags.add("core2");
   }
   if (domainId === "mobile-devices") {
     ["mobile", "battery", "usb", "wifi", "antenna"].forEach((tag) => tags.add(tag));
@@ -258,6 +267,7 @@ export function dropFromPath(
   const awarded: DropResult["awarded"] = [];
   let next = { ...bench, owned: [...bench.owned] };
   if (input.skipped) return { bench: next, awarded };
+  const starterDrop = Boolean(input.domainId?.endsWith("-start"));
   if (!input.correct) {
     if (!next.gotchaConcepts.includes(input.conceptId)) {
       const gotchas = matchingCards(tagsForDomain(input.domainId, input.subject), ["gotcha"]);
@@ -269,7 +279,7 @@ export function dropFromPath(
     }
     return { bench: next, awarded };
   }
-  if (!roll(0.6)) return { bench: next, awarded };
+  if (!starterDrop && !roll(0.6)) return { bench: next, awarded };
   const pool = matchingCards(tagsForDomain(input.domainId, input.subject), [
     "component",
     "symptom",
@@ -563,11 +573,11 @@ export function canFuse(bench: BenchState, recipeId: string) {
 }
 
 export function rottingDomain(completedLessons: string[], lastSubject?: SubjectId) {
-  const exam = domains.filter((domain) => domain.exam);
-  const cold = exam.find((domain) => !completedLessons.includes(domain.lessonId));
-  if (cold) return cold;
-  void lastSubject;
-  return exam[0] ?? domains[0];
+  const pool = lastSubject
+    ? domains.filter((domain) => domain.subject === lastSubject)
+    : domains.filter((domain) => !domain.exam);
+  const cold = pool.find((domain) => !completedLessons.includes(domain.lessonId));
+  return cold ?? pool[0] ?? domains[0];
 }
 
 export function huntCards(domainId: string) {
@@ -597,4 +607,41 @@ export function ownedCount(bench: BenchState) {
 
 export function slottedCount(bench: BenchState) {
   return Object.values(bench.slotted).filter(Boolean).length;
+}
+
+const REVIEW_DELAY: Record<ReviewGrade, number> = {
+  again: 10 * 60 * 1000,
+  hard: 24 * 60 * 60 * 1000,
+  easy: 3 * 24 * 60 * 60 * 1000,
+};
+
+export function reviewCard(bench: BenchState, cardId: string, grade: ReviewGrade): BenchState {
+  const now = Date.now();
+  return {
+    ...bench,
+    owned: bench.owned.map((row) => {
+      if (row.cardId !== cardId) return row;
+      const ease = Math.max(1.3, (row.ease ?? 2.5) + (grade === "easy" ? 0.15 : grade === "hard" ? -0.15 : -0.3));
+      const reps = (row.reps ?? 0) + 1;
+      const delay =
+        grade === "easy" && reps > 1
+          ? Math.round(REVIEW_DELAY.easy * ease)
+          : REVIEW_DELAY[grade];
+      return {
+        ...row,
+        ease,
+        reps,
+        lastUsedAt: now,
+        dueAt: now + delay,
+      };
+    }),
+  };
+}
+
+export function dueLabel(dueAt: number | undefined, at = Date.now()) {
+  if (!dueAt) return "New";
+  if (dueAt <= at) return "Due now";
+  const days = Math.ceil((dueAt - at) / (24 * 60 * 60 * 1000));
+  if (days <= 1) return "Due tomorrow";
+  return `Due in ${days}d`;
 }

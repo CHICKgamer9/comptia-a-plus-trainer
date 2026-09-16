@@ -15,14 +15,10 @@ import { isLingoLangId } from "@/content/lingo/types";
 import { useProgress } from "./ProgressProvider";
 
 const links = [
-  { href: "/", label: "Home", icon: HomeIcon },
   { href: "/learn", label: "Learn", icon: BookIcon },
-  { href: "/projects", label: "Projects", icon: ProjectIcon },
-  { href: "/brain", label: "Brain", icon: BrainIcon },
-  { href: "/practice", label: "Quizzes", icon: QuizIcon },
-  { href: "/lab", label: "Lab", icon: TicketIcon },
-  { href: "/binder", label: "Binder", icon: BinderIcon },
-  { href: "/reference", label: "Sheets", icon: SheetIcon },
+  { href: "/practice", label: "Practice", icon: QuizIcon },
+  { href: "/lab", label: "Tech Lab", icon: TicketIcon, techOnly: true },
+  { href: "/progress", label: "Progress", icon: ProgressIcon },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -38,25 +34,27 @@ function subjectFromPath(pathname: string) {
     const project = getProject(projectPage[1]);
     if (project) return getSubject(project.subject);
   }
-  const play = pathname.match(/^\/play\/([^/]+)/);
-  if (play) {
-    // challenges live under /play; accent stays default unless we look up later
-    return undefined;
-  }
+  if (pathname.startsWith("/lab")) return getSubject("tech");
+  if (pathname.startsWith("/ready")) return getSubject("tech");
   return undefined;
 }
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
+  const { progress } = useProgress();
   const pathname = usePathname();
   const player =
     /^\/learn\/[^/]+\/[^/]+$/.test(pathname) ||
     /^\/practice\/[^/]+$/.test(pathname) ||
+    /^\/practice\/mock\//.test(pathname) ||
+    pathname === "/practice/pbq" ||
     /^\/play\/[^/]+$/.test(pathname) ||
     /^\/brain\/play\//.test(pathname) ||
     /^\/lingo\/[^/]+\/[^/]+$/.test(pathname) ||
     pathname.startsWith("/lab/t/");
   const immersive = pathname === "/brain/feed" || pathname.startsWith("/brain/feed/");
   const subject = subjectFromPath(pathname);
+  const activeHub = subject?.id ?? progress.lastSubject;
+  const labOpen = activeHub === "tech" || pathname.startsWith("/lab");
   const brain = pathname.startsWith("/brain");
   const lingoMatch = pathname.match(/^\/lingo(?:\/([^/]+))?/);
   const lingo = lingoMatch
@@ -89,7 +87,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     >
       {immersive ? null : (
       <header className="sticky top-0 z-30 border-b border-border/80 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-dim font-mono text-sm font-bold text-accent ring-1 ring-accent/30">
               TB
@@ -97,13 +95,25 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             <span className="leading-tight">
               <span className="block text-sm font-semibold">TicketBench</span>
               <span className="hidden text-[11px] text-muted sm:block">
-                Tech · many subjects
+                Many subjects
               </span>
             </span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
             {links.map((link) => {
               const active = isActive(pathname, link.href);
+              const locked = link.techOnly && !labOpen;
+              if (locked) {
+                return (
+                  <span
+                    key={link.href}
+                    title="Tech Lab opens when Tech is the active hub"
+                    className="cursor-not-allowed rounded-lg px-2.5 py-1.5 text-sm text-muted/50"
+                  >
+                    {link.label}
+                  </span>
+                );
+              }
               return (
                 <Link
                   key={link.href}
@@ -115,7 +125,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                       : "text-muted hover:bg-surface hover:text-foreground",
                   )}
                 >
-                  {link.href === "/binder" ? <BinderNavLabel /> : link.label}
+                  {link.label}
                 </Link>
               );
             })}
@@ -129,14 +139,14 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       <main className={cn(
         "mx-auto w-full flex-1",
         immersive ? "max-w-none p-0" : "px-4 py-6 pb-24 md:pb-10",
-        immersive ? "" : player ? "max-w-3xl md:py-6" : "max-w-6xl md:py-10",
+        immersive ? "" : player ? "max-w-3xl md:py-6" : "max-w-4xl md:py-10",
       )}>
         {children}
       </main>
 
       {player || immersive ? null : (
         <footer className="border-t border-border pb-20 md:pb-0">
-          <div className="mx-auto max-w-6xl px-4 py-6">
+          <div className="mx-auto max-w-4xl px-4 py-6">
             <Disclaimer compact />
           </div>
         </footer>
@@ -144,21 +154,34 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
       {immersive ? null : (
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 backdrop-blur-xl md:hidden">
-        <div className="mx-auto flex max-w-lg gap-0 overflow-x-auto px-0.5 pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto flex max-w-lg gap-0 px-0.5 pb-[env(safe-area-inset-bottom)]">
           {links.map((link) => {
             const active = isActive(pathname, link.href);
             const Icon = link.icon;
+            const locked = link.techOnly && !labOpen;
+            if (locked) {
+              return (
+                <span
+                  key={link.href}
+                  title="Tech Lab opens when Tech is the active hub"
+                  className="flex min-h-11 flex-1 flex-col items-center justify-center gap-1 py-2 text-[9px] text-muted/40"
+                >
+                  <Icon active={false} />
+                  {link.label}
+                </span>
+              );
+            }
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex min-h-11 min-w-[3.15rem] flex-1 flex-col items-center justify-center gap-1 py-2 text-[9px]",
+                  "flex min-h-11 flex-1 flex-col items-center justify-center gap-1 py-2 text-[9px]",
                   active ? "text-accent" : "text-muted",
                 )}
               >
                 <Icon active={active} />
-                {link.href === "/binder" ? <BinderNavLabel mobile /> : link.label}
+                {link.label}
               </Link>
             );
           })}
@@ -166,44 +189,6 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       </nav>
       )}
     </div>
-  );
-}
-
-function BinderNavLabel({ mobile }: { mobile?: boolean }) {
-  const { bench } = useProgress();
-  const count = bench.owned.length;
-  if (mobile) {
-    return (
-      <span>
-        Binder
-        {count ? <span className="ml-0.5 text-accent">{count}</span> : null}
-      </span>
-    );
-  }
-  return <>Binder{count ? ` · ${count}` : ""}</>;
-}
-
-function HomeIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"
-        stroke="currentColor"
-        strokeWidth={active ? 2 : 1.6}
-      />
-    </svg>
-  );
-}
-
-function BrainIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M9 4.5a3 3 0 0 0-3 3v.4A3.2 3.2 0 0 0 4 10.8c0 1.4.9 2.6 2.1 3.1v2.6A2.5 2.5 0 0 0 8.6 19h2.2v-7.2H9.4V9.4h4.2V19h2.1A2.5 2.5 0 0 0 18.2 16.5v-2.5A3.2 3.2 0 0 0 20 10.8a3.2 3.2 0 0 0-2-3v-.3a3 3 0 0 0-3.2-3c-.7 0-1.4.2-1.9.6A3 3 0 0 0 9 4.5Z"
-        stroke="currentColor"
-        strokeWidth={active ? 2 : 1.6}
-      />
-    </svg>
   );
 }
 
@@ -216,19 +201,6 @@ function BookIcon({ active }: { active: boolean }) {
         strokeWidth={active ? 2 : 1.6}
       />
       <path d="M5 21.5A2.5 2.5 0 0 1 7.5 19H20" stroke="currentColor" strokeWidth={1.6} />
-    </svg>
-  );
-}
-
-function ProjectIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4.5 8.5 12 4l7.5 4.5V16.5L12 21l-7.5-4.5V8.5Z"
-        stroke="currentColor"
-        strokeWidth={active ? 2 : 1.6}
-      />
-      <path d="M12 12v9M12 12 4.5 8.5M12 12l7.5-3.5" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   );
 }
@@ -262,32 +234,15 @@ function TicketIcon({ active }: { active: boolean }) {
   );
 }
 
-function BinderIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect
-        x="5"
-        y="4"
-        width="14"
-        height="16"
-        rx="2"
-        stroke="currentColor"
-        strokeWidth={active ? 2 : 1.6}
-      />
-      <path d="M8 8h8M8 12h6" stroke="currentColor" strokeWidth="1.6" />
-    </svg>
-  );
-}
-
-function SheetIcon({ active }: { active: boolean }) {
+function ProgressIcon({ active }: { active: boolean }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
-        d="M7 3.5h7l5 5V20a1.5 1.5 0 0 1-1.5 1.5h-10.5A1.5 1.5 0 0 1 5.5 20V5A1.5 1.5 0 0 1 7 3.5Z"
+        d="M4 18V6M10 18v-7M16 18V9M22 18H2"
         stroke="currentColor"
         strokeWidth={active ? 2 : 1.6}
+        strokeLinecap="round"
       />
-      <path d="M14 3.5V9h5.5M8.5 13h7M8.5 16.5h5" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   );
 }

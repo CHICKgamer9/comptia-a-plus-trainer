@@ -9,19 +9,25 @@ import {
   getServerTicketSnapshot,
   getStoredTicket,
   getTicketSnapshot,
+  putTicket,
   subscribeTickets,
 } from "@/lib/ticket-store";
+import { SEEDED_TICKET_ID, seededTicket } from "@/lib/ticket-fallback";
 
 export function PlayTicket() {
   const params = useParams<{ ticketId: string }>();
   useSyncExternalStore(subscribeTickets, getTicketSnapshot, getServerTicketSnapshot);
-  const ticket = params.ticketId ? getStoredTicket(params.ticketId) : undefined;
+  let ticket = params.ticketId ? getStoredTicket(params.ticketId) : undefined;
+  if (!ticket && params.ticketId === SEEDED_TICKET_ID) {
+    ticket = seededTicket();
+    putTicket(ticket);
+  }
 
   if (!ticket) {
     return (
       <EmptyState
-        title="That ticket is not on this device"
-        body="Generated tickets live in localStorage. If you opened a link from another browser, generate a new one."
+        title="That ticket is not here"
+        body="If you opened a generated ticket from another browser, generate a new one in Tech Lab."
       >
         <Link
           href="/lab"

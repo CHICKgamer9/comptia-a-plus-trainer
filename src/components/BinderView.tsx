@@ -11,7 +11,7 @@ import {
 } from "@/content/bench-cards";
 import { SUBJECTS } from "@/content/subjects";
 import type { CardType, SubjectId } from "@/content/types";
-import { canFuse, huntCards, rottingDomain } from "@/lib/binder";
+import { canFuse, dueLabel, huntCards, rottingDomain } from "@/lib/binder";
 import { cn } from "@/lib/cn";
 import { KnowledgeCard } from "./KnowledgeCard";
 import { PageHeader } from "./ui";
@@ -24,6 +24,7 @@ export function BinderView() {
     slotBenchCard,
     fuseCards,
     setLoadout,
+    reviewCard,
   } = useProgress();
   const [tab, setTab] = useState<CardType | "all">("all");
   const [query, setQuery] = useState("");
@@ -69,12 +70,14 @@ export function BinderView() {
         <p>
           {owned.length} unique · {Object.values(bench.slotted).filter(Boolean).length} slotted
         </p>
-        <Link href={`/learn/${rotting.subject}/${rotting.id}?hunt=1`} className="text-accent hover:underline">
-          Weak-spot hunt · {rotting.title}
-        </Link>
+        {owned.length ? (
+          <Link href={`/learn/${rotting.subject}/${rotting.id}?hunt=1`} className="text-accent hover:underline">
+            Weak-spot hunt · {rotting.title}
+          </Link>
+        ) : null}
       </div>
 
-      {hunt.length ? (
+      {owned.length && hunt.length ? (
         <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
           <p className="text-[11px] uppercase tracking-wider text-muted">Rotting domain</p>
           <p className="mt-1 text-sm">
@@ -154,8 +157,7 @@ export function BinderView() {
 
       {list.length === 0 ? (
         <p className="rounded-3xl border border-border bg-surface px-4 py-10 text-center text-sm text-muted">
-          Empty chassis. Answer a Mobile Devices bite, close a lab ticket, or finish a Brain item.
-          Cards drop on correct work — never on a skip.
+          Finish a lesson bite and a card will drop — then slot it here.
         </p>
       ) : (
         <ul className="mb-10 grid grid-cols-2 gap-3">
@@ -170,6 +172,17 @@ export function BinderView() {
                 ugly={card.type === "gotcha"}
               />
               <div className="mt-2 flex flex-wrap gap-2">
+                {(["again", "hard", "easy"] as const).map((grade) => (
+                  <button
+                    key={grade}
+                    type="button"
+                    onClick={() => reviewCard(card.id, grade)}
+                    className="rounded-xl border border-border px-3 py-1.5 text-xs capitalize hover:border-accent/40"
+                  >
+                    {grade}
+                  </button>
+                ))}
+                <span className="self-center text-[11px] text-muted">{dueLabel(row.dueAt)}</span>
                 {card.slot ? (
                   <button
                     type="button"

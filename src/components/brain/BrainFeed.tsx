@@ -279,7 +279,7 @@ export function BrainFeed() {
         </button>
       </div>
       <p className="mt-1 text-center text-[11px] text-muted">
-        Replace the scroll · Sydney {ymd} · card {cursor + 1}
+        Replace the scroll · {ymd} · card {cursor + 1}
       </p>
     </div>
   );

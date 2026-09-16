@@ -1,13 +1,31 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SUBJECT_GROUPS, SUBJECTS, getDomainsBySubject, getSubject } from "@/content/registry";
 import { getProjectsBySubject, projectsHubHref } from "@/content/projects";
+import { starterHref } from "@/content/starters";
 import type { SubjectId } from "@/content/types";
+import { useProgress } from "./ProgressProvider";
 
 export function SubjectPicker({
   doneBySubject,
+  preferStarter = false,
 }: {
   doneBySubject?: Partial<Record<SubjectId, number>>;
+  preferStarter?: boolean;
 }) {
+  const { setLastSubject, progress } = useProgress();
+  const router = useRouter();
+
+  function openHub(id: SubjectId) {
+    setLastSubject(id);
+    const done = (progress.completedLessons ?? []).some((lessonId) =>
+      getDomainsBySubject(id).some((domain) => domain.lessonId === lessonId),
+    );
+    router.push(preferStarter && !done ? starterHref(id) : `/learn/${id}`);
+  }
+
   return (
     <div className="grid gap-8">
       {SUBJECT_GROUPS.map((group) => (
@@ -26,7 +44,11 @@ export function SubjectPicker({
                   key={id}
                   className="overflow-hidden rounded-3xl border border-border bg-surface hover:border-accent/40"
                 >
-                  <Link href={`/learn/${id}`} className="block p-5">
+                  <button
+                    type="button"
+                    onClick={() => openHub(id)}
+                    className="block w-full p-5 text-left"
+                  >
                     <div className="flex items-center justify-between gap-2">
                       <span
                         className="grid h-9 w-9 place-items-center rounded-lg font-mono text-sm font-bold"
@@ -44,10 +66,13 @@ export function SubjectPicker({
                     </p>
                     <h3 className="mt-1 text-lg font-semibold">{subject.title}</h3>
                     <p className="mt-2 text-sm leading-6 text-muted">{subject.blurb}</p>
-                    <p className="mt-3 text-xs text-accent">{count} paths</p>
-                  </Link>
+                    <p className="mt-3 text-xs text-accent">
+                      {preferStarter && !done ? "4-minute start" : `${count} paths`}
+                    </p>
+                  </button>
                   <Link
                     href={projectsHubHref(id)}
+                    onClick={() => setLastSubject(id)}
                     className="block border-t border-border px-5 py-3 text-xs text-muted hover:bg-surface-2 hover:text-foreground"
                   >
                     Try a project · {projectCount} in this hub
@@ -60,7 +85,7 @@ export function SubjectPicker({
       ))}
       <p className="text-center text-[11px] text-muted">
         {SUBJECTS.length} subjects · {SUBJECTS.reduce((sum, subject) => sum + getDomainsBySubject(subject.id).length, 0)}{" "}
-        paths · at least 60 in each hub
+        paths
       </p>
     </div>
   );

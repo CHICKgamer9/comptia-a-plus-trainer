@@ -54,9 +54,18 @@ export function PathCatalog({ subject }: { subject: SubjectId }) {
   }, [filtered, clusters]);
 
   const doneCount = all.filter((domain) => progress.completedLessons.includes(domain.lessonId)).length;
+  const starter = all.find((domain) => domain.cluster === "Start here");
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-2xl">
+      {starter && !progress.completedLessons.includes(starter.lessonId) ? (
+        <Link
+          href={pathHref(starter)}
+          className="mb-6 flex min-h-12 w-full items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-sm font-semibold text-background"
+        >
+          Start today’s lesson · 4 min
+        </Link>
+      ) : null}
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <label className="block min-w-[12rem] flex-1">
           <span className="sr-only">Search paths</span>

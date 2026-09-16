@@ -13,7 +13,7 @@ export function nextDomain(completedLessons: string[], subject?: SubjectId): Dom
 }
 
 export function nextDomainPreferring(completedLessons: string[], lastSubject?: SubjectId) {
-  return nextDomain(completedLessons, lastSubject) ?? nextDomain(completedLessons);
+  return lastSubject ? nextDomain(completedLessons, lastSubject) : undefined;
 }
 
 export function CoursePath({
