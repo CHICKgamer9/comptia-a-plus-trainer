@@ -47,12 +47,20 @@ export function BrainToday() {
         />
       </div>
       {next ? (
-        <Link
-          href={`/brain/play/${next}`}
-          className="mb-6 block rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background"
-        >
-          Continue playlist
-        </Link>
+        <div className="mb-6 space-y-2">
+          <Link
+            href="/brain/feed"
+            className="flex min-h-12 items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background active:brightness-110"
+          >
+            Open phone feed
+          </Link>
+          <Link
+            href={`/brain/play/${next}`}
+            className="block min-h-12 rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold leading-[1.75rem] active:bg-surface-2"
+          >
+            Continue playlist
+          </Link>
+        </div>
       ) : (
         <p className="mb-6 rounded-2xl border border-ok/30 bg-ok/10 px-4 py-3 text-sm text-ok">
           Playlist cleared for {ymd}. Browse if you want extras — they still earn XP.
@@ -72,7 +80,7 @@ export function BrainToday() {
                 href={`/brain/play/${id}`}
                 className={cn(
                   "flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm",
-                  done ? "border-ok/30 bg-ok/5 text-muted" : "border-border bg-surface hover:border-accent/40",
+                  done ? "border-ok/30 bg-ok/5 text-muted" : "border-border bg-surface active:border-accent/40",
                 )}
               >
                 <span>

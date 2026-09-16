@@ -213,7 +213,7 @@ export function CrosswordPlay({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="relative space-y-4">
       <p className="text-lg font-medium leading-8">{item.prompt}</p>
       <input
         ref={inputRef}
@@ -223,7 +223,9 @@ export function CrosswordPlay({
         autoComplete="off"
         spellCheck={false}
         inputMode="text"
-        className="sr-only"
+        enterKeyHint="done"
+        className="pointer-events-none absolute h-0 w-0 opacity-0"
+        style={{ fontSize: 16 }}
         value=""
         onChange={(event) => {
           const ch = event.target.value.slice(-1).toUpperCase();
@@ -277,7 +279,7 @@ export function CrosswordPlay({
                 disabled={blocked || done}
                 onClick={() => tapCell(r, c)}
                 className={cn(
-                  "relative aspect-square min-h-10 rounded-[6px] text-lg font-semibold uppercase sm:min-h-12 sm:text-xl",
+                  "relative aspect-square min-h-11 min-w-11 rounded-[6px] text-lg font-semibold uppercase sm:min-h-12 sm:text-xl",
                   blocked && "bg-background/90",
                   !blocked && "bg-surface-2 text-foreground",
                   inWord && !blocked && "bg-accent-dim",
@@ -296,10 +298,31 @@ export function CrosswordPlay({
         </div>
       </div>
       <p className="text-xs text-muted">
-        Tap a square, then type. Tap again to flip across/down. Arrows move. Check is free; reveal
-        costs XP.
+        Tap a square, then type or use the letter pad. Tap again to flip across/down. Check is free;
+        reveal costs XP.
         {penalty ? ` Reveals so far: −${penalty} XP.` : ""}
       </p>
+      <div className="grid grid-cols-9 gap-1">
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((ch) => (
+          <button
+            key={ch}
+            type="button"
+            disabled={done}
+            onClick={() => typeLetter(ch)}
+            className="min-h-11 rounded-lg border border-border text-sm font-semibold active:border-accent/50 active:bg-surface-2 disabled:opacity-40"
+          >
+            {ch}
+          </button>
+        ))}
+        <button
+          type="button"
+          disabled={done}
+          onClick={backspace}
+          className="col-span-2 min-h-11 rounded-lg border border-border text-xs font-semibold active:bg-surface-2 disabled:opacity-40"
+        >
+          Delete
+        </button>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <ClueList
           label="Across"
@@ -339,7 +362,7 @@ export function CrosswordPlay({
           </PlayerButton>
           <button
             type="button"
-            className="rounded-2xl border border-border px-4 py-3.5 text-sm font-semibold hover:bg-surface-2"
+            className="min-h-11 rounded-2xl border border-border px-4 py-3.5 text-sm font-semibold active:bg-surface-2"
             onClick={() => inputRef.current?.focus()}
           >
             Keyboard
@@ -410,8 +433,8 @@ function ClueList({
                 type="button"
                 onClick={() => onPick(slot)}
                 className={cn(
-                  "w-full rounded-xl px-3 py-2 text-left text-sm leading-6",
-                  selected ? "bg-accent-dim text-foreground" : "hover:bg-surface-2",
+                  "min-h-11 w-full rounded-xl px-3 py-2 text-left text-sm leading-6",
+                  selected ? "bg-accent-dim text-foreground" : "active:bg-surface-2",
                 )}
               >
                 <span className="mr-2 font-mono text-xs text-muted">{slot.n}</span>

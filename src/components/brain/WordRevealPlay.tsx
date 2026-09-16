@@ -72,8 +72,8 @@ export function WordRevealPlay({
               disabled={done || used}
               onClick={() => guess(ch)}
               className={cn(
-                "h-9 w-9 rounded-lg border text-sm font-semibold",
-                !used && "border-border hover:border-accent/50",
+                "min-h-11 min-w-11 flex-1 rounded-lg border text-sm font-semibold",
+                !used && "border-border active:border-accent/50 hover:border-accent/50",
                 hit && "border-ok/50 bg-ok/15 text-ok",
                 miss && "border-danger/40 bg-danger/10 text-danger",
               )}

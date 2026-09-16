@@ -28,17 +28,21 @@ export function useSpeech() {
   }, []);
 
   const speak = useCallback(
-    (text: string) => {
+    (text: string, lang?: string) => {
       if (!speechSupported()) return;
       stopRef.current?.();
       setSpeaking(true);
-      stopRef.current = speakText(text, {
-        onStart: () => setSpeaking(true),
-        onEnd: () => {
-          stopRef.current = null;
-          setSpeaking(false);
+      stopRef.current = speakText(
+        text,
+        {
+          onStart: () => setSpeaking(true),
+          onEnd: () => {
+            stopRef.current = null;
+            setSpeaking(false);
+          },
         },
-      });
+        lang,
+      );
     },
     [],
   );

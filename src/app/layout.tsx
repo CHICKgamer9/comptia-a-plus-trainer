@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ProgressProvider } from "@/components/ProgressProvider";
 import { SiteShell } from "@/components/SiteShell";
@@ -21,7 +21,25 @@ export const metadata: Metadata = {
     template: "%s · TicketBench",
   },
   description:
-    "Interactive paths for CompTIA A+ and a shelf of school subjects. Quizzes, a helpdesk lab, and Listen/Auto-read. Not affiliated with CompTIA or Brilliant.",
+    "Interactive paths for CompTIA A+ and a shelf of school subjects. Languages (French, Indonesian, Icelandic), quizzes, a helpdesk lab, Brain Gym phone feed, and Listen/Auto-read. Not affiliated with CompTIA, Brilliant, or Duolingo.",
+  appleWebApp: {
+    capable: true,
+    title: "TicketBench",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#07090d",
+  viewportFit: "cover",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

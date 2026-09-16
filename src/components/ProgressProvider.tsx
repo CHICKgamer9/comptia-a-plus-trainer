@@ -9,20 +9,27 @@ import {
   mutateProgress,
   parseProgress,
   recordBrainAnswerIn,
+  recordBrainSkipIn,
+  recordLingoStepIn,
+  completeLingoNodeIn,
+  saveLingoCursorIn,
   recordQuizAnswerIn,
   recordQuizIn,
   recordScenarioIn,
+  saveBrainFeedIn,
   saveLessonCursorIn,
   saveProgress,
   setAutoReadIn,
   setLastSubjectIn,
   subscribeProgress,
   type BrainAnswerInput,
+  type BrainFeedState,
   type ProgressState,
   type ScenarioResult,
 } from "@/lib/progress";
 import { domains } from "@/content/registry";
 import type { SubjectId } from "@/content/types";
+import type { LingoLangId } from "@/content/lingo/types";
 import { levelForXp } from "@/lib/xp";
 import { overallReadiness } from "@/lib/readiness";
 import { clearTickets } from "@/lib/ticket-store";
@@ -36,6 +43,17 @@ interface ProgressContextValue {
   recordQuiz: (quizId: string, score: number, total: number) => void;
   recordScenario: (scenarioId: string, result: ScenarioResult) => void;
   recordBrainAnswer: (input: BrainAnswerInput) => void;
+  saveBrainFeed: (feed: BrainFeedState) => void;
+  recordBrainSkip: (feed: BrainFeedState) => void;
+  recordLingoStep: (input: {
+    lang: LingoLangId;
+    nodeId: string;
+    stepId: string;
+    correct: boolean;
+    speak?: boolean;
+  }) => void;
+  completeLingoNode: (lang: LingoLangId, nodeId: string) => void;
+  saveLingoCursor: (lang: LingoLangId, nodeId: string, index: number) => void;
   resetProgress: () => void;
   setAutoRead: (autoRead: boolean) => void;
   setLastSubject: (subject: SubjectId) => void;
@@ -105,6 +123,35 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     mutateProgress((prev) => recordBrainAnswerIn(prev, input));
   }, []);
 
+  const saveBrainFeed = useCallback((feed: BrainFeedState) => {
+    mutateProgress((prev) => saveBrainFeedIn(prev, feed));
+  }, []);
+
+  const recordBrainSkip = useCallback((feed: BrainFeedState) => {
+    mutateProgress((prev) => recordBrainSkipIn(prev, feed));
+  }, []);
+
+  const recordLingoStep = useCallback(
+    (input: {
+      lang: LingoLangId;
+      nodeId: string;
+      stepId: string;
+      correct: boolean;
+      speak?: boolean;
+    }) => {
+      mutateProgress((prev) => recordLingoStepIn(prev, input));
+    },
+    [],
+  );
+
+  const completeLingoNode = useCallback((lang: LingoLangId, nodeId: string) => {
+    mutateProgress((prev) => completeLingoNodeIn(prev, lang, nodeId));
+  }, []);
+
+  const saveLingoCursor = useCallback((lang: LingoLangId, nodeId: string, index: number) => {
+    mutateProgress((prev) => saveLingoCursorIn(prev, lang, nodeId, index));
+  }, []);
+
   const resetProgress = useCallback(() => {
     saveProgress(emptyProgress());
     clearTickets();
@@ -139,6 +186,11 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       recordQuiz,
       recordScenario,
       recordBrainAnswer,
+      saveBrainFeed,
+      recordBrainSkip,
+      recordLingoStep,
+      completeLingoNode,
+      saveLingoCursor,
       resetProgress,
       setAutoRead,
       setLastSubject,
@@ -168,6 +220,11 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     recordQuiz,
     recordScenario,
     recordBrainAnswer,
+    saveBrainFeed,
+    recordBrainSkip,
+    recordLingoStep,
+    completeLingoNode,
+    saveLingoCursor,
     resetProgress,
     setAutoRead,
     setLastSubject,

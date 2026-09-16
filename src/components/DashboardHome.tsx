@@ -54,15 +54,15 @@ export function DashboardHome() {
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <Link
             href={upcoming ? pathHref(upcoming) : "/learn"}
-            className="flex-1 rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background"
+            className="flex min-h-12 flex-1 items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background active:brightness-110"
           >
             {upcoming ? "Continue" : "Browse subjects"}
           </Link>
           <Link
-            href="/brain/today"
-            className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
+            href="/brain/feed"
+            className="flex min-h-12 items-center justify-center rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold active:bg-surface-2"
           >
-            Brain Gym
+            Scroll brain instead
           </Link>
         </div>
       </div>
@@ -86,18 +86,28 @@ export function DashboardHome() {
 
       <div className="mb-8 grid gap-3 sm:grid-cols-2">
         <Link
-          href="/brain/today"
-          className="rounded-3xl border border-accent/30 bg-surface p-4 hover:border-accent/50"
+          href="/lingo"
+          className="rounded-3xl border border-accent/30 bg-surface p-4 active:border-accent/50"
         >
-          <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Brain Gym</p>
-          <p className="mt-1 text-sm font-medium">Daily 2-hour challenge · Sydney calendar</p>
+          <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Speak</p>
+          <p className="mt-1 text-sm font-medium">Languages · French, Indonesian, Icelandic</p>
           <p className="mt-1 text-xs text-muted">
-            Mini crosswords, word ladders, mental maths, logic. Playlist freezes for the day.
+            Duolingo-style skill trees. Tap, match, type, say it. XP and streak — no hearts.
+          </p>
+        </Link>
+        <Link
+          href="/brain/feed"
+          className="rounded-3xl border border-accent/30 bg-surface p-4 active:border-accent/50"
+        >
+          <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Replace the scroll</p>
+          <p className="mt-1 text-sm font-medium">Open phone feed · Brain Gym</p>
+          <p className="mt-1 text-xs text-muted">
+            Vertical challenge cards instead of TikTok-style empty scrolling. Tiny skip cost. Sydney day.
           </p>
         </Link>
         <Link
           href="/lab"
-          className="rounded-3xl border border-border bg-surface p-4 hover:border-accent/40"
+          className="rounded-3xl border border-border bg-surface p-4 active:border-accent/40 sm:col-span-2"
         >
           <p className="text-[11px] uppercase tracking-[0.16em] text-muted">A+ lab</p>
           <p className="mt-1 text-sm font-medium">Helpdesk tickets for Core 1 / Core 2</p>

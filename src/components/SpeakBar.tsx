@@ -12,7 +12,7 @@ export interface Narration {
   followUp?: string;
 }
 
-export function SpeakBar({ narration }: { narration: Narration }) {
+export function SpeakBar({ narration, compact = false }: { narration: Narration; compact?: boolean }) {
   const { ready, supported, speaking, speak, stop, autoRead, setAutoRead } = useSpeech();
   const lastPrompt = useRef<string>("");
   const lastFollow = useRef<string>("");
@@ -66,12 +66,12 @@ export function SpeakBar({ narration }: { narration: Narration }) {
         active={autoRead}
       >
         <AutoIcon />
-        <span className="hidden sm:inline">Auto-read</span>
+        {compact ? null : <span className="hidden sm:inline">Auto-read</span>}
       </IconButton>
       {choiceScript ? (
         <IconButton label="Read choices" onClick={() => speak(choiceScript)}>
           <ListIcon />
-          <span className="hidden sm:inline">Choices</span>
+          {compact ? null : <span className="hidden sm:inline">Choices</span>}
         </IconButton>
       ) : null}
     </div>
@@ -97,10 +97,10 @@ function IconButton({
       title={label}
       aria-pressed={active ? true : undefined}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
+        "inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-medium transition",
         active
           ? "border-accent/50 bg-accent-dim text-accent"
-          : "border-border text-muted hover:border-accent/40 hover:text-foreground",
+          : "border-border text-muted active:border-accent/40 active:text-foreground hover:border-accent/40 hover:text-foreground",
       )}
     >
       {children}

@@ -12,7 +12,18 @@ export type BrainCat =
   | "lateral"
   | "logic"
   | "words"
-  | "crossword";
+  | "crossword"
+  | "riddle"
+  | "trivia"
+  | "emoji"
+  | "odd"
+  | "lie"
+  | "micro"
+  | "spell"
+  | "fact"
+  | "pattern"
+  | "ethic"
+  | "beat";
 
 export type BrainKind =
   | "choice"

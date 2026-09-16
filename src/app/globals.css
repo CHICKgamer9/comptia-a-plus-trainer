@@ -67,3 +67,12 @@ body {
     transform: none;
   }
 }
+
+.feed-shell {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+.feed-card {
+  animation: beat-in 280ms ease-out;
+}

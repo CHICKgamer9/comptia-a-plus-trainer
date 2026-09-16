@@ -32,8 +32,22 @@ export function BrainHub() {
       <PageHeader
         kicker="Brain Gym"
         title="Daily challenge desk"
-        description="A two-hour Sydney playlist of short puzzles — minis you can type, not posters. Not a school subject and not an IQ test."
+        description="A two-hour Sydney playlist of short puzzles — minis you can type, not posters. Or open the phone feed and scroll challenges instead of an empty app."
       />
+      <Card className="mb-6 border-accent/40 bg-gradient-to-br from-accent-dim/90 to-surface">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Replace the scroll</p>
+        <p className="mt-2 text-2xl font-semibold leading-tight">Open phone feed</p>
+        <p className="mt-1 text-sm text-muted">
+          Full-screen cards. One challenge at a time. Swipe up / skip with a tiny XP cost so it
+          does not become empty scrolling. Built for a phone in your thumb zone.
+        </p>
+        <Link
+          href="/brain/feed"
+          className="mt-5 flex min-h-12 items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-center text-base font-semibold text-background active:brightness-110"
+        >
+          Scroll brain instead
+        </Link>
+      </Card>
       <Card className="mb-6 border-accent/30 bg-gradient-to-br from-accent-dim/80 to-surface">
         <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Today · {ymd}</p>
         <p className="mt-2 text-2xl font-semibold">
@@ -46,13 +60,13 @@ export function BrainHub() {
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <Link
             href="/brain/today"
-            className="flex-1 rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background"
+            className="flex min-h-12 flex-1 items-center justify-center rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold active:bg-surface-2"
           >
             Open today’s playlist
           </Link>
           <Link
             href="/brain/browse"
-            className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
+            className="flex min-h-12 items-center justify-center rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold active:bg-surface-2"
           >
             Browse packs
           </Link>
@@ -70,7 +84,7 @@ export function BrainHub() {
             key={cat.id}
             href={`/brain/browse?cat=${cat.id}`}
             className={cn(
-              "rounded-2xl border border-border bg-surface p-4 hover:border-accent/40",
+              "min-h-11 rounded-2xl border border-border bg-surface p-4 active:border-accent/40",
               (cat.id === "crossword" || cat.id === "words") && "border-accent/25",
             )}
           >

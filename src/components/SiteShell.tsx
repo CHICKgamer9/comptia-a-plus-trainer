@@ -8,6 +8,8 @@ import { Disclaimer } from "./ui";
 import { StatusChip } from "./StatusChip";
 import { getSubject, isSubjectId } from "@/content/registry";
 import { BRAIN_ACCENT, BRAIN_ACCENT_DIM } from "@/content/brain/types";
+import { LINGO_ACCENT, LINGO_ACCENT_DIM, LINGO_COURSES } from "@/content/lingo/courses";
+import { isLingoLangId } from "@/content/lingo/types";
 
 const links = [
   { href: "/", label: "Home", icon: HomeIcon },
@@ -41,9 +43,17 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     /^\/practice\/[^/]+$/.test(pathname) ||
     /^\/play\/[^/]+$/.test(pathname) ||
     /^\/brain\/play\//.test(pathname) ||
+    /^\/lingo\/[^/]+\/[^/]+$/.test(pathname) ||
     pathname.startsWith("/lab/t/");
+  const immersive = pathname === "/brain/feed" || pathname.startsWith("/brain/feed/");
   const subject = subjectFromPath(pathname);
   const brain = pathname.startsWith("/brain");
+  const lingoMatch = pathname.match(/^\/lingo(?:\/([^/]+))?/);
+  const lingo = lingoMatch
+    ? lingoMatch[1] && isLingoLangId(lingoMatch[1])
+      ? LINGO_COURSES[lingoMatch[1]]
+      : { accent: LINGO_ACCENT, accentDim: LINGO_ACCENT_DIM }
+    : undefined;
 
   return (
     <div
@@ -54,6 +64,11 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
               "--accent": BRAIN_ACCENT,
               "--accent-dim": BRAIN_ACCENT_DIM,
             } as CSSProperties)
+          : lingo
+          ? ({
+              "--accent": lingo.accent,
+              "--accent-dim": lingo.accentDim,
+            } as CSSProperties)
           : subject
           ? ({
               "--accent": subject.accent,
@@ -62,6 +77,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           : undefined
       }
     >
+      {immersive ? null : (
       <header className="sticky top-0 z-30 border-b border-border/80 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2.5">
@@ -97,15 +113,17 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
+      )}
 
       <main className={cn(
-        "mx-auto w-full flex-1 px-4 py-6 pb-24 md:pb-10",
-        player ? "max-w-3xl md:py-6" : "max-w-6xl md:py-10",
+        "mx-auto w-full flex-1",
+        immersive ? "max-w-none p-0" : "px-4 py-6 pb-24 md:pb-10",
+        immersive ? "" : player ? "max-w-3xl md:py-6" : "max-w-6xl md:py-10",
       )}>
         {children}
       </main>
 
-      {player ? null : (
+      {player || immersive ? null : (
         <footer className="border-t border-border pb-20 md:pb-0">
           <div className="mx-auto max-w-6xl px-4 py-6">
             <Disclaimer compact />
@@ -113,6 +131,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         </footer>
       )}
 
+      {immersive ? null : (
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 backdrop-blur-xl md:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-6 px-1 pb-[env(safe-area-inset-bottom)]">
           {links.map((link) => {
@@ -123,7 +142,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2 text-[11px]",
+                  "flex min-h-11 flex-col items-center justify-center gap-1 py-2 text-[11px]",
                   active ? "text-accent" : "text-muted",
                 )}
               >
@@ -134,6 +153,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           })}
         </div>
       </nav>
+      )}
     </div>
   );
 }

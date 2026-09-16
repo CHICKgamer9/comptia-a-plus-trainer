@@ -47,6 +47,20 @@ export default async function SubjectLearnPage({
         {meta.blurb}
       </p>
       <p className="mb-8 text-center font-mono text-xs text-muted">{count} paths</p>
+      {subject === "languages" ? (
+        <Link
+          href="/lingo"
+          className="mb-8 block rounded-3xl border border-accent/40 bg-gradient-to-br from-accent-dim/80 to-surface p-5 active:border-accent/60"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">Speak a language</p>
+          <p className="mt-1 text-xl font-semibold">French · Indonesian · Icelandic</p>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            Duolingo-style units, skills, and lessons — tap meaning, build sentences, type a
+            translation, mark “I said it”. The catalog below is still how language works, not fluency.
+          </p>
+          <p className="mt-4 text-sm font-semibold text-accent">Open the Languages hub →</p>
+        </Link>
+      ) : null}
       <PathCatalog subject={subject} />
       {challenges.length ? (
         <div className="mt-10">
