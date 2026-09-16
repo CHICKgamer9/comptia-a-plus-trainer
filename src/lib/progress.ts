@@ -40,6 +40,7 @@ export interface ProgressState {
   lastScenarioId?: string;
   quizHistory?: Record<string, QuizResult[]>;
   lessonCursor?: Record<string, number>;
+  autoRead?: boolean;
   game?: GameState;
 }
 
@@ -61,6 +62,7 @@ export const emptyProgress = (): ProgressState => ({
   scenarioScores: {},
   quizHistory: {},
   lessonCursor: {},
+  autoRead: false,
   game: emptyGame(),
 });
 
@@ -83,6 +85,7 @@ export function parseProgress(raw: string): ProgressState {
       lastScenarioId: parsed.lastScenarioId,
       quizHistory: parsed.quizHistory ?? {},
       lessonCursor: parsed.lessonCursor ?? {},
+      autoRead: parsed.autoRead === true,
       game: parsed.game ? { ...emptyGame(), ...parsed.game } : undefined,
     };
     if (!base.game) {
@@ -283,6 +286,10 @@ export function recordScenarioIn(
     },
   };
   return withActivity(next, ticketXp(result.score, result.total));
+}
+
+export function setAutoReadIn(prev: ProgressState, autoRead: boolean): ProgressState {
+  return { ...prev, autoRead };
 }
 
 export function mutateProgress(mutator: (prev: ProgressState) => ProgressState) {

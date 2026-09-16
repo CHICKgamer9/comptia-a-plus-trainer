@@ -18,7 +18,7 @@ export function CheckPlay({
   onResolved,
 }: {
   check: PathCheck;
-  onResolved: (correct: boolean) => void;
+  onResolved: (correct: boolean, spoken?: string) => void;
 }) {
   if (check.type === "truefalse") {
     return <TrueFalse check={check} onResolved={onResolved} />;
@@ -37,7 +37,7 @@ function ChoiceCheck({
   onResolved,
 }: {
   check: PathCheck;
-  onResolved: (correct: boolean) => void;
+  onResolved: (correct: boolean, spoken?: string) => void;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const choices = check.choices ?? [];
@@ -57,7 +57,7 @@ function ChoiceCheck({
               disabled={locked}
               onClick={() => {
                 setPicked(choice.id);
-                onResolved(choice.correct);
+                onResolved(choice.correct, `${choice.correct ? "Nice." : "Not quite."} ${choice.why}`);
               }}
               className={cn(
                 "w-full rounded-2xl border px-4 py-3 text-left text-sm leading-6 transition",
@@ -86,7 +86,7 @@ function TrueFalse({
   onResolved,
 }: {
   check: PathCheck;
-  onResolved: (correct: boolean) => void;
+  onResolved: (correct: boolean, spoken?: string) => void;
 }) {
   const [picked, setPicked] = useState<boolean | null>(null);
   const locked = picked !== null;
@@ -106,7 +106,7 @@ function TrueFalse({
               disabled={locked}
               onClick={() => {
                 setPicked(value);
-                onResolved(value === check.answer);
+                onResolved(value === check.answer, `${value === check.answer ? "Yes." : "Flip it."} ${check.why ?? ""}`);
               }}
               className={cn(
                 "rounded-2xl border px-4 py-8 text-lg font-semibold transition",
@@ -135,7 +135,7 @@ function OrderCheck({
   onResolved,
 }: {
   check: PathCheck;
-  onResolved: (correct: boolean) => void;
+  onResolved: (correct: boolean, spoken?: string) => void;
 }) {
   const [pool] = useState(() => shuffle(check.items ?? []));
   const [picked, setPicked] = useState<string[]>([]);
@@ -152,7 +152,7 @@ function OrderCheck({
     if (next.length === pool.length) {
       const ok = JSON.stringify(next) === JSON.stringify(check.correctOrder ?? []);
       setDone(true);
-      onResolved(ok);
+      onResolved(ok, `${ok ? "That's the loop." : "Almost."} ${check.why ?? ""}`);
     }
   }
 
@@ -209,7 +209,7 @@ function MatchCheck({
   onResolved,
 }: {
   check: PathCheck;
-  onResolved: (correct: boolean) => void;
+  onResolved: (correct: boolean, spoken?: string) => void;
 }) {
   const pairs = check.pairs ?? [];
   const [lefts] = useState(() => shuffle(pairs.map((pair) => pair.left)));
@@ -232,7 +232,7 @@ function MatchCheck({
       setMiss(null);
       if (Object.keys(next).length === pairs.length) {
         setDone(true);
-        onResolved(true);
+        onResolved(true, check.why);
       }
     } else {
       setMiss(right);

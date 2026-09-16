@@ -7,6 +7,7 @@ import { useProgress } from "./ProgressProvider";
 import { PlayerButton, PlayerFrame } from "./PlayerFrame";
 import { Badge } from "./ui";
 import { cn } from "@/lib/cn";
+import { joinSpeech } from "@/lib/speech";
 
 export function QuizRunner({ quiz }: { quiz: Quiz }) {
   const { recordQuiz, recordQuizAnswer, quizBest } = useProgress();
@@ -94,7 +95,13 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
   if (done) {
     const percent = Math.round((score / quiz.questions.length) * 100);
     return (
-      <PlayerFrame kicker={quiz.title} index={quiz.questions.length - 1} total={quiz.questions.length}>
+      <PlayerFrame kicker={quiz.title} index={quiz.questions.length - 1} total={quiz.questions.length} narration={{
+        id: `${quiz.id}-done`,
+        prompt: joinSpeech([
+          `${score} out of ${quiz.questions.length}.`,
+          percent >= 80 ? "Strong set." : percent >= 60 ? "Keep going." : "Replay the path.",
+        ]),
+      }}>
         <Badge tone={percent >= 80 ? "ok" : percent >= 60 ? "warn" : "danger"}>
           {percent >= 80 ? "Strong set" : percent >= 60 ? "Keep going" : "Replay the path"}
         </Badge>
@@ -140,6 +147,14 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
       kicker={quiz.title}
       index={index}
       total={quiz.questions.length}
+      narration={{
+        id: question.id,
+        prompt: question.prompt,
+        choices: question.choices,
+        followUp: showWhy
+          ? joinSpeech([correct ? "Nice." : "Not quite.", question.explanation])
+          : undefined,
+      }}
       footer={
         locked ? (
           <PlayerButton onClick={next}>

@@ -39,12 +39,13 @@ Generation is rate-limited (8 requests / 10 minutes / IP) and the Generate butto
 
 - **Home** — today’s path, Sydney streak, level, Core 1 / Core 2 readiness glance
 - **Learn** — nine domain paths; one beat per screen; you tap Continue (checks gate the next beat)
+- **Listen** — speaker control in the lesson / quiz / lab player. **Auto-read** speaks each new prompt (not the four choices). **Choices** reads options on demand. Stop cancels speech. Uses the browser Web Speech API (no TTS key). Preference is stored on this device with progress.
 - **Quizzes** — one problem at a time (practice feedback now, or exam drill)
 - **Lab** — generate a ticket (Core 1/2, theme, difficulty, or surprise). Investigate gather → tools → cause → fix
 - **Ready** (`/ready`) — full readiness rubric
 - **Sheets** — ports, RAID, Windows tools, etc.
 
-Progress is `localStorage` key `ticketbench-progress-v1` (same as before; new fields are additive). Generated tickets: `ticketbench-tickets-v1`. Reset from the dashboard.
+Progress is `localStorage` key `ticketbench-progress-v1` (same as before; new fields are additive, including `autoRead`). Generated tickets: `ticketbench-tickets-v1`. Reset from the dashboard.
 
 ## XP, levels, streak
 
