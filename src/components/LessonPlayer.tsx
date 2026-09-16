@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Domain, Lesson, PathBeat } from "@/content/types";
 import { lessonToPath } from "@/lib/lesson-path";
-import { labThemeForDomain } from "@/content";
+import { labThemeForDomain, quizHref, getChallengesBySubject, challengeHref } from "@/content";
 import { useProgress } from "./ProgressProvider";
 import { CheckPlay } from "./CheckPlay";
 import { PathDiagram } from "./PathDiagram";
@@ -57,11 +57,11 @@ export function LessonPlayer({
   return (
     <div>
       <div className="mx-auto mb-6 flex max-w-xl items-center justify-between gap-3">
-        <Link href="/learn" className="text-sm text-muted hover:text-foreground">
+        <Link href={`/learn/${domain.subject}`} className="text-sm text-muted hover:text-foreground">
           ← Path
         </Link>
         <div className="flex items-center gap-2">
-          <ExamBadge exam={domain.exam} />
+          {domain.exam ? <ExamBadge exam={domain.exam} /> : <Badge tone="accent">{domain.subject}</Badge>}
           {done ? <Badge tone="ok">Done</Badge> : <Badge tone="muted">{lesson.minutes} min</Badge>}
         </div>
       </div>
@@ -198,23 +198,44 @@ function EndLinks({
   domain: Domain;
   restart: () => void;
 }) {
+  const challenge = getChallengesBySubject(domain.subject)[0];
+  const theme = labThemeForDomain(domain.id);
+  const third =
+    domain.subject === "tech" && domain.exam ? (
+      <Link
+        href={`/lab?exam=${domain.exam}${theme ? `&theme=${theme}` : ""}`}
+        className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
+      >
+        Generate a ticket
+      </Link>
+    ) : challenge ? (
+      <Link
+        href={challengeHref(challenge.id)}
+        className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
+      >
+        Try a challenge
+      </Link>
+    ) : (
+      <Link
+        href={`/learn/${domain.subject}`}
+        className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
+      >
+        More paths
+      </Link>
+    );
+
   return (
     <div className="grid gap-2 sm:grid-cols-3">
       <PlayerButton tone="ghost" onClick={restart}>
         Replay path
       </PlayerButton>
       <Link
-        href={`/practice/${domain.quizId}`}
+        href={quizHref(domain.quizId)}
         className="rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background"
       >
         Practice problems
       </Link>
-      <Link
-        href={`/lab?exam=${domain.exam}&theme=${labThemeForDomain(domain.id)}`}
-        className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
-      >
-        Generate a ticket
-      </Link>
+      {third}
     </div>
   );
 }

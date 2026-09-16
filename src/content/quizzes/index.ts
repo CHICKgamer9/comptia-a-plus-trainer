@@ -1,8 +1,17 @@
 import type { Quiz } from "../types";
 import { core1Quizzes } from "./core1";
 import { core2Quizzes } from "./core2";
+import { mathsQuizzes } from "./maths";
+import { scienceQuizzes } from "./science";
+import { historyQuizzes } from "./history";
 
-export const quizzes: Quiz[] = [...core1Quizzes, ...core2Quizzes];
+export const quizzes: Quiz[] = [
+  ...core1Quizzes,
+  ...core2Quizzes,
+  ...mathsQuizzes,
+  ...scienceQuizzes,
+  ...historyQuizzes,
+];
 
 export function getQuiz(id: string) {
   return quizzes.find((quiz) => quiz.id === id);

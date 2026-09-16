@@ -2,81 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Domain, ExamId, Quiz } from "@/content/types";
+import type { Domain, Quiz, SubjectId } from "@/content/types";
+import { SUBJECTS, pathHref } from "@/content";
 import { useProgress } from "./ProgressProvider";
 import { Badge, ExamBadge } from "./ui";
 import { cn } from "@/lib/cn";
 
-type Filter = "all" | ExamId;
-
-function FilterRow({
-  value,
-  onChange,
-}: {
-  value: Filter;
-  onChange: (value: Filter) => void;
-}) {
-  const options: { id: Filter; label: string }[] = [
-    { id: "all", label: "Both exams" },
-    { id: "220-1101", label: "Core 1" },
-    { id: "220-1102", label: "Core 2" },
-  ];
-  return (
-    <div className="mb-6 flex flex-wrap gap-2">
-      {options.map((option) => (
-        <button
-          key={option.id}
-          type="button"
-          onClick={() => onChange(option.id)}
-          className={cn(
-            "rounded-full border px-3 py-1.5 text-sm",
-            value === option.id
-              ? "border-accent/40 bg-accent-dim text-accent"
-              : "border-border text-muted hover:text-foreground",
-          )}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-export function DomainCatalog({ domains }: { domains: Domain[] }) {
-  const [filter, setFilter] = useState<Filter>("all");
-  const { progress } = useProgress();
-  const list = useMemo(
-    () => domains.filter((domain) => filter === "all" || domain.exam === filter),
-    [domains, filter],
-  );
-
-  return (
-    <>
-      <FilterRow value={filter} onChange={setFilter} />
-      <div className="grid gap-3 md:grid-cols-2">
-        {list.map((domain) => {
-          const done = progress.completedLessons.includes(domain.lessonId);
-          return (
-            <Link
-              key={domain.id}
-              href={`/learn/${domain.id}`}
-              className="rounded-2xl border border-border bg-surface p-5 hover:border-accent/40"
-            >
-              <div className="flex flex-wrap items-center gap-2">
-                <ExamBadge exam={domain.exam} />
-                <Badge tone="muted">Domain {domain.number}</Badge>
-                <Badge tone="muted">{domain.weight}</Badge>
-                {done ? <Badge tone="ok">Read</Badge> : null}
-              </div>
-              <h2 className="mt-3 text-lg font-semibold">{domain.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted">{domain.summary}</p>
-            </Link>
-          );
-        })}
-      </div>
-    </>
-  );
-}
+type Filter = "all" | SubjectId;
 
 export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Domain[] }) {
   const [filter, setFilter] = useState<Filter>("all");
@@ -89,14 +21,32 @@ export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Do
     () =>
       quizzes.filter((quiz) => {
         const domain = domainById[quiz.domainId];
-        return domain && (filter === "all" || domain.exam === filter);
+        return domain && (filter === "all" || domain.subject === filter);
       }),
     [quizzes, domainById, filter],
   );
 
   return (
     <>
-      <FilterRow value={filter} onChange={setFilter} />
+      <div className="mb-6 flex flex-wrap gap-2">
+        {[{ id: "all" as const, label: "All" }, ...SUBJECTS.map((subject) => ({ id: subject.id, label: subject.title }))].map(
+          (option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => setFilter(option.id)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-sm",
+                filter === option.id
+                  ? "border-accent/40 bg-accent-dim text-accent"
+                  : "border-border text-muted hover:text-foreground",
+              )}
+            >
+              {option.label}
+            </button>
+          ),
+        )}
+      </div>
       <div className="grid gap-3">
         {list.map((quiz) => {
           const domain = domainById[quiz.domainId];
@@ -113,7 +63,7 @@ export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Do
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{quiz.title}</span>
                 <span className="block text-xs text-muted">
-                  {quiz.questions.length} problems · practice or exam drill
+                  {domain?.subject ?? "path"} · {quiz.questions.length} problems
                 </span>
               </span>
               {best ? (
@@ -123,6 +73,60 @@ export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Do
               ) : (
                 <Badge tone="muted">Start</Badge>
               )}
+            </Link>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+export function DomainCatalog({ domains }: { domains: Domain[] }) {
+  const [filter, setFilter] = useState<Filter>("all");
+  const { progress } = useProgress();
+  const list = useMemo(
+    () => domains.filter((domain) => filter === "all" || domain.subject === filter),
+    [domains, filter],
+  );
+
+  return (
+    <>
+      <div className="mb-6 flex flex-wrap gap-2">
+        {[{ id: "all" as const, label: "All" }, ...SUBJECTS.map((subject) => ({ id: subject.id, label: subject.title }))].map(
+          (option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => setFilter(option.id)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-sm",
+                filter === option.id
+                  ? "border-accent/40 bg-accent-dim text-accent"
+                  : "border-border text-muted hover:text-foreground",
+              )}
+            >
+              {option.label}
+            </button>
+          ),
+        )}
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {list.map((domain) => {
+          const done = progress.completedLessons.includes(domain.lessonId);
+          return (
+            <Link
+              key={domain.id}
+              href={pathHref(domain)}
+              className="rounded-2xl border border-border bg-surface p-5 hover:border-accent/40"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                {domain.exam ? <ExamBadge exam={domain.exam} /> : <Badge tone="accent">{domain.subject}</Badge>}
+                <Badge tone="muted">Path {domain.number}</Badge>
+                {domain.weight ? <Badge tone="muted">{domain.weight}</Badge> : null}
+                {done ? <Badge tone="ok">Read</Badge> : null}
+              </div>
+              <h2 className="mt-3 text-lg font-semibold">{domain.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">{domain.summary}</p>
             </Link>
           );
         })}

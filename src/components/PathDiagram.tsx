@@ -131,6 +131,67 @@ export function PathDiagram({ id }: { id: DiagramId }) {
     );
   }
 
+  if (id === "balance") {
+    return (
+      <svg {...common}>
+        <path d="M140 28v78" stroke="currentColor" className="text-accent" strokeWidth="2" />
+        <path d="M88 54h104" stroke="currentColor" className="text-accent" strokeWidth="2" />
+        <path d="M88 54 64 92h48L88 54Z" className="fill-accent/15" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M192 54 168 92h48L192 54Z" className="fill-accent/15" stroke="currentColor" strokeWidth="1.6" />
+        <circle cx="140" cy="54" r="5" className="fill-accent" />
+        <rect x="118" y="106" width="44" height="10" rx="3" className="fill-accent/20" stroke="currentColor" />
+      </svg>
+    );
+  }
+
+  if (id === "atom") {
+    return (
+      <svg {...common}>
+        <ellipse cx="140" cy="70" rx="70" ry="28" stroke="currentColor" className="text-accent" strokeWidth="1.6" />
+        <ellipse cx="140" cy="70" rx="28" ry="62" stroke="currentColor" className="text-accent" strokeWidth="1.6" transform="rotate(60 140 70)" />
+        <ellipse cx="140" cy="70" rx="28" ry="62" stroke="currentColor" className="text-accent" strokeWidth="1.6" transform="rotate(-60 140 70)" />
+        <circle cx="140" cy="70" r="10" className="fill-accent" />
+        <circle cx="208" cy="70" r="5" className="fill-ok" />
+      </svg>
+    );
+  }
+
+  if (id === "leaf") {
+    return (
+      <svg {...common}>
+        <path
+          d="M70 96c30-62 110-62 140 0-30 28-80 36-140 0Z"
+          className="fill-accent/15"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <path d="M86 88c36-8 72-8 108 0" stroke="currentColor" className="text-ok" strokeWidth="1.6" />
+        <path d="M140 96V48" stroke="currentColor" className="text-accent" strokeWidth="1.6" />
+      </svg>
+    );
+  }
+
+  if (id === "scroll") {
+    return (
+      <svg {...common}>
+        <rect x="78" y="24" width="124" height="92" rx="10" stroke="currentColor" className="text-accent" strokeWidth="2" />
+        <path d="M78 40h124" stroke="currentColor" strokeWidth="2" />
+        <path d="M96 58h88M96 74h88M96 90h56" stroke="currentColor" className="text-muted" strokeWidth="2" />
+        <circle cx="96" cy="32" r="3" className="fill-warn" />
+      </svg>
+    );
+  }
+
+  if (id === "prism") {
+    return (
+      <svg {...common}>
+        <path d="M70 100 L140 28 L210 100Z" className="fill-accent/10" stroke="currentColor" strokeWidth="2" />
+        <path d="M140 28 L140 100" stroke="currentColor" className="text-accent" strokeWidth="1.5" />
+        <path d="M88 82h104" stroke="currentColor" className="text-ok" strokeWidth="1.5" />
+      </svg>
+    );
+  }
+
   return (
     <svg {...common}>
       <rect x="72" y="18" width="136" height="108" rx="8" stroke="currentColor" className="text-accent" strokeWidth="2" />

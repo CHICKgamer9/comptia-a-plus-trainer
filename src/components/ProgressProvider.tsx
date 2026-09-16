@@ -14,11 +14,13 @@ import {
   saveLessonCursorIn,
   saveProgress,
   setAutoReadIn,
+  setLastSubjectIn,
   subscribeProgress,
   type ProgressState,
   type ScenarioResult,
 } from "@/lib/progress";
 import { domains, quizzes } from "@/content";
+import type { SubjectId } from "@/content/types";
 import { levelForXp } from "@/lib/xp";
 import { overallReadiness } from "@/lib/readiness";
 import { clearTickets } from "@/lib/ticket-store";
@@ -33,6 +35,7 @@ interface ProgressContextValue {
   recordScenario: (scenarioId: string, result: ScenarioResult) => void;
   resetProgress: () => void;
   setAutoRead: (autoRead: boolean) => void;
+  setLastSubject: (subject: SubjectId) => void;
   lessonDone: (lessonId: string) => boolean;
   quizBest: (quizId: string) => { score: number; total: number } | undefined;
   scenarioBest: (
@@ -65,7 +68,11 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const progress = useMemo(() => parseProgress(raw), [raw]);
 
   const markLessonComplete = useCallback((lessonId: string) => {
-    mutateProgress((prev) => markLessonCompleteIn(prev, lessonId));
+    const domain = domains.find((item) => item.lessonId === lessonId);
+    mutateProgress((prev) => {
+      const next = markLessonCompleteIn(prev, lessonId);
+      return domain ? setLastSubjectIn(next, domain.subject) : next;
+    });
   }, []);
 
   const saveLessonCursor = useCallback((lessonId: string, index: number) => {
@@ -77,7 +84,12 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const recordQuiz = useCallback((quizId: string, score: number, total: number) => {
-    mutateProgress((prev) => recordQuizIn(prev, quizId, score, total));
+    const quiz = quizzes.find((item) => item.id === quizId);
+    const domain = quiz ? domains.find((item) => item.id === quiz.domainId) : undefined;
+    mutateProgress((prev) => {
+      const next = recordQuizIn(prev, quizId, score, total);
+      return domain ? setLastSubjectIn(next, domain.subject) : next;
+    });
   }, []);
 
   const recordScenario = useCallback(
@@ -94,6 +106,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
 
   const setAutoRead = useCallback((autoRead: boolean) => {
     mutateProgress((prev) => setAutoReadIn(prev, autoRead));
+  }, []);
+
+  const setLastSubject = useCallback((subject: SubjectId) => {
+    mutateProgress((prev) => setLastSubjectIn(prev, subject));
   }, []);
 
   const value = useMemo<ProgressContextValue>(() => {
@@ -118,6 +134,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       recordScenario,
       resetProgress,
       setAutoRead,
+      setLastSubject,
       lessonDone: (lessonId) => progress.completedLessons.includes(lessonId),
       quizBest: (quizId) => progress.quizScores[quizId],
       scenarioBest: (scenarioId) => progress.scenarioScores[scenarioId],
@@ -145,6 +162,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     recordScenario,
     resetProgress,
     setAutoRead,
+    setLastSubject,
   ]);
 
   return (

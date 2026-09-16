@@ -1,8 +1,10 @@
 export type TicketSource = "ai" | "fallback";
 
+export type SubjectId = "tech" | "maths" | "science" | "history";
+
 export type ExamId = "220-1101" | "220-1102";
 
-export type DomainId =
+export type AplusDomainId =
   | "mobile-devices"
   | "networking"
   | "hardware"
@@ -12,6 +14,8 @@ export type DomainId =
   | "security"
   | "software-troubleshooting"
   | "operational-procedures";
+
+export type DomainId = string;
 
 export type ScenarioTheme =
   | "hardware"
@@ -25,12 +29,15 @@ export type Difficulty = "easy" | "medium" | "hard";
 
 export type ScenarioPhase = "gather" | "tools" | "cause" | "fix";
 
+export type ScenarioKind = "ticket" | "challenge";
+
 export interface Domain {
   id: DomainId;
-  exam: ExamId;
+  subject: SubjectId;
+  exam?: ExamId;
   number: number;
   title: string;
-  weight: string;
+  weight?: string;
   summary: string;
   lessonId: string;
   quizId: string;
@@ -73,7 +80,12 @@ export type DiagramId =
   | "window"
   | "lock"
   | "boot"
-  | "clipboard";
+  | "clipboard"
+  | "balance"
+  | "atom"
+  | "leaf"
+  | "scroll"
+  | "prism";
 
 export type PathCheckType = "choice" | "truefalse" | "order" | "match";
 
@@ -153,8 +165,10 @@ export interface Scenario {
   requester: string;
   location: string;
   priority: "Low" | "Medium" | "High" | "Critical";
-  exam: ExamId;
-  theme: ScenarioTheme;
+  subject: SubjectId;
+  kind?: ScenarioKind;
+  exam?: ExamId;
+  theme?: ScenarioTheme;
   domainIds: DomainId[];
   difficulty: Difficulty;
   minutes: number;
@@ -175,6 +189,7 @@ export interface Cheatsheet {
   id: string;
   title: string;
   summary: string;
+  subject?: SubjectId;
   tables: CheatsheetTable[];
   notes?: string[];
 }

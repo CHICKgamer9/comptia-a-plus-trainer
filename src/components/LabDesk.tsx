@@ -210,8 +210,8 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-mono text-xs text-warn">{ticket.ticketId}</span>
-                  <ExamBadge exam={ticket.exam} />
-                  <ThemeBadge theme={ticket.theme} />
+                  {ticket.exam ? <ExamBadge exam={ticket.exam} /> : null}
+                  {ticket.theme ? <ThemeBadge theme={ticket.theme} /> : null}
                   <DifficultyBadge level={ticket.difficulty} />
                   {ticket.source === "fallback" ? (
                     <Badge tone="warn">Stub</Badge>

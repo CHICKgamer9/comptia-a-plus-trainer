@@ -111,5 +111,7 @@ export function normalizeTicket(
     steps,
     debrief: raw.debrief,
     source,
+    subject: "tech",
+    kind: "ticket",
   };
 }

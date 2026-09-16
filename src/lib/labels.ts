@@ -1,4 +1,4 @@
-import type { Difficulty, ExamId, ScenarioPhase, ScenarioTheme } from "@/content/types";
+import type { Difficulty, ExamId, ScenarioKind, ScenarioPhase, ScenarioTheme } from "@/content/types";
 
 export function examShort(exam: ExamId) {
   return exam === "220-1101" ? "Core 1" : "Core 2";
@@ -24,7 +24,16 @@ export function themeLabel(theme: ScenarioTheme) {
   return map[theme];
 }
 
-export function phaseLabel(phase: ScenarioPhase) {
+export function phaseLabel(phase: ScenarioPhase, kind: ScenarioKind = "ticket") {
+  if (kind === "challenge") {
+    const map: Record<ScenarioPhase, string> = {
+      gather: "Look closely",
+      tools: "Try a model",
+      cause: "Decide",
+      fix: "Check it",
+    };
+    return map[phase];
+  }
   const map: Record<ScenarioPhase, string> = {
     gather: "Gather info",
     tools: "Tools & tests",
