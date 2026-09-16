@@ -136,6 +136,8 @@ export interface PathAnswerContext {
   conceptId?: string;
   skipped?: boolean;
   cardId?: string;
+  /** When false, record XP but do not drop a card (try beats). */
+  awardCard?: boolean;
 }
 
 const listeners = new Set<() => void>();
@@ -445,7 +447,7 @@ export function recordQuizAnswerIn(
     : XP.quizWrong;
   let next = withActivity({ ...prev, game }, xpGain);
   const isPath = questionId.startsWith("path-") || Boolean(ctx?.domainId);
-  if (isPath && !ctx?.skipped) {
+  if (isPath && !ctx?.skipped && ctx?.awardCard !== false) {
     const drop = dropFromPath(next.bench ?? emptyBench(), {
       correct,
       skipped: ctx?.skipped,

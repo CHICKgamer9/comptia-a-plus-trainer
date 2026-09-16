@@ -185,6 +185,7 @@ export function LessonPlayer({
               subject: domain.subject,
               conceptId: checkId,
               cardId: type === "decide" ? beat.cardId : undefined,
+              awardCard: type === "decide",
             });
           }}
         />
