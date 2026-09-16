@@ -345,7 +345,7 @@ function award(
   return result.bench;
 }
 
-/** Every finished bite prints exactly one ticket. Same concept → same card. */
+/** Correct decide prints one ticket. Skip / wrong / try = no card. Same concept → same card. */
 export function dropFromPath(
   bench: BenchState,
   input: {
@@ -360,24 +360,13 @@ export function dropFromPath(
 ): DropResult {
   const awarded: DropResult["awarded"] = [];
   let next = { ...bench, owned: [...bench.owned] };
-  if (input.skipped) return { bench: next, awarded };
+  if (input.skipped || !input.correct) return { bench: next, awarded };
   if (input.cardId) {
-    if (input.correct) next = award(next, input.cardId, "path", awarded);
+    next = award(next, input.cardId, "path", awarded);
     return { bench: next, awarded };
   }
   const seed = `${input.domainId ?? "path"}:${input.conceptId}`;
   const tags = tagsForDomain(input.domainId, input.subject);
-  if (!input.correct) {
-    const gotchas = matchingCards(tags, ["gotcha"]);
-    const pick =
-      pickDeterministic(gotchas, seed) ??
-      pickDeterministic(
-        benchCards.filter((card) => card.type === "gotcha" && !isFusionOnly(card)),
-        seed,
-      );
-    if (pick) next = award(next, pick.id, "gotcha", awarded, input.conceptId);
-    return { bench: next, awarded };
-  }
   const pool = matchingCards(tags, ["component", "symptom", "tool", "procedure"]);
   const fallback = benchCards.filter(
     (card) => !isCrestCard(card) && !isFusionOnly(card) && card.type !== "gotcha",

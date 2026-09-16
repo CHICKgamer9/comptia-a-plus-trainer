@@ -41,9 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-<<<<<<< HEAD
 # next dev agent rule files
-=======
->>>>>>> ec7a130 (Ignore Next.js generated agent rule files)
 AGENTS.md
 CLAUDE.md
