@@ -34,7 +34,7 @@ export function BrainToday() {
       <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
         Daily challenge · {ymd}
       </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">Two-hour Sydney desk</h1>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight">Two-hour desk</h1>
       <p className="mt-2 max-w-lg text-sm leading-6 text-muted">
         {DAILY_TARGET_MINUTES} minutes mixed from every pack. Word puzzles are a standing slice (
         {words.crossword} min of mini crosswords + {words.words} min anagrams, ladders, cryptos,

@@ -1,6 +1,14 @@
 import { domains } from "@/content/registry";
 import { projects } from "@/content/projects";
 import type { ExamId, SubjectId } from "@/content/types";
+import { isCore1, isCore2 } from "@/lib/exam";
+
+function examCoreMatches(domainExam: ExamId | undefined, exam: ExamId) {
+  if (!domainExam) return false;
+  if (isCore1(exam)) return isCore1(domainExam);
+  if (isCore2(exam)) return isCore2(domainExam);
+  return domainExam === exam;
+}
 
 export interface BadgeDef {
   id: string;
@@ -72,12 +80,12 @@ export const BADGES: BadgeDef[] = [
   {
     id: "streak-3",
     title: "Three-day streak",
-    blurb: "Studied three calendar days in a row (Sydney time).",
+    blurb: "Studied three calendar days in a row.",
   },
   {
     id: "streak-10",
     title: "Ten-day streak",
-    blurb: "Ten consecutive Sydney days with study.",
+    blurb: "Ten consecutive days with study.",
   },
   {
     id: "field-tech",
@@ -117,7 +125,7 @@ export const BADGES: BadgeDef[] = [
   {
     id: "brain-day",
     title: "Two-hour desk",
-    blurb: "Completed a 120-minute Sydney daily playlist.",
+    blurb: "Completed a 120-minute daily playlist.",
   },
   {
     id: "brain-week",
@@ -171,8 +179,8 @@ export interface BadgeInput {
 export function unlockedBadgeIds(input: BadgeInput): string[] {
   const ids: string[] = [];
   const tech = domains.filter((domain) => domain.subject === "tech");
-  const core1 = tech.filter((domain) => domain.exam === "220-1101");
-  const core2 = tech.filter((domain) => domain.exam === "220-1102");
+  const core1 = tech.filter((domain) => isCore1(domain.exam));
+  const core2 = tech.filter((domain) => isCore2(domain.exam));
   const subjectDone = (subject: SubjectId) =>
     domains
       .filter((domain) => domain.subject === subject)
@@ -184,7 +192,7 @@ export function unlockedBadgeIds(input: BadgeInput): string[] {
     );
   const lessonDone = (exam: ExamId) =>
     tech
-      .filter((domain) => domain.exam === exam)
+      .filter((domain) => (examCoreMatches(domain.exam, exam)))
       .every((domain) => input.completedLessons.includes(domain.lessonId));
   const quizPct = (quizId: string) => {
     const row = input.quizScores[quizId];
@@ -192,7 +200,7 @@ export function unlockedBadgeIds(input: BadgeInput): string[] {
   };
   const allQuizzesAt = (exam: ExamId, min: number) =>
     tech
-      .filter((domain) => domain.exam === exam)
+      .filter((domain) => examCoreMatches(domain.exam, exam))
       .every((domain) => quizPct(domain.quizId) >= min);
 
   if (input.completedLessons.length >= 1) ids.push("first-lesson");
@@ -207,15 +215,15 @@ export function unlockedBadgeIds(input: BadgeInput): string[] {
   ).length;
   if (cleanCount >= 3) ids.push("three-clean");
   if (tickets.length >= 5) ids.push("five-tickets");
-  if (lessonDone("220-1101")) ids.push("core1-lessons");
-  if (lessonDone("220-1102")) ids.push("core2-lessons");
+  if (lessonDone("220-1201") || lessonDone("220-1101")) ids.push("core1-lessons");
+  if (lessonDone("220-1202") || lessonDone("220-1102")) ids.push("core2-lessons");
   if (core1.every((d) => input.completedLessons.includes(d.lessonId)) &&
     core2.every((d) => input.completedLessons.includes(d.lessonId))) {
     ids.push("all-lessons");
   }
   if (domains.some((domain) => quizPct(domain.quizId) >= 0.8)) ids.push("quiz-80");
-  if (allQuizzesAt("220-1101", 0.8)) ids.push("quiz-80-core1");
-  if (allQuizzesAt("220-1102", 0.8)) ids.push("quiz-80-core2");
+  if (allQuizzesAt("220-1201", 0.8) || allQuizzesAt("220-1101", 0.8)) ids.push("quiz-80-core1");
+  if (allQuizzesAt("220-1202", 0.8) || allQuizzesAt("220-1102", 0.8)) ids.push("quiz-80-core2");
   if (input.streakCount >= 3) ids.push("streak-3");
   if (input.streakCount >= 10) ids.push("streak-10");
   if (input.xp >= 320) ids.push("field-tech");

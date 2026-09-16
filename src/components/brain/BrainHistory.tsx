@@ -18,7 +18,7 @@ export function BrainHistory() {
       </div>
       <h1 className="text-3xl font-semibold tracking-tight">Brain Gym history</h1>
       <p className="mt-2 mb-6 text-sm text-muted">
-        Completed days use the Australia/Sydney calendar. Personal best
+        Completed days use your local calendar. Personal best
         {best ? `: ${best.minutes} min on ${best.ymd}.` : " appears after you log a session."}
       </p>
       {!days.length ? (

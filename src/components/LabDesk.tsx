@@ -11,6 +11,7 @@ import {
   putTicket,
   subscribeTickets,
 } from "@/lib/ticket-store";
+import { seededTicket } from "@/lib/ticket-fallback";
 import { useProgress } from "./ProgressProvider";
 import { loadoutHint } from "@/lib/binder";
 import { getBenchCard } from "@/content/bench-cards";
@@ -99,9 +100,9 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
   return (
     <div className="mx-auto max-w-xl">
       <PageHeader
-        kicker="Lab"
-        title="A new ticket every run"
-        description="The model writes a four-beat investigation. You work it one move at a time. Completions feed XP and readiness."
+        kicker="Tech Lab"
+        title="Helpdesk tickets"
+        description="Close a reviewed ticket to practice the four-beat loop. Completions update Tech objective mastery and A+ Ready only. Generate ticket is extra."
       />
 
       {configured === false ? (
@@ -115,8 +116,25 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
       ) : null}
 
       <Card className="mb-6 rounded-3xl p-6">
-        <p className="text-xs uppercase tracking-wider text-accent">Generate</p>
-        <p className="mt-1 text-lg font-semibold">What kind of puzzle?</p>
+        <p className="text-xs uppercase tracking-wider text-accent">Today’s ticket</p>
+        <p className="mt-1 text-lg font-semibold">{seededTicket().title}</p>
+        <p className="mt-2 text-sm text-muted">{seededTicket().summary}</p>
+        <Link
+          href={`/lab/t/${seededTicket().id}`}
+          onClick={() => putTicket(seededTicket())}
+          className="mt-4 flex min-h-12 w-full items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-sm font-semibold text-background"
+        >
+          Open reviewed ticket
+        </Link>
+      </Card>
+
+      <details className="mb-6 rounded-3xl border border-border bg-surface p-5">
+        <summary className="cursor-pointer text-sm font-semibold">
+          Generate ticket · advanced study-aid
+        </summary>
+        <p className="mt-2 text-xs text-muted">
+          Optional extra. AI tickets are study aids, not official CompTIA items.
+        </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           <FilterSelect
             label="Exam"
@@ -124,8 +142,10 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
             onChange={(value) => setExam(value as ExamFilter)}
             options={[
               ["surprise", "Surprise me"],
-              ["220-1101", "Core 1"],
-              ["220-1102", "Core 2"],
+              ["220-1201", "Core 1 (220-1201)"],
+              ["220-1202", "Core 2 (220-1202)"],
+              ["220-1101", "Archive Core 1 (220-1101)"],
+              ["220-1102", "Archive Core 2 (220-1102)"],
             ]}
           />
           <FilterSelect
@@ -198,16 +218,16 @@ export function LabDesk({ aiEnabled }: { aiEnabled: boolean }) {
           AI-generated tickets are study aids, not official CompTIA items. Treat odd
           details as a chance to sanity-check against the lessons.
         </p>
-      </Card>
+      </details>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-muted">
-        Recent tickets on this device
+        Recent tickets
       </h2>
       {history.length === 0 ? (
         <Card>
-          <p className="font-medium">Queue is empty</p>
+          <p className="font-medium">Queue is empty besides today’s reviewed ticket</p>
           <p className="mt-2 text-sm text-muted">
-            Generate a ticket to start the lab. Scores stick after refresh.
+            Open the reviewed ticket above. Generate is extra if you want another scene.
           </p>
         </Card>
       ) : (

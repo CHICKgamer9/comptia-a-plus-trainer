@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Scenario } from "@/content/types";
 
-export const examEnum = z.enum(["220-1101", "220-1102"]);
+export const examEnum = z.enum(["220-1101", "220-1102", "220-1201", "220-1202"]);
 export const themeEnum = z.enum([
   "hardware",
   "network",

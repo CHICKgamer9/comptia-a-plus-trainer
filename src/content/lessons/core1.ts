@@ -8,7 +8,7 @@ export const core1Lessons: Lesson[] = [
     title: "Laptops, phones, and the radios they carry",
     minutes: 18,
     intro:
-      "Mobile devices fail in predictable ways: a hinge, a battery, a dock pin, or a radio that will not associate. Learn the parts you can replace, the ports you will see on a ticket, and why “it charges but will not turn on” is a different problem from “it will not charge at all.”",
+      "Mobile devices fail in predictable ways: a hinge, a battery, a dock pin, or Wi-Fi that will not join the network. Learn the parts you can replace, the ports you will see on a ticket, and why “it charges but will not turn on” is a different problem from “it will not charge at all.”",
     figure: diagramFigure(
       "fru-laptop",
       "Laptop broken into labelled field-replaceable units: lid and antennas, SODIMM, M.2 storage, and battery.",

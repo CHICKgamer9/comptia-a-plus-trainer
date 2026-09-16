@@ -24,8 +24,8 @@ export const SUBJECTS: SubjectMeta[] = [
     title: "Tech",
     mark: "A+",
     kicker: "CompTIA A+",
-    blurb: "Core 1 and Core 2 stay exam-gated. Extra hardware, OS, and shop-craft paths sit beside them — no exam tag.",
-    today: "Continue an A+ path or generate a ticket.",
+    blurb: "Core 1 and Core 2 exam-gated paths, plus extra shop craft with no exam tag.",
+    today: "A short hardware bite, or a ticket in Tech Lab.",
     accent: "#2dd4bf",
     accentDim: "#134e4a",
   },
@@ -175,7 +175,7 @@ export const SUBJECT_GROUPS: SubjectGroup[] = [
   {
     id: "core",
     title: "Core tech",
-    blurb: "A+ exam paths plus extra shop craft. Readiness still uses only the original domains.",
+    blurb: "A+ exam paths plus extra shop craft. Readiness still uses only the exam domains.",
     ids: ["tech"],
   },
   {

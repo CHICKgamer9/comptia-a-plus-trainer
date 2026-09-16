@@ -1,8 +1,10 @@
 import { techDomains } from "./domains";
 import { schoolDomains } from "./domains-school";
 import { generatedDomains } from "./factory/generated-domains";
+import { starterDomains } from "./starters";
 import { SUBJECTS, SUBJECT_GROUPS, getSubject, getSubjectGroup, isSubjectId } from "./subjects";
 import type { Domain, DomainId, ExamId, ScenarioTheme, SubjectId } from "./types";
+import { coreLabel, isCore1, isCore2 } from "@/lib/exam";
 
 const EXISTING_CLUSTER: Record<string, string> = {
   "mobile-devices": "Core 1",
@@ -33,8 +35,8 @@ const EXISTING_CLUSTER: Record<string, string> = {
 
 export function domainCluster(domain: Domain): string {
   if (domain.cluster) return domain.cluster;
-  if (domain.exam === "220-1101") return "Core 1";
-  if (domain.exam === "220-1102") return "Core 2";
+  if (isCore1(domain.exam)) return "Core 1";
+  if (isCore2(domain.exam)) return "Core 2";
   return EXISTING_CLUSTER[domain.id] ?? "Paths";
 }
 
@@ -42,9 +44,12 @@ function withCluster(domain: Domain): Domain {
   return domain.cluster ? domain : { ...domain, cluster: domainCluster(domain) };
 }
 
-export const domains: Domain[] = [...techDomains, ...schoolDomains, ...generatedDomains].map(
-  withCluster,
-);
+export const domains: Domain[] = [
+  ...starterDomains,
+  ...techDomains,
+  ...schoolDomains,
+  ...generatedDomains,
+].map(withCluster);
 
 export {
   techDomains,
@@ -87,7 +92,7 @@ export function pathCountsBySubject(): Record<SubjectId, number> {
 }
 
 export function examLabel(exam: ExamId) {
-  return exam === "220-1101" ? "Core 1" : "Core 2";
+  return coreLabel(exam);
 }
 
 export function domainTitle(domain: Domain) {

@@ -2,17 +2,17 @@ import type { Scenario } from "@/content/types";
 import { normalizeTicket } from "./ticket-schema";
 
 const RAW = {
-  title: "Practice stub: PC will not power on after a storm",
+  title: "Lobby PC dark after the storm",
   ticketId: "TCK-STUB1",
   requester: "Front desk · Maya",
   location: "Lobby",
   priority: "High" as const,
-  exam: "220-1101" as const,
+  exam: "220-1201" as const,
   theme: "hardware" as const,
   domainIds: ["hw-net-troubleshooting", "hardware"] as const,
   difficulty: "easy" as const,
   minutes: 8,
-  summary: "Offline practice ticket used when AI generation is unavailable.",
+  summary: "Reviewed helpdesk ticket: no fans, no lights, a working lamp on the same outlet.",
   ticket:
     "The lobby PC has no fans and no lights after last night’s thunderstorm. A lamp on the same outlet works. The user already mashed the power button. Guests are checking in on paper.",
   steps: [
@@ -153,11 +153,17 @@ const RAW = {
     },
   ],
   debrief:
-    "This is the offline practice stub. Dead-box tickets split into power vs POST vs boot vs OS. When AI is configured, the lab generates a fresh ticket each time instead of this scene.",
+    "Reviewed study-aid ticket: dead-box tickets split into power vs POST vs boot vs OS. Generate ticket is extra — this scene is the lab’s standing practice ticket, not an official CompTIA item.",
 };
 
 export function fallbackTicket(): Scenario {
   const ticket = normalizeTicket({ ...RAW, domainIds: [...RAW.domainIds] }, "fallback");
   if (!ticket) throw new Error("Fallback ticket failed to normalize");
   return ticket;
+}
+
+export const SEEDED_TICKET_ID = "seeded-lobby-dark";
+
+export function seededTicket(): Scenario {
+  return { ...fallbackTicket(), id: SEEDED_TICKET_ID, ticketId: "TCK-SEED1" };
 }

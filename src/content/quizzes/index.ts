@@ -1,14 +1,14 @@
 import { generatedQuizzes } from "../factory/generated-quizzes";
+import { starterQuizzes } from "../starters";
 import type { Quiz } from "../types";
-import { core1Quizzes } from "./core1";
-import { core2Quizzes } from "./core2";
 import { mathsQuizzes } from "./maths";
 import { scienceQuizzes } from "./science";
 import { historyQuizzes } from "./history";
+import { techExpandedQuizzes } from "./tech-bank";
 
 export const quizzes: Quiz[] = [
-  ...core1Quizzes,
-  ...core2Quizzes,
+  ...starterQuizzes,
+  ...techExpandedQuizzes,
   ...mathsQuizzes,
   ...scienceQuizzes,
   ...historyQuizzes,

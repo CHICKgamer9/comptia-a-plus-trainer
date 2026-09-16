@@ -1,4 +1,4 @@
-import type { BenchSlot, DomainId, ExamId, ScenarioTheme, SubjectId } from "@/content/types";
+import type { BenchSlot, DomainId, ExamId, ExamTrack, ScenarioTheme, SubjectId } from "@/content/types";
 import type { LingoLangId } from "@/content/lingo/types";
 import { isLingoLangId } from "@/content/lingo/types";
 import type { BrainCat } from "@/content/brain/types";
@@ -6,6 +6,8 @@ import { isSubjectId } from "@/content/subjects";
 import { unlockedBadgeIds } from "./badges";
 import { updateStreak } from "./sydney-date";
 import { levelForXp, ticketXp, XP } from "./xp";
+import { markObjectivesFromDomains, markObjectivesFromQuiz } from "./readiness";
+import { QUIZ_PASS_RATIO } from "@/content/objectives";
 import {
   applyAwards,
   closeShift as closeShiftBench,
@@ -18,11 +20,14 @@ import {
   maybeAwardCrest,
   openNightPack as openNightPackBench,
   parseBench,
+  reviewCard as reviewCardBench,
   setLoadout as setLoadoutBench,
   slotCard as slotCardBench,
   startShift as startShiftBench,
   type BenchState,
+  type ReviewGrade,
 } from "./binder";
+import { techDomains } from "@/content/domains";
 import { enqueueToasts, type ToastEvent } from "./toasts";
 
 export const PROGRESS_KEY = "ticketbench-progress-v1";
@@ -114,6 +119,8 @@ export interface ProgressState {
   lessonCursor?: Record<string, number>;
   autoRead?: boolean;
   lastSubject?: SubjectId;
+  examTrack?: ExamTrack;
+  objectivePassedAt?: Record<string, number>;
   game?: GameState;
   brain?: BrainState;
   lingo?: LingoState;
@@ -227,6 +234,15 @@ export function parseProgress(raw: string): ProgressState {
         typeof parsed.lastSubject === "string" && isSubjectId(parsed.lastSubject)
           ? parsed.lastSubject
           : undefined,
+      examTrack: parsed.examTrack === "v14" ? "v14" : parsed.examTrack === "v15" ? "v15" : undefined,
+      objectivePassedAt:
+        parsed.objectivePassedAt && typeof parsed.objectivePassedAt === "object"
+          ? Object.fromEntries(
+              Object.entries(parsed.objectivePassedAt).filter(
+                (entry): entry is [string, number] => typeof entry[1] === "number",
+              ),
+            )
+          : {},
       game: parsed.game ? { ...emptyGame(), ...parsed.game } : undefined,
       brain: parsed.brain
         ? {
@@ -393,7 +409,18 @@ export function markLessonCompleteIn(prev: ProgressState, lessonId: string): Pro
       : [...prev.completedLessons, lessonId],
   };
   const withXp = already ? next : withActivity(next, XP.lesson);
-  return withCrests(withXp);
+  if (already || !lessonId.endsWith("-start-essentials")) return withCrests(withXp);
+  const subjectId = lessonId.replace(/-start-essentials$/, "");
+  if (!isSubjectId(subjectId)) return withCrests(withXp);
+  const bench = withXp.bench ?? emptyBench();
+  if (bench.owned.length) return withCrests(withXp);
+  const drop = dropFromPath(bench, {
+    correct: true,
+    domainId: `${subjectId}-start`,
+    subject: subjectId,
+    conceptId: `${subjectId}-start-complete`,
+  });
+  return withCrests({ ...withXp, bench: applyAwards(bench, drop) });
 }
 
 export function recordQuizAnswerIn(
@@ -441,6 +468,9 @@ export function recordQuizIn(
   let xpGain = XP.quizComplete;
   if (ratio >= 1) xpGain += XP.quizPerfect;
   else if (ratio >= 0.8) xpGain += XP.quizHigh;
+  const at = result.at;
+  const domain = techDomains.find((item) => item.quizId === quizId);
+  const exam = domain?.exam;
   const next: ProgressState = {
     ...prev,
     lastQuizId: quizId,
@@ -449,6 +479,10 @@ export function recordQuizIn(
       [quizId]: keepExisting ? existing : result,
     },
     quizHistory: { ...prev.quizHistory, [quizId]: history },
+    objectivePassedAt:
+      ratio >= QUIZ_PASS_RATIO && exam
+        ? markObjectivesFromQuiz(prev.objectivePassedAt, quizId, exam, at)
+        : prev.objectivePassedAt,
   };
   return withCrests(withActivity(next, xpGain));
 }
@@ -476,7 +510,21 @@ export function recordScenarioIn(
     domainIds: result.domainIds,
     theme: result.theme,
   });
-  const withCards: ProgressState = { ...next, bench: applyAwards(bench, drop) };
+  const passed = result.total > 0 && result.score / result.total >= 0.75;
+  const withCards: ProgressState = {
+    ...next,
+    bench: applyAwards(bench, drop),
+    lastSubject: "tech",
+    objectivePassedAt:
+      passed && (result.domainIds?.length || result.exam)
+        ? markObjectivesFromDomains(
+            next.objectivePassedAt,
+            result.domainIds ?? [],
+            result.exam,
+            result.at,
+          )
+        : next.objectivePassedAt,
+  };
   return withCrests(withActivity(withCards, ticketXp(result.score, result.total) + bonus));
 }
 
@@ -486,6 +534,30 @@ export function setAutoReadIn(prev: ProgressState, autoRead: boolean): ProgressS
 
 export function setLastSubjectIn(prev: ProgressState, lastSubject: SubjectId): ProgressState {
   return { ...prev, lastSubject };
+}
+
+export function setExamTrackIn(prev: ProgressState, examTrack: ExamTrack): ProgressState {
+  return { ...prev, examTrack };
+}
+
+export function reviewCardIn(prev: ProgressState, cardId: string, grade: ReviewGrade): ProgressState {
+  return { ...prev, bench: reviewCardBench(prev.bench ?? emptyBench(), cardId, grade) };
+}
+
+export function importProgressJson(raw: string): { ok: true; state: ProgressState } | { ok: false; error: string } {
+  try {
+    const parsed = parseProgress(raw);
+    if (!parsed.completedLessons && !parsed.game && !parsed.quizScores) {
+      return { ok: false, error: "That file does not look like TicketBench progress." };
+    }
+    return { ok: true, state: parsed };
+  } catch {
+    return { ok: false, error: "Could not read that JSON." };
+  }
+}
+
+export function exportProgressJson(state: ProgressState) {
+  return JSON.stringify(state, null, 2);
 }
 
 export function toggleProjectCheckIn(

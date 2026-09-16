@@ -34,7 +34,7 @@ export function Badge({
 
 export function ExamBadge({ exam }: { exam: ExamId }) {
   return (
-    <Badge tone={exam === "220-1101" ? "accent" : "warn"}>
+    <Badge tone={exam === "220-1201" || exam === "220-1101" ? "accent" : "warn"}>
       {examShort(exam)} · {exam}
     </Badge>
   );

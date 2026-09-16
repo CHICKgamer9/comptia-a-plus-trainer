@@ -7,7 +7,7 @@ export function StatusChip() {
   const { stats } = useProgress();
   return (
     <Link
-      href="/ready"
+      href="/progress"
       className="hidden items-center gap-2 rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] text-muted hover:text-foreground sm:flex"
     >
       <span className="font-medium text-accent">{stats.levelTitle}</span>
