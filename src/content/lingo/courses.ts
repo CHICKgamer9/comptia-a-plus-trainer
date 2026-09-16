@@ -17,7 +17,7 @@ export const LINGO_COURSES: Record<LingoLangId, LingoCourseMeta> = {
     title: "Indonesian",
     nativeName: "Bahasa Indonesia",
     mark: "ID",
-    blurb: "Latin script, friendly word order, and phrases you can use in a warung or a airport queue.",
+    blurb: "Latin script, friendly word order, and phrases you can use in a warung or an airport queue.",
     speechLang: "id-ID",
     accent: "#34d399",
     accentDim: "#064e3b",
