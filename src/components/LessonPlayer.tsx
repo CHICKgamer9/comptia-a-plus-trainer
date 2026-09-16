@@ -8,6 +8,7 @@ import { labThemeForDomain } from "@/content";
 import { useProgress } from "./ProgressProvider";
 import { CheckPlay } from "./CheckPlay";
 import { PathDiagram } from "./PathDiagram";
+import { joinSpeech } from "@/lib/speech";
 import { PlayerButton, PlayerFrame } from "./PlayerFrame";
 import { Badge, ExamBadge } from "./ui";
 import { cn } from "@/lib/cn";
@@ -33,6 +34,7 @@ export function LessonPlayer({
     resumeIndex(progress.lessonCursor?.[lesson.id], beats.length),
   );
   const [checkOk, setCheckOk] = useState(false);
+  const [followUp, setFollowUp] = useState<string | undefined>();
   const beat = beats[index];
   const last = index >= beats.length - 1;
   const done = lessonDone(lesson.id);
@@ -46,6 +48,7 @@ export function LessonPlayer({
     const next = index + 1;
     setIndex(next);
     setCheckOk(false);
+    setFollowUp(undefined);
     saveLessonCursor(lesson.id, next);
   }
 
@@ -68,9 +71,15 @@ export function LessonPlayer({
         title={lesson.title}
         index={index}
         total={beats.length}
+        narration={{
+          id: beat.id,
+          prompt: beatSpeech(beat),
+          choices: beatChoices(beat),
+          followUp,
+        }}
         footer={
           last && done ? (
-            <EndLinks domain={domain} restart={() => { setIndex(0); setCheckOk(false); }} />
+            <EndLinks domain={domain} restart={() => { setIndex(0); setCheckOk(false); setFollowUp(undefined); }} />
           ) : (
             <PlayerButton onClick={continuePath} disabled={beat.kind === "check" && !checkOk}>
               {beat.kind === "check" && !checkOk
@@ -84,8 +93,9 @@ export function LessonPlayer({
       >
         <BeatView
           beat={beat}
-          onCheck={(correct, checkId) => {
+          onCheck={(correct, checkId, spoken) => {
             setCheckOk(true);
+            setFollowUp(spoken);
             recordQuizAnswer(`path-${checkId}`, correct);
           }}
         />
@@ -94,19 +104,39 @@ export function LessonPlayer({
   );
 }
 
+function beatSpeech(beat: PathBeat) {
+  if (beat.kind === "check" && beat.check) {
+    return beat.check.prompt;
+  }
+  const table = beat.table
+    ? beat.table.rows.slice(0, 4).map((row) => row.join(", ")).join(". ")
+    : "";
+  return joinSpeech([beat.title, ...(beat.body ?? []), ...(beat.bullets ?? []), table]);
+}
+
+function beatChoices(beat: PathBeat) {
+  const check = beat.check;
+  if (!check) return undefined;
+  if (check.choices?.length) return check.choices.map((choice) => choice.label);
+  if (check.type === "truefalse") return ["True", "False"];
+  if (check.items?.length) return check.items.map((item) => item.label);
+  if (check.pairs?.length) return check.pairs.map((pair) => `${pair.left}. ${pair.right}`);
+  return undefined;
+}
+
 function BeatView({
   beat,
   onCheck,
 }: {
   beat: PathBeat;
-  onCheck: (correct: boolean, checkId: string) => void;
+  onCheck: (correct: boolean, checkId: string, spoken?: string) => void;
 }) {
   if (beat.kind === "check" && beat.check) {
     return (
       <CheckPlay
         key={beat.check.id}
         check={beat.check}
-        onResolved={(correct) => onCheck(correct, beat.check!.id)}
+        onResolved={(correct, spoken) => onCheck(correct, beat.check!.id, spoken)}
       />
     );
   }

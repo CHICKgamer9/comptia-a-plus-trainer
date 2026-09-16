@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { SpeakBar, type Narration } from "./SpeakBar";
 
 export function PlayerFrame({
   kicker,
@@ -7,6 +8,7 @@ export function PlayerFrame({
   total,
   children,
   footer,
+  narration,
 }: {
   kicker?: string;
   title?: string;
@@ -14,17 +16,23 @@ export function PlayerFrame({
   total: number;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  narration?: Narration;
 }) {
   const percent = total ? Math.round(((index + 1) / total) * 100) : 0;
   return (
     <div className="mx-auto w-full max-w-xl">
       <div className="mb-5">
-        <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-[0.16em] text-muted">
+        <div className="mb-2 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[0.16em] text-muted">
           <span>{kicker}</span>
           <span className="font-mono text-foreground/70">
             {Math.min(index + 1, total)}/{total}
           </span>
         </div>
+        {narration ? (
+          <div className="mb-3 normal-case tracking-normal">
+            <SpeakBar narration={narration} />
+          </div>
+        ) : null}
         <div className="flex gap-1">
           {Array.from({ length: total }).map((_, step) => (
             <span

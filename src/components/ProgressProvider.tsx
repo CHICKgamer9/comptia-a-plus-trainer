@@ -13,6 +13,7 @@ import {
   recordScenarioIn,
   saveLessonCursorIn,
   saveProgress,
+  setAutoReadIn,
   subscribeProgress,
   type ProgressState,
   type ScenarioResult,
@@ -31,6 +32,7 @@ interface ProgressContextValue {
   recordQuiz: (quizId: string, score: number, total: number) => void;
   recordScenario: (scenarioId: string, result: ScenarioResult) => void;
   resetProgress: () => void;
+  setAutoRead: (autoRead: boolean) => void;
   lessonDone: (lessonId: string) => boolean;
   quizBest: (quizId: string) => { score: number; total: number } | undefined;
   scenarioBest: (
@@ -90,6 +92,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     clearTickets();
   }, []);
 
+  const setAutoRead = useCallback((autoRead: boolean) => {
+    mutateProgress((prev) => setAutoReadIn(prev, autoRead));
+  }, []);
+
   const value = useMemo<ProgressContextValue>(() => {
     const lessonsTotal = domains.length;
     const lessonsDone = progress.completedLessons.filter((id) =>
@@ -111,6 +117,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       recordQuiz,
       recordScenario,
       resetProgress,
+      setAutoRead,
       lessonDone: (lessonId) => progress.completedLessons.includes(lessonId),
       quizBest: (quizId) => progress.quizScores[quizId],
       scenarioBest: (scenarioId) => progress.scenarioScores[scenarioId],
@@ -137,6 +144,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     recordQuiz,
     recordScenario,
     resetProgress,
+    setAutoRead,
   ]);
 
   return (

@@ -9,6 +9,7 @@ import { Badge, DifficultyBadge, ExamBadge, ThemeBadge } from "./ui";
 import { PlayerButton, PlayerFrame } from "./PlayerFrame";
 import { phaseLabel } from "@/lib/labels";
 import { cn } from "@/lib/cn";
+import { joinSpeech } from "@/lib/speech";
 
 export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
   const router = useRouter();
@@ -61,7 +62,14 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
   if (done) {
     const percent = Math.round((score / scenario.steps.length) * 100);
     return (
-      <PlayerFrame kicker={scenario.ticketId} index={totalBeats - 1} total={totalBeats}>
+      <PlayerFrame kicker={scenario.ticketId} index={totalBeats - 1} total={totalBeats} narration={{
+        id: `${scenario.id}-done`,
+        prompt: joinSpeech([
+          `${score} of ${scenario.steps.length} steps correct.`,
+          percent === 100 ? "Clean close." : "Closed with coaching.",
+          scenario.debrief,
+        ]),
+      }}>
         <Badge tone={percent === 100 ? "ok" : percent >= 75 ? "accent" : "warn"}>
           {percent === 100 ? "Clean close" : "Closed with coaching"}
         </Badge>
@@ -94,6 +102,10 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
         kicker={scenario.ticketId}
         index={0}
         total={totalBeats}
+        narration={{
+          id: `${scenario.id}-brief`,
+          prompt: joinSpeech([scenario.title, scenario.ticket]),
+        }}
         footer={<PlayerButton onClick={() => setBriefed(true)}>Start investigating</PlayerButton>}
       >
         <div className="flex flex-wrap gap-2">
@@ -154,6 +166,19 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
         kicker={phaseLabel(step.phase)}
         index={stepIndex + 1}
         total={totalBeats}
+        narration={{
+          id: step.id,
+          prompt: joinSpeech([step.title, step.prompt]),
+          choices: step.choices.map((item) => item.label),
+          followUp:
+            locked && choice
+              ? joinSpeech([
+                  choice.correct ? "Good call." : "Not the best move.",
+                  choice.feedback,
+                  step.findings,
+                ])
+              : undefined,
+        }}
         footer={
           locked ? (
             <PlayerButton onClick={next}>
