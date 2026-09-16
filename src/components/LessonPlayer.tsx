@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Domain, Lesson, PathBeat } from "@/content/types";
+import type { Domain, Lesson, PathBeat, PathCheck } from "@/content/types";
 import { lessonToPath } from "@/lib/lesson-path";
-import { labThemeForDomain, quizHref, getChallengesBySubject, challengeHref } from "@/content";
+import { challengeHref, labThemeForDomain, quizHref } from "@/content/registry";
+import { getChallengesBySubject } from "@/content/challenges";
 import { useProgress } from "./ProgressProvider";
 import { CheckPlay } from "./CheckPlay";
 import { PathDiagram } from "./PathDiagram";
@@ -23,13 +24,18 @@ function resumeIndex(cursor: number | undefined, total: number) {
 export function LessonPlayer({
   domain,
   lesson,
+  checks = [],
 }: {
   domain: Domain;
   lesson: Lesson;
+  checks?: PathCheck[];
 }) {
   const { progress, markLessonComplete, saveLessonCursor, recordQuizAnswer, lessonDone } =
     useProgress();
-  const beats = useMemo(() => lessonToPath(lesson), [lesson]);
+  const beats = useMemo(
+    () => lessonToPath(lesson, checks, domain.subject),
+    [lesson, checks, domain.subject],
+  );
   const [index, setIndex] = useState(() =>
     resumeIndex(progress.lessonCursor?.[lesson.id], beats.length),
   );

@@ -1,6 +1,21 @@
 export type TicketSource = "ai" | "fallback";
 
-export type SubjectId = "tech" | "maths" | "science" | "history";
+export type SubjectId =
+  | "tech"
+  | "maths"
+  | "science"
+  | "history"
+  | "english"
+  | "geography"
+  | "coding"
+  | "business"
+  | "health"
+  | "music"
+  | "art"
+  | "civics"
+  | "languages"
+  | "logic"
+  | "digital";
 
 export type ExamId = "220-1101" | "220-1102";
 
@@ -41,6 +56,8 @@ export interface Domain {
   summary: string;
   lessonId: string;
   quizId: string;
+  /** Browse group inside a subject hub (Core 1, Algebra, Privacy, …). */
+  cluster?: string;
 }
 
 export interface LessonCallout {

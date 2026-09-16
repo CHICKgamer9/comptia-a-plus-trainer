@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cheatsheets, getCheatsheet } from "@/content";
+import { cheatsheets, getCheatsheet } from "@/content/cheatsheets";
 import { Card } from "@/components/ui";
 
 export function generateStaticParams() {

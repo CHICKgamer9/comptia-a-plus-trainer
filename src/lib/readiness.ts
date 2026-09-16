@@ -1,4 +1,4 @@
-import { domains, quizzes } from "@/content";
+import { domains } from "@/content/registry";
 import type { DomainId, ExamId, ScenarioTheme } from "@/content/types";
 import type { ProgressState, ScenarioResult } from "./progress";
 import { LEGACY_TICKET_META } from "./legacy-tickets";
@@ -109,12 +109,11 @@ export function examReadiness(
   const lessonPct = clamp((lessonsDone / examDomains.length) * 100);
 
   const quizAccuracies = examDomains.map((domain) => {
-    const quiz = quizzes.find((item) => item.id === domain.quizId);
     const acc = recencyAccuracy(
       progress.quizHistory?.[domain.quizId],
       progress.quizScores[domain.quizId],
     );
-    return { domain, quiz, acc };
+    return { domain, acc };
   });
   const taken = quizAccuracies.filter((row) => row.acc !== null);
   const meanAcc =

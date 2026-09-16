@@ -2,33 +2,57 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Domain, Quiz, SubjectId } from "@/content/types";
-import { SUBJECTS, pathHref } from "@/content";
+import type { Domain, SubjectId } from "@/content/types";
+import { SUBJECTS, domainCluster, pathHref } from "@/content/registry";
 import { useProgress } from "./ProgressProvider";
 import { Badge, ExamBadge } from "./ui";
 import { cn } from "@/lib/cn";
 
 type Filter = "all" | SubjectId;
 
-export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Domain[] }) {
+const PAGE = 48;
+
+export type QuizListItem = {
+  id: string;
+  title: string;
+  domainId: string;
+  questionCount: number;
+};
+
+export function QuizCatalog({ quizzes, domains }: { quizzes: QuizListItem[]; domains: Domain[] }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
   const { quizBest } = useProgress();
   const domainById = useMemo(
     () => Object.fromEntries(domains.map((domain) => [domain.id, domain])),
     [domains],
   );
-  const list = useMemo(
-    () =>
-      quizzes.filter((quiz) => {
-        const domain = domainById[quiz.domainId];
-        return domain && (filter === "all" || domain.subject === filter);
-      }),
-    [quizzes, domainById, filter],
-  );
+  const list = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return quizzes.filter((quiz) => {
+      const domain = domainById[quiz.domainId];
+      if (!domain) return false;
+      if (filter !== "all" && domain.subject !== filter) return false;
+      if (!needle) return true;
+      const hay = `${quiz.title} ${domain.title} ${domainCluster(domain)} ${domain.subject}`.toLowerCase();
+      return hay.includes(needle);
+    });
+  }, [quizzes, domainById, filter, query]);
+
+  const shown = list.slice(0, PAGE);
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap gap-2">
+      <label className="mb-4 block">
+        <span className="sr-only">Search quizzes</span>
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search quizzes…"
+          className="w-full rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm outline-none ring-accent/30 focus:ring-2"
+        />
+      </label>
+      <div className="mb-4 flex flex-wrap gap-2">
         {[{ id: "all" as const, label: "All" }, ...SUBJECTS.map((subject) => ({ id: subject.id, label: subject.title }))].map(
           (option) => (
             <button
@@ -47,8 +71,12 @@ export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Do
           ),
         )}
       </div>
+      <p className="mb-4 text-xs text-muted">
+        {list.length} quiz{list.length === 1 ? "" : "zes"}
+        {list.length > PAGE ? ` · showing first ${PAGE} — search or pick a subject` : ""}
+      </p>
       <div className="grid gap-3">
-        {list.map((quiz) => {
+        {shown.map((quiz) => {
           const domain = domainById[quiz.domainId];
           const best = quizBest(quiz.id);
           return (
@@ -63,7 +91,8 @@ export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Do
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{quiz.title}</span>
                 <span className="block text-xs text-muted">
-                  {domain?.subject ?? "path"} · {quiz.questions.length} problems
+                  {domain?.subject ?? "path"}
+                  {domain ? ` · ${domainCluster(domain)}` : ""} · {quiz.questionCount} problems
                 </span>
               </span>
               {best ? (
@@ -83,15 +112,30 @@ export function QuizCatalog({ quizzes, domains }: { quizzes: Quiz[]; domains: Do
 
 export function DomainCatalog({ domains }: { domains: Domain[] }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
   const { progress } = useProgress();
-  const list = useMemo(
-    () => domains.filter((domain) => filter === "all" || domain.subject === filter),
-    [domains, filter],
-  );
+  const list = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return domains.filter((domain) => {
+      if (filter !== "all" && domain.subject !== filter) return false;
+      if (!needle) return true;
+      return `${domain.title} ${domain.summary} ${domainCluster(domain)}`.toLowerCase().includes(needle);
+    });
+  }, [domains, filter, query]);
+  const shown = list.slice(0, PAGE);
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap gap-2">
+      <label className="mb-4 block">
+        <span className="sr-only">Search paths</span>
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search paths…"
+          className="w-full rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm outline-none ring-accent/30 focus:ring-2"
+        />
+      </label>
+      <div className="mb-4 flex flex-wrap gap-2">
         {[{ id: "all" as const, label: "All" }, ...SUBJECTS.map((subject) => ({ id: subject.id, label: subject.title }))].map(
           (option) => (
             <button
@@ -110,8 +154,12 @@ export function DomainCatalog({ domains }: { domains: Domain[] }) {
           ),
         )}
       </div>
+      <p className="mb-4 text-xs text-muted">
+        {list.length} path{list.length === 1 ? "" : "s"}
+        {list.length > PAGE ? ` · showing first ${PAGE}` : ""}
+      </p>
       <div className="grid gap-3 md:grid-cols-2">
-        {list.map((domain) => {
+        {shown.map((domain) => {
           const done = progress.completedLessons.includes(domain.lessonId);
           return (
             <Link
@@ -121,7 +169,7 @@ export function DomainCatalog({ domains }: { domains: Domain[] }) {
             >
               <div className="flex flex-wrap items-center gap-2">
                 {domain.exam ? <ExamBadge exam={domain.exam} /> : <Badge tone="accent">{domain.subject}</Badge>}
-                <Badge tone="muted">Path {domain.number}</Badge>
+                <Badge tone="muted">{domainCluster(domain)}</Badge>
                 {domain.weight ? <Badge tone="muted">{domain.weight}</Badge> : null}
                 {done ? <Badge tone="ok">Read</Badge> : null}
               </div>

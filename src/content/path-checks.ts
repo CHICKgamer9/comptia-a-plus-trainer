@@ -1,5 +1,6 @@
 import type { PathCheck } from "./types";
 import { schoolChecks } from "./path-checks-school";
+import { generatedChecks } from "./factory/generated-checks";
 
 const aplusChecks: Record<string, PathCheck[]> = {
   "mobile-devices": [
@@ -566,4 +567,5 @@ const aplusChecks: Record<string, PathCheck[]> = {
 export const PATH_CHECKS: Record<string, PathCheck[]> = {
   ...aplusChecks,
   ...schoolChecks,
+  ...generatedChecks,
 };

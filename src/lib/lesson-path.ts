@@ -1,6 +1,4 @@
-import type { DiagramId, Lesson, PathBeat, PathCheck } from "@/content/types";
-import { PATH_CHECKS } from "@/content/path-checks";
-import { getDomain } from "@/content";
+import type { DiagramId, Lesson, PathBeat, PathCheck, SubjectId } from "@/content/types";
 
 const DIAGRAM: Record<string, DiagramId> = {
   "mobile-devices": "laptop",
@@ -68,10 +66,30 @@ function tableToCheck(lessonId: string, heading: string, table: Lesson["sections
   return null;
 }
 
-export function lessonToPath(lesson: Lesson): PathBeat[] {
+const FALLBACK_DIAGRAMS: DiagramId[] = [
+  "prism",
+  "atom",
+  "leaf",
+  "scroll",
+  "balance",
+  "loop",
+];
+
+function diagramFor(domainId: string): DiagramId {
+  if (DIAGRAM[domainId]) return DIAGRAM[domainId];
+  let h = 0;
+  for (let i = 0; i < domainId.length; i += 1) h = (h * 31 + domainId.charCodeAt(i)) | 0;
+  return FALLBACK_DIAGRAMS[Math.abs(h) % FALLBACK_DIAGRAMS.length];
+}
+
+export function lessonToPath(
+  lesson: Lesson,
+  checks: PathCheck[] = [],
+  subject?: SubjectId,
+): PathBeat[] {
   const beats: PathBeat[] = [];
   const intro = firstSentences(lesson.intro, 2);
-  const diagram = DIAGRAM[lesson.domainId];
+  const diagram = diagramFor(lesson.domainId);
   const usedAuthored = new Set<string>();
 
   beats.push({
@@ -102,7 +120,7 @@ export function lessonToPath(lesson: Lesson): PathBeat[] {
       diagram: sectionIndex === 0 ? undefined : undefined,
     });
 
-    const authored = (PATH_CHECKS[lesson.domainId] ?? []).filter(
+    const authored = checks.filter(
       (check) => check.afterHeading === section.heading && !usedAuthored.has(check.id),
     );
     authored.forEach((check) => {
@@ -161,7 +179,6 @@ export function lessonToPath(lesson: Lesson): PathBeat[] {
     }
 
     if (section.callout) {
-      const subject = getDomain(lesson.domainId)?.subject;
       const examish = section.callout.type === "exam";
       beats.push({
         id: `${lesson.id}-s${sectionIndex}-tip`,
@@ -179,7 +196,7 @@ export function lessonToPath(lesson: Lesson): PathBeat[] {
     }
   });
 
-  (PATH_CHECKS[lesson.domainId] ?? [])
+  checks
     .filter((check) => !usedAuthored.has(check.id) && !check.afterHeading)
     .forEach((check) => {
       beats.push({
@@ -196,7 +213,7 @@ export function lessonToPath(lesson: Lesson): PathBeat[] {
     title: "You can close this path",
     bullets: lesson.keyTakeaways,
     body: [
-      getDomain(lesson.domainId)?.subject === "tech"
+      subject === "tech"
         ? "Keep these in your pocket. The quiz and a live ticket will ask them again, not as an essay."
         : "Keep these in your pocket. The quiz — and a challenge, if there is one — will ask them again.",
     ],
@@ -205,6 +222,6 @@ export function lessonToPath(lesson: Lesson): PathBeat[] {
   return beats;
 }
 
-export function pathLength(lesson: Lesson) {
-  return lessonToPath(lesson).length;
+export function pathLength(lesson: Lesson, checks: PathCheck[] = [], subject?: SubjectId) {
+  return lessonToPath(lesson, checks, subject).length;
 }

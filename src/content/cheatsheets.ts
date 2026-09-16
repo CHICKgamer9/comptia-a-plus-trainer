@@ -340,3 +340,7 @@ export const cheatsheets: Cheatsheet[] = [
     ],
   },
 ];
+
+export function getCheatsheet(id: string) {
+  return cheatsheets.find((sheet) => sheet.id === id);
+}

@@ -1,3 +1,4 @@
+import { generatedLessons } from "../factory/generated-lessons";
 import type { Lesson } from "../types";
 import { core1Lessons } from "./core1";
 import { core2Lessons } from "./core2";
@@ -11,6 +12,7 @@ export const lessons: Lesson[] = [
   ...mathsLessons,
   ...scienceLessons,
   ...historyLessons,
+  ...generatedLessons,
 ];
 
 export function getLesson(id: string) {

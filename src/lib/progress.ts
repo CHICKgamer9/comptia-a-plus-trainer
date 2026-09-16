@@ -1,4 +1,5 @@
 import type { DomainId, ExamId, ScenarioTheme, SubjectId } from "@/content/types";
+import { isSubjectId } from "@/content/subjects";
 import { unlockedBadgeIds } from "./badges";
 import { updateStreak } from "./sydney-date";
 import { levelForXp, ticketXp, XP } from "./xp";
@@ -88,10 +89,7 @@ export function parseProgress(raw: string): ProgressState {
       lessonCursor: parsed.lessonCursor ?? {},
       autoRead: parsed.autoRead === true,
       lastSubject:
-        parsed.lastSubject === "tech" ||
-        parsed.lastSubject === "maths" ||
-        parsed.lastSubject === "science" ||
-        parsed.lastSubject === "history"
+        typeof parsed.lastSubject === "string" && isSubjectId(parsed.lastSubject)
           ? parsed.lastSubject
           : undefined,
       game: parsed.game ? { ...emptyGame(), ...parsed.game } : undefined,

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { SUBJECTS, getDomainsBySubject, pathHref } from "@/content";
+import { SUBJECTS, getDomainsBySubject, pathHref } from "@/content/registry";
+import { SubjectPicker } from "./SubjectPicker";
 import { useProgress } from "./ProgressProvider";
 import { nextDomainPreferring } from "./CoursePath";
 import { examReadiness, overallReadiness } from "@/lib/readiness";
@@ -17,15 +18,15 @@ export function DashboardHome() {
   const greeting = stats.streak > 1 ? `Day ${stats.streak}` : stats.xp ? "Welcome back" : "Pick a subject";
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <div className="mb-8 text-center">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">{greeting}</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          {upcoming ? upcoming.title : "Four subjects, one bench"}
+          {upcoming ? upcoming.title : "Pick a subject"}
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">
-          Interactive bites for Tech (A+), Maths, Science, and History. Try a beat, then read why.
-          Not a textbook dump — and not CompTIA, a school, or Brilliant.
+          Interactive bites across Tech (A+), STEM, world, make, and life hubs. Try a beat, then read
+          why. Not a textbook dump — and not CompTIA, a school, or Brilliant.
         </p>
       </div>
 
@@ -69,48 +70,18 @@ export function DashboardHome() {
       <h2 className="mb-3 text-center text-sm font-medium uppercase tracking-wider text-muted">
         Subjects
       </h2>
-      <div className="mb-8 grid gap-3 sm:grid-cols-2">
-        {SUBJECTS.map((subject) => {
-          const list = getDomainsBySubject(subject.id);
-          const done = list.filter((domain) => progress.completedLessons.includes(domain.lessonId)).length;
-          const next = list.find((domain) => !progress.completedLessons.includes(domain.lessonId));
-          return (
-            <Link
-              key={subject.id}
-              href={`/learn/${subject.id}`}
-              className="rounded-3xl border border-border bg-surface p-5 hover:border-accent/40"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span
-                  className="grid h-9 w-9 place-items-center rounded-lg font-mono text-sm font-bold ring-1"
-                  style={{
-                    color: subject.accent,
-                    background: subject.accentDim,
-                    boxShadow: `inset 0 0 0 1px ${subject.accent}33`,
-                  }}
-                >
-                  {subject.mark}
-                </span>
-                <p className="font-mono text-sm text-muted">
-                  {done}/{list.length}
-                </p>
-              </div>
-              <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted">{subject.kicker}</p>
-              <h3 className="mt-1 text-lg font-semibold">{subject.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">{subject.blurb}</p>
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${list.length ? Math.round((done / list.length) * 100) : 0}%`,
-                    background: subject.accent,
-                  }}
-                />
-              </div>
-              <p className="mt-2 text-xs text-accent">{next ? `Up next: ${next.title}` : "Replay paths"}</p>
-            </Link>
-          );
-        })}
+      <div className="mb-8">
+        <SubjectPicker
+          doneBySubject={Object.fromEntries(
+            SUBJECTS.map((subject) => {
+              const list = getDomainsBySubject(subject.id);
+              const done = list.filter((domain) =>
+                progress.completedLessons.includes(domain.lessonId),
+              ).length;
+              return [subject.id, done];
+            }),
+          )}
+        />
       </div>
 
       <div className="mb-8 grid gap-3 sm:grid-cols-2">
