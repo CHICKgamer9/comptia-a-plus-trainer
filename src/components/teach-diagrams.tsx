@@ -168,6 +168,113 @@ export function TeachDiagram({ id, alt }: { id: TeachDiagramId; alt: string }) {
     );
   }
 
+  if (id === "swollen-pack") {
+    return (
+      <Svg alt={alt}>
+        <text x="200" y="20" textAnchor="middle" className="fill-muted text-[11px]">
+          One story: the pack swells and lifts the palm rest
+        </text>
+        <rect x="48" y="36" width="300" height="88" rx="14" stroke="currentColor" className="text-accent" strokeWidth="2" />
+        <text x="198" y="58" textAnchor="middle" className="fill-foreground text-[11px] font-semibold">
+          palm rest
+        </text>
+        <rect x="120" y="68" width="88" height="36" rx="6" className="fill-accent/15" stroke="currentColor" />
+        <text x="164" y="90" textAnchor="middle" className="fill-foreground text-[10px]">
+          trackpad
+        </text>
+        <path d="M86 124c20-28 60-28 80 0" stroke="currentColor" className="text-warn" strokeWidth="2" />
+        <rect x="86" y="128" width="120" height="28" rx="6" className="fill-warn/15" stroke="currentColor" />
+        <text x="146" y="146" textAnchor="middle" className="fill-foreground text-[10px] font-semibold">
+          lithium-ion pack
+        </text>
+        <text x="280" y="146" textAnchor="middle" className="fill-warn text-[11px]">
+          bulge
+        </text>
+        <path d="M230 132l28 8" stroke="currentColor" className="text-warn" strokeWidth="1.4" />
+        <text x="200" y="176" textAnchor="middle" className="fill-foreground text-[11px]">
+          Do not crush the palm rest
+        </text>
+      </Svg>
+    );
+  }
+
+  if (id === "soldered-cpu") {
+    return (
+      <Svg alt={alt}>
+        <text x="200" y="20" textAnchor="middle" className="fill-muted text-[11px]">
+          Thin board — soldered chip versus parts that unplug
+        </text>
+        <rect x="40" y="36" width="320" height="112" rx="10" stroke="currentColor" className="text-accent" strokeWidth="2" />
+        <rect x="56" y="52" width="88" height="52" rx="6" className="fill-warn/15" stroke="currentColor" />
+        <text x="100" y="74" textAnchor="middle" className="fill-foreground text-[10px] font-semibold">
+          soldered CPU
+        </text>
+        <text x="100" y="90" textAnchor="middle" className="fill-muted text-[9px]">
+          stays on the board
+        </text>
+        <rect x="156" y="56" width="72" height="44" rx="4" stroke="currentColor" />
+        <text x="192" y="82" textAnchor="middle" className="fill-foreground text-[10px]">
+          so-dimm
+        </text>
+        <rect x="236" y="56" width="56" height="44" rx="4" stroke="currentColor" />
+        <text x="264" y="82" textAnchor="middle" className="fill-foreground text-[10px]">
+          M.2
+        </text>
+        <rect x="300" y="56" width="44" height="44" rx="4" stroke="currentColor" />
+        <text x="322" y="82" textAnchor="middle" className="fill-foreground text-[10px]">
+          pack
+        </text>
+        <text x="200" y="168" textAnchor="middle" className="fill-foreground text-[11px]">
+          A faster soldered chip means a different laptop
+        </text>
+      </Svg>
+    );
+  }
+
+  if (id === "heat-flow") {
+    return (
+      <Svg alt={alt}>
+        <text x="200" y="20" textAnchor="middle" className="fill-muted text-[11px]">
+          Same tea. Two paths. Labels name the flow.
+        </text>
+        <ellipse cx="150" cy="90" rx="70" ry="36" className="fill-accent/10" stroke="currentColor" />
+        <text x="150" y="86" textAnchor="middle" className="fill-foreground text-[11px] font-semibold">
+          hot tea
+        </text>
+        <path d="M150 54v-12" stroke="currentColor" className="text-warn" strokeWidth="2" />
+        <rect x="138" y="28" width="24" height="18" rx="3" stroke="currentColor" />
+        <text x="220" y="40" className="fill-foreground text-[10px]">
+          metal spoon
+        </text>
+        <text x="220" y="54" className="fill-warn text-[10px]">
+          heat flow
+        </text>
+        <rect x="250" y="70" width="70" height="44" rx="8" stroke="currentColor" />
+        <text x="285" y="96" textAnchor="middle" className="fill-foreground text-[10px]">
+          mug handle
+        </text>
+        <text x="200" y="168" textAnchor="middle" className="fill-foreground text-[11px]">
+          Skin reads the fast path, not a hotter object
+        </text>
+      </Svg>
+    );
+  }
+
+  if (id === "door-hello") {
+    return (
+      <Svg alt={alt}>
+        <rect x="130" y="28" width="140" height="140" rx="8" stroke="currentColor" strokeWidth="2" />
+        <circle cx="248" cy="100" r="5" className="fill-foreground" />
+        <text x="200" y="100" textAnchor="middle" className="fill-foreground text-[16px] font-semibold">
+          hello
+        </text>
+        <text x="200" y="180" textAnchor="middle" className="fill-muted text-[11px]">
+          A door opens. Say the word.
+        </text>
+      </Svg>
+    );
+  }
+
   if (id === "fru-laptop") {
     return (
       <Svg alt={alt}>

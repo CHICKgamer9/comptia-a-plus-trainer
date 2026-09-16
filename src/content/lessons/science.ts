@@ -1,5 +1,6 @@
 import type { Lesson } from "../types";
 import { diagramFigure } from "../figures";
+import { atomsMatterBeats, ATOMS_LOCK } from "../learn/gold/atoms-matter";
 
 export const scienceLessons: Lesson[] = [
   {
@@ -7,6 +8,9 @@ export const scienceLessons: Lesson[] = [
     domainId: "atoms-matter",
     title: "Matter is packed, not smooth",
     minutes: 12,
+    objective: "Name an element by proton count before the costume confuses you.",
+    lockLine: ATOMS_LOCK,
+    beats: atomsMatterBeats,
     intro:
       "Everything you can poke is made of atoms — nuclei of protons and neutrons, electrons in a cloud, not little planets on rails. Chemistry is rearranging those Lego blocks. The atoms themselves almost never vanish in a classroom reaction.",
     sections: [

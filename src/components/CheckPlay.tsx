@@ -57,7 +57,7 @@ function ChoiceCheck({
               disabled={locked}
               onClick={() => {
                 setPicked(choice.id);
-                onResolved(choice.correct, `${choice.correct ? "Nice." : "Not quite."} ${choice.why}`);
+                onResolved(choice.correct, choice.why);
               }}
               className={cn(
                 "w-full rounded-2xl border px-4 py-3 text-left text-sm leading-6 transition min-h-11",
@@ -74,7 +74,7 @@ function ChoiceCheck({
       </div>
       {selected ? (
         <p className={cn("text-sm leading-6", selected.correct ? "text-ok" : "text-danger")}>
-          {selected.correct ? "Nice." : "Not quite."} {selected.why}
+          {selected.why}
         </p>
       ) : null}
     </div>
@@ -106,7 +106,7 @@ function TrueFalse({
               disabled={locked}
               onClick={() => {
                 setPicked(value);
-                onResolved(value === check.answer, `${value === check.answer ? "Yes." : "Flip it."} ${check.why ?? ""}`);
+                onResolved(value === check.answer, check.why ?? "");
               }}
               className={cn(
                 "rounded-2xl border px-4 py-8 text-lg font-semibold transition",
@@ -123,7 +123,7 @@ function TrueFalse({
       </div>
       {locked ? (
         <p className={cn("text-sm leading-6", correct ? "text-ok" : "text-danger")}>
-          {correct ? "Yes." : "Flip it."} {check.why}
+          {check.why}
         </p>
       ) : null}
     </div>
@@ -152,7 +152,7 @@ function OrderCheck({
     if (next.length === pool.length) {
       const ok = JSON.stringify(next) === JSON.stringify(check.correctOrder ?? []);
       setDone(true);
-      onResolved(ok, `${ok ? "That's the loop." : "Almost."} ${check.why ?? ""}`);
+      onResolved(ok, check.why ?? "");
     }
   }
 

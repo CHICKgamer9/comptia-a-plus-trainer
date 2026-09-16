@@ -2,58 +2,65 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useProgress } from "./ProgressProvider";
-import { cancelSpeech, speakText, speechSupported } from "@/lib/speech";
+import { cancelAll, setMuted, speak, speechSupported, type SpeakRole } from "@/lib/tts/speak";
 
 const noSubscribe = () => () => undefined;
 
 export function useSpeech() {
-  const { progress, setAutoRead } = useProgress();
+  const { progress, setAutoRead, setSpeechMuted } = useProgress();
   const [speaking, setSpeaking] = useState(false);
   const hydrated = useSyncExternalStore(noSubscribe, () => true, () => false);
   const supported = useSyncExternalStore(noSubscribe, speechSupported, () => false);
   const stopRef = useRef<(() => void) | null>(null);
+  const muted = progress.speechMuted === true;
+
+  useEffect(() => {
+    setMuted(muted);
+  }, [muted]);
 
   useEffect(() => {
     return () => {
       stopRef.current?.();
-      cancelSpeech();
+      cancelAll();
     };
   }, []);
 
   const stop = useCallback(() => {
     stopRef.current?.();
     stopRef.current = null;
-    cancelSpeech();
+    cancelAll();
     setSpeaking(false);
   }, []);
 
-  const speak = useCallback(
-    (text: string, lang?: string) => {
-      if (!speechSupported()) return;
-      stopRef.current?.();
-      setSpeaking(true);
-      stopRef.current = speakText(
-        text,
-        {
-          onStart: () => setSpeaking(true),
-          onEnd: () => {
-            stopRef.current = null;
-            setSpeaking(false);
-          },
-        },
-        lang,
-      );
-    },
-    [],
-  );
+  const speakLine = useCallback((text: string, lang?: string, role: SpeakRole = "narrator") => {
+    if (!speechSupported() || !text.trim()) {
+      setSpeaking(false);
+      return { stop: () => undefined, ended: Promise.resolve() };
+    }
+    stopRef.current?.();
+    setSpeaking(true);
+    const handle = speak({ text, lang, role });
+    stopRef.current = handle.stop;
+    void handle.ended.then(() => {
+      stopRef.current = null;
+      setSpeaking(false);
+    });
+    return handle;
+  }, []);
 
   return {
     ready: hydrated,
     supported,
     speaking,
-    speak,
+    speak: (text: string, lang?: string) => {
+      speakLine(text, lang, lang && !lang.toLowerCase().startsWith("en") ? "target" : "narrator");
+    },
+    speakLine,
     stop,
+    cancelAll,
     autoRead: progress.autoRead === true,
     setAutoRead,
+    muted,
+    setMuted: setSpeechMuted,
   };
 }
