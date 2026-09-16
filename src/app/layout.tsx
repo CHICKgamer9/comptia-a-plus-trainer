@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ProgressProvider } from "@/components/ProgressProvider";
 import { SiteShell } from "@/components/SiteShell";
+import { CelebrationHost } from "@/components/CelebrationHost";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s · TicketBench",
   },
   description:
-    "Independent CompTIA A+ (220-1101 / 220-1102) trainer: lessons, quizzes, and helpdesk-style troubleshooting tickets. Not affiliated with CompTIA.",
+    "Independent CompTIA A+ trainer: interactive lesson paths, quizzes, and AI helpdesk tickets. Not affiliated with CompTIA or Brilliant.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full bg-background font-sans text-foreground">
         <ProgressProvider>
           <SiteShell>{children}</SiteShell>
+          <CelebrationHost />
         </ProgressProvider>
       </body>
     </html>

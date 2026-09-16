@@ -152,7 +152,7 @@ export function Disclaimer({ compact = false }: { compact?: boolean }) {
   return (
     <p className={cn("text-muted", compact ? "text-[11px] leading-5" : "text-xs leading-5")}>
       TicketBench is an independent study tool. It is not affiliated with, endorsed
-      by, or sponsored by CompTIA. CompTIA A+® is a registered trademark of
+      by, or sponsored by CompTIA or Brilliant. CompTIA A+® is a registered trademark of
       CompTIA. Exam objectives change — verify current requirements on CompTIA’s
       site before you sit.
     </p>

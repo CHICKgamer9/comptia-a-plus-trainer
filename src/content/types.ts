@@ -1,3 +1,5 @@
+export type TicketSource = "ai" | "fallback";
+
 export type ExamId = "220-1101" | "220-1102";
 
 export type DomainId =
@@ -62,6 +64,57 @@ export interface Lesson {
   keyTakeaways: string[];
 }
 
+export type DiagramId =
+  | "laptop"
+  | "layers"
+  | "connectors"
+  | "cloud"
+  | "loop"
+  | "window"
+  | "lock"
+  | "boot"
+  | "clipboard";
+
+export type PathCheckType = "choice" | "truefalse" | "order" | "match";
+
+export interface PathChoice {
+  id: string;
+  label: string;
+  correct: boolean;
+  why: string;
+}
+
+export interface PathPair {
+  left: string;
+  right: string;
+}
+
+export interface PathCheck {
+  id: string;
+  type: PathCheckType;
+  prompt: string;
+  afterHeading?: string;
+  choices?: PathChoice[];
+  answer?: boolean;
+  why?: string;
+  items?: { id: string; label: string }[];
+  correctOrder?: string[];
+  pairs?: PathPair[];
+  extraRights?: string[];
+}
+
+export interface PathBeat {
+  id: string;
+  kind: "hook" | "check" | "explain" | "tip" | "recap";
+  title: string;
+  body?: string[];
+  bullets?: string[];
+  diagram?: DiagramId;
+  table?: LessonTable;
+  check?: PathCheck;
+  callout?: LessonCallout;
+}
+
 export interface QuizQuestion {
   id: string;
   prompt: string;
@@ -109,6 +162,7 @@ export interface Scenario {
   ticket: string;
   steps: ScenarioStep[];
   debrief: string;
+  source?: TicketSource;
 }
 
 export interface CheatsheetTable {

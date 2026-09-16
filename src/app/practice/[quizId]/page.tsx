@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDomain, getQuiz, quizzes } from "@/content";
 import { QuizRunner } from "@/components/QuizRunner";
-import { ExamBadge } from "@/components/ui";
 
 export function generateStaticParams() {
   return quizzes.map((quiz) => ({ quizId: quiz.id }));
@@ -31,23 +30,20 @@ export default async function QuizPage({
 
   return (
     <div>
-      <Link href="/practice" className="mb-4 inline-block text-sm text-muted hover:text-foreground">
-        ← All quizzes
-      </Link>
-      <div className="mb-6 flex flex-wrap items-center gap-2">
-        {domain ? <ExamBadge exam={domain.exam} /> : null}
-      </div>
-      <h1 className="mb-6 text-3xl font-semibold tracking-tight">{quiz.title}</h1>
+      <p className="mx-auto mb-6 max-w-xl">
+        <Link href="/practice" className="text-sm text-muted hover:text-foreground">
+          ← Practice
+        </Link>
+        {domain ? (
+          <>
+            <span className="text-muted"> · </span>
+            <Link href={`/learn/${domain.id}`} className="text-sm text-accent hover:underline">
+              {domain.title} path
+            </Link>
+          </>
+        ) : null}
+      </p>
       <QuizRunner quiz={quiz} />
-      {domain ? (
-        <p className="mt-6 text-sm text-muted">
-          Need a refresher?{" "}
-          <Link href={`/learn/${domain.id}`} className="text-accent hover:underline">
-            Open the {domain.title} lesson
-          </Link>
-          .
-        </p>
-      ) : null}
     </div>
   );
 }
