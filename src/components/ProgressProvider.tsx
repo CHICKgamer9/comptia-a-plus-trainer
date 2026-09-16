@@ -22,12 +22,15 @@ import {
   setAutoReadIn,
   setLastSubjectIn,
   subscribeProgress,
+  toggleProjectCheckIn,
+  markProjectCompleteIn,
   type BrainAnswerInput,
   type BrainFeedState,
   type ProgressState,
   type ScenarioResult,
 } from "@/lib/progress";
 import { domains } from "@/content/registry";
+import { projects } from "@/content/projects";
 import type { SubjectId } from "@/content/types";
 import type { LingoLangId } from "@/content/lingo/types";
 import { levelForXp } from "@/lib/xp";
@@ -54,10 +57,14 @@ interface ProgressContextValue {
   }) => void;
   completeLingoNode: (lang: LingoLangId, nodeId: string) => void;
   saveLingoCursor: (lang: LingoLangId, nodeId: string, index: number) => void;
+  toggleProjectCheck: (projectId: string, checkId: string) => void;
+  markProjectComplete: (projectId: string, xp?: number) => void;
   resetProgress: () => void;
   setAutoRead: (autoRead: boolean) => void;
   setLastSubject: (subject: SubjectId) => void;
   lessonDone: (lessonId: string) => boolean;
+  projectDone: (projectId: string) => boolean;
+  projectChecked: (projectId: string) => string[];
   quizBest: (quizId: string) => { score: number; total: number } | undefined;
   scenarioBest: (
     scenarioId: string,
@@ -68,6 +75,8 @@ interface ProgressContextValue {
     quizzesDone: number;
     quizzesTotal: number;
     scenariosDone: number;
+    projectsDone: number;
+    projectsTotal: number;
     percent: number;
     xp: number;
     levelTitle: string;
@@ -152,6 +161,22 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     mutateProgress((prev) => saveLingoCursorIn(prev, lang, nodeId, index));
   }, []);
 
+  const toggleProjectCheck = useCallback((projectId: string, checkId: string) => {
+    const project = projects.find((item) => item.id === projectId);
+    mutateProgress((prev) => {
+      const next = toggleProjectCheckIn(prev, projectId, checkId);
+      return project ? setLastSubjectIn(next, project.subject) : next;
+    });
+  }, []);
+
+  const markProjectComplete = useCallback((projectId: string, xp?: number) => {
+    const project = projects.find((item) => item.id === projectId);
+    mutateProgress((prev) => {
+      const next = markProjectCompleteIn(prev, projectId, xp ?? project?.xp);
+      return project ? setLastSubjectIn(next, project.subject) : next;
+    });
+  }, []);
+
   const resetProgress = useCallback(() => {
     saveProgress(emptyProgress());
     clearTickets();
@@ -174,6 +199,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       domains.some((domain) => domain.quizId === id),
     ).length;
     const scenariosDone = Object.keys(progress.scenarioScores).length;
+    const completedProjects = progress.completedProjects ?? [];
+    const projectsDone = completedProjects.filter((id) =>
+      projects.some((project) => project.id === id),
+    ).length;
     const xp = progress.game?.xp ?? 0;
     const level = levelForXp(xp);
     const both = overallReadiness(progress);
@@ -191,10 +220,14 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       recordLingoStep,
       completeLingoNode,
       saveLingoCursor,
+      toggleProjectCheck,
+      markProjectComplete,
       resetProgress,
       setAutoRead,
       setLastSubject,
       lessonDone: (lessonId) => progress.completedLessons.includes(lessonId),
+      projectDone: (projectId) => (progress.completedProjects ?? []).includes(projectId),
+      projectChecked: (projectId) => progress.projectChecks?.[projectId] ?? [],
       quizBest: (quizId) => progress.quizScores[quizId],
       scenarioBest: (scenarioId) => progress.scenarioScores[scenarioId],
       stats: {
@@ -203,6 +236,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         quizzesDone,
         quizzesTotal: domains.length,
         scenariosDone,
+        projectsDone,
+        projectsTotal: projects.length,
         percent: both.percent,
         xp,
         levelTitle: level.title,
@@ -225,6 +260,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     recordLingoStep,
     completeLingoNode,
     saveLingoCursor,
+    toggleProjectCheck,
+    markProjectComplete,
     resetProgress,
     setAutoRead,
     setLastSubject,

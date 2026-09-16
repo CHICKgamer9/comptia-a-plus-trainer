@@ -210,3 +210,29 @@ export interface Cheatsheet {
   tables: CheatsheetTable[];
   notes?: string[];
 }
+
+export interface ProjectStep {
+  id: string;
+  title: string;
+  body: string;
+}
+
+export interface ProjectCheck {
+  id: string;
+  label: string;
+}
+
+export interface Project {
+  id: string;
+  subject: SubjectId;
+  title: string;
+  blurb: string;
+  goal: string;
+  materials: string[];
+  steps: ProjectStep[];
+  checklist: ProjectCheck[];
+  pathIds?: DomainId[];
+  difficulty: Difficulty;
+  minutes: number;
+  xp: number;
+}

@@ -89,6 +89,7 @@ export interface ProgressState {
   lastLessonId?: string;
   lastQuizId?: string;
   lastScenarioId?: string;
+  lastProjectId?: string;
   quizHistory?: Record<string, QuizResult[]>;
   lessonCursor?: Record<string, number>;
   autoRead?: boolean;
@@ -96,6 +97,8 @@ export interface ProgressState {
   game?: GameState;
   brain?: BrainState;
   lingo?: LingoState;
+  projectChecks?: Record<string, string[]>;
+  completedProjects?: string[];
 }
 
 const listeners = new Set<() => void>();
@@ -166,6 +169,8 @@ export const emptyProgress = (): ProgressState => ({
   autoRead: false,
   game: emptyGame(),
   brain: emptyBrain(),
+  projectChecks: {},
+  completedProjects: [],
 });
 
 function defaultGame(): GameState {
@@ -185,6 +190,7 @@ export function parseProgress(raw: string): ProgressState {
       lastLessonId: parsed.lastLessonId,
       lastQuizId: parsed.lastQuizId,
       lastScenarioId: parsed.lastScenarioId,
+      lastProjectId: parsed.lastProjectId,
       quizHistory: parsed.quizHistory ?? {},
       lessonCursor: parsed.lessonCursor ?? {},
       autoRead: parsed.autoRead === true,
@@ -206,6 +212,15 @@ export function parseProgress(raw: string): ProgressState {
           }
         : undefined,
       lingo: parseLingo(parsed.lingo),
+      projectChecks:
+        parsed.projectChecks && typeof parsed.projectChecks === "object"
+          ? Object.fromEntries(
+              Object.entries(parsed.projectChecks).filter(
+                (entry): entry is [string, string[]] => Array.isArray(entry[1]),
+              ),
+            )
+          : {},
+      completedProjects: Array.isArray(parsed.completedProjects) ? parsed.completedProjects : [],
     };
     if (!base.game) {
       return backfillGame(base);
@@ -292,6 +307,7 @@ function finalizeGame(prev: ProgressState, next: ProgressState): ProgressState {
     brainAnswered: brain?.answeredIds.length ?? 0,
     brainDays: Object.values(brain?.days ?? {}).filter((day) => day.completed).length,
     brainCrosswords: brain?.crosswordSolved.length ?? 0,
+    completedProjects: next.completedProjects ?? [],
   });
   const newBadges = badges.filter((id) => !game.badges.includes(id));
   game.badges = badges;
@@ -417,6 +433,39 @@ export function setAutoReadIn(prev: ProgressState, autoRead: boolean): ProgressS
 
 export function setLastSubjectIn(prev: ProgressState, lastSubject: SubjectId): ProgressState {
   return { ...prev, lastSubject };
+}
+
+export function toggleProjectCheckIn(
+  prev: ProgressState,
+  projectId: string,
+  checkId: string,
+): ProgressState {
+  const current = prev.projectChecks?.[projectId] ?? [];
+  const checked = current.includes(checkId)
+    ? current.filter((id) => id !== checkId)
+    : [...current, checkId];
+  return {
+    ...prev,
+    lastProjectId: projectId,
+    projectChecks: { ...prev.projectChecks, [projectId]: checked },
+  };
+}
+
+export function markProjectCompleteIn(
+  prev: ProgressState,
+  projectId: string,
+  xpGain: number = XP.projectDefault,
+): ProgressState {
+  const already = (prev.completedProjects ?? []).includes(projectId);
+  if (already) {
+    return { ...prev, lastProjectId: projectId };
+  }
+  const next: ProgressState = {
+    ...prev,
+    lastProjectId: projectId,
+    completedProjects: [...(prev.completedProjects ?? []), projectId],
+  };
+  return withActivity(next, Math.max(0, xpGain));
 }
 
 export function recordBrainAnswerIn(prev: ProgressState, input: BrainAnswerInput): ProgressState {

@@ -6,6 +6,7 @@ import type { Domain, Lesson, PathBeat, PathCheck } from "@/content/types";
 import { lessonToPath } from "@/lib/lesson-path";
 import { challengeHref, labThemeForDomain, quizHref } from "@/content/registry";
 import { getChallengesBySubject } from "@/content/challenges";
+import { projectHref, suggestedProjectForPath } from "@/content/projects";
 import { useProgress } from "./ProgressProvider";
 import { CheckPlay } from "./CheckPlay";
 import { PathDiagram } from "./PathDiagram";
@@ -204,6 +205,12 @@ function EndLinks({
   domain: Domain;
   restart: () => void;
 }) {
+  const { progress } = useProgress();
+  const suggested = suggestedProjectForPath(
+    domain.id,
+    progress.completedProjects ?? [],
+    domain.subject,
+  );
   const challenge = getChallengesBySubject(domain.subject)[0];
   const theme = labThemeForDomain(domain.id);
   const third =
@@ -231,17 +238,29 @@ function EndLinks({
     );
 
   return (
-    <div className="grid gap-2 sm:grid-cols-3">
-      <PlayerButton tone="ghost" onClick={restart}>
-        Replay path
-      </PlayerButton>
-      <Link
-        href={quizHref(domain.quizId)}
-        className="rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background"
-      >
-        Practice problems
-      </Link>
-      {third}
+    <div className="grid gap-2">
+      {suggested ? (
+        <Link
+          href={projectHref(suggested)}
+          className="rounded-2xl border border-accent/30 bg-accent-dim/40 px-4 py-3.5 text-center hover:border-accent/50"
+        >
+          <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Suggested project</p>
+          <p className="mt-1 text-sm font-semibold">{suggested.title}</p>
+          <p className="mt-0.5 text-xs text-muted">{suggested.blurb}</p>
+        </Link>
+      ) : null}
+      <div className="grid gap-2 sm:grid-cols-3">
+        <PlayerButton tone="ghost" onClick={restart}>
+          Replay path
+        </PlayerButton>
+        <Link
+          href={quizHref(domain.quizId)}
+          className="rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background"
+        >
+          Practice problems
+        </Link>
+        {third}
+      </div>
     </div>
   );
 }

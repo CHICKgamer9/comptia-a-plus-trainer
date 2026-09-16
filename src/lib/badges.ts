@@ -1,4 +1,5 @@
 import { domains } from "@/content/registry";
+import { projects } from "@/content/projects";
 import type { ExamId, SubjectId } from "@/content/types";
 
 export interface BadgeDef {
@@ -133,6 +134,26 @@ export const BADGES: BadgeDef[] = [
     title: "Word worker",
     blurb: "Attempted fifty word or crossword challenges.",
   },
+  {
+    id: "first-project",
+    title: "Hands on",
+    blurb: "Finished your first hands-on project.",
+  },
+  {
+    id: "three-projects",
+    title: "Three builds",
+    blurb: "Marked three projects complete on this device.",
+  },
+  {
+    id: "five-projects",
+    title: "Workshop",
+    blurb: "Finished five projects across the shelf.",
+  },
+  {
+    id: "four-hub-projects",
+    title: "Four benches",
+    blurb: "Completed a project in four different subject hubs.",
+  },
 ];
 
 export interface BadgeInput {
@@ -144,6 +165,7 @@ export interface BadgeInput {
   brainAnswered?: number;
   brainDays?: number;
   brainCrosswords?: number;
+  completedProjects?: string[];
 }
 
 export function unlockedBadgeIds(input: BadgeInput): string[] {
@@ -214,6 +236,16 @@ export function unlockedBadgeIds(input: BadgeInput): string[] {
   if ((input.brainDays ?? 0) >= 7) ids.push("brain-week");
   if ((input.brainCrosswords ?? 0) >= 5) ids.push("crossword-five");
   if ((input.brainAnswered ?? 0) >= 50) ids.push("words-fifty");
+  const doneProjects = input.completedProjects ?? [];
+  if (doneProjects.length >= 1) ids.push("first-project");
+  if (doneProjects.length >= 3) ids.push("three-projects");
+  if (doneProjects.length >= 5) ids.push("five-projects");
+  const hubs = new Set(
+    doneProjects
+      .map((id) => projects.find((project) => project.id === id)?.subject)
+      .filter((subject): subject is SubjectId => Boolean(subject)),
+  );
+  if (hubs.size >= 4) ids.push("four-hub-projects");
   return ids;
 }
 

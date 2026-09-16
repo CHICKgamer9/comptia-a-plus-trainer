@@ -25,8 +25,8 @@ export function DashboardHome() {
           {upcoming ? upcoming.title : "Pick a subject"}
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">
-          Interactive bites across Tech (A+), STEM, world, make, and life hubs. Try a beat, then read
-          why. Not a textbook dump — and not CompTIA, a school, or Brilliant.
+          Interactive bites across Tech (A+), STEM, world, make, and life hubs. Try a beat, a
+          project, then read why. Not a textbook dump — and not CompTIA, a school, or Brilliant.
         </p>
       </div>
 
@@ -106,6 +106,16 @@ export function DashboardHome() {
           </p>
         </Link>
         <Link
+          href="/projects"
+          className="rounded-3xl border border-accent/30 bg-surface p-4 hover:border-accent/50"
+        >
+          <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Projects</p>
+          <p className="mt-1 text-sm font-medium">Hands-on builds in every subject hub</p>
+          <p className="mt-1 text-xs text-muted">
+            Cable maps, budgets, food webs, phrasebooks. Tick a checklist — XP stays on this device.
+          </p>
+        </Link>
+        <Link
           href="/lab"
           className="rounded-3xl border border-border bg-surface p-4 active:border-accent/40 sm:col-span-2"
         >
@@ -141,8 +151,8 @@ export function DashboardHome() {
         </button>
       </div>
       <p className="mt-3 text-[11px] text-muted">
-        {stats.lessonsDone} paths finished · {stats.quizzesDone} quizzes · {stats.scenariosDone}{" "}
-        tickets/challenges
+        {stats.lessonsDone} paths finished · {stats.quizzesDone} quizzes · {stats.projectsDone}{" "}
+        projects · {stats.scenariosDone} tickets/challenges
       </p>
     </div>
   );

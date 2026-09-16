@@ -1,8 +1,8 @@
 # TicketBench
 
-A **multi-subject** study bench: **Tech (CompTIA A+)** plus Maths, Science, History, English, Geography, Coding, Business, Health, Music, Art, Civics, Languages, Logic, and Digital citizenship. Each hub has **at least 60 interactive lesson paths** (concept → try-this → why), one-problem quizzes, Listen / Auto-read, and shared XP. **Languages (speak)** is a separate Duolingo-style area for **French, Indonesian, and Icelandic** (`/lingo`) — 60 bite-sized lessons each — and does not replace the linguistics catalog. Tech still has the AI helpdesk lab and an honest Core 1 / Core 2 readiness meter. **Brain Gym** is a separate daily 2-hour puzzle desk plus a **phone feed** (short-form challenge cards instead of empty scrolling) — not a school subject.
+A **multi-subject** study bench: **Tech (CompTIA A+)** plus Maths, Science, History, English, Geography, Coding, Business, Health, Music, Art, Civics, Languages, Logic, and Digital citizenship. Each hub has **at least 60 interactive lesson paths** (concept → try-this → why), **three hands-on projects**, one-problem quizzes, Listen / Auto-read, and shared XP. **Languages (speak)** is a separate Duolingo-style area for **French, Indonesian, and Icelandic** (`/lingo`) — 60 bite-sized lessons each — and does not replace the linguistics catalog. Tech still has the AI helpdesk lab and an honest Core 1 / Core 2 readiness meter. **Brain Gym** is a separate daily 2-hour puzzle desk plus a **phone feed** (short-form challenge cards instead of empty scrolling) — not a school subject. **Projects** sit beside Learn / Quizzes / Lab / Brain: real tasks with steps and a done-when checklist, not generated Lab tickets.
 
-This is **not** an official CompTIA product, school curriculum, Brilliant product, or Duolingo product, and is not affiliated with, endorsed by, or sponsored by CompTIA **or Brilliant**. CompTIA A+® is a registered trademark of CompTIA. AI tickets are study aids, not exam dumps. School paths use Australian-friendly hooks where they are natural; they are not a syllabus. Brain Gym is not an IQ test. Language courses are beginner practice, not a fluency certificate.
+This is **not** an official CompTIA product, school curriculum, Brilliant product, or Duolingo product, and is not affiliated with, endorsed by, or sponsored by CompTIA **or Brilliant**. CompTIA A+® is a registered trademark of CompTIA. AI tickets are study aids, not exam dumps. School paths and projects use Australian-friendly hooks where they are natural; they are not a syllabus. Brain Gym is not an IQ test. Language courses are beginner practice, not a fluency certificate.
 
 ## Run locally
 
@@ -40,8 +40,9 @@ Generation is rate-limited (8 requests / 10 minutes / IP) and the Generate butto
 
 ## What you can do
 
-- **Home** — grouped subject cards, today’s path (remembers last subject), Sydney streak, level, Core 1 / Core 2 glance, Languages + Brain Gym cards
-- **Learn** — `/learn/[subject]/[path]`. Each hub is a searchable catalog with topic filters. Tech keeps nine A+ domains exam-gated; extra Tech paths have **no** `exam` tag so readiness stays on the original cores. Brain Gym is linked from Learn but is **not** a SubjectId
+- **Home** — grouped subject cards, today’s path (remembers last subject), Sydney streak, level, Core 1 / Core 2 glance, Languages + Brain Gym + Projects cards
+- **Learn** — `/learn/[subject]/[path]`. Each hub is a searchable catalog with topic filters. Tech keeps nine A+ domains exam-gated; extra Tech paths have **no** `exam` tag so readiness stays on the original cores. Brain Gym is linked from Learn but is **not** a SubjectId. Subject cards include **Try a project**
+- **Projects** (`/projects`, `/projects/[id]`) — hands-on builds in every hub (3 each, 45 total). Filter with `?hub=maths`. Steps + done-when checklist; completion writes `projectChecks` / `completedProjects` on the same local progress object and awards the project’s XP. Tech’s helpdesk-reply project uses this UI, then points at Lab
 - **Languages (speak)** (`/lingo`) — French, Indonesian, and Icelandic skill trees (units → skills → lessons). Vocab tap, listen/read meaning, word order, match pairs, type translation (accents optional), honor-system “I said it”. **60 lessons per language**, static in-repo curriculum, no paid translation API. Progress is additive on `progress.lingo`. The `/learn/languages` hub still has the 60 linguistics paths plus a banner into `/lingo`
 - **Brain Gym** (`/brain`) — challenge mode. **Phone feed** at `/brain/feed` is a full-viewport, mobile-first scroll of mixed packs (new riddles/trivia/emoji/odd-one-out plus the original desk) hashed from the Australia/Sydney date. Skip costs a little XP so it is not empty scrolling. `/brain/today` still builds a ~**120 minute** playlist; `/brain/browse` lazy-loads packs; `/brain/play/[id]` is the player (typed mini crosswords, word reveal, cryptograms, memory flash, choices)
 - **Listen** — speaker control in every lesson / quiz / lab / challenge / Brain Gym player. Language lessons try `fr-FR` / `id-ID` / `is-IS` when the browser has a voice (Icelandic and Indonesian TTS are often missing — text + phonetic stay). **Auto-read** speaks each new prompt (not the four choices). **Choices** reads options on demand. Stop cancels speech. Browser Web Speech API (no TTS key). Preference is stored with progress
@@ -51,7 +52,7 @@ Generation is rate-limited (8 requests / 10 minutes / IP) and the Generate butto
 - **Ready** (`/ready`) — A+ exam-readiness rubric (unchanged gates)
 - **Sheets** — A+ ports/RAID plus pocket Maths / Science / History tables
 
-Progress is `localStorage` key `ticketbench-progress-v1` (same as before; new fields are additive: `autoRead`, `lastSubject`, `brain`, `brain.feed`, `lingo`). Existing A+ lesson and quiz IDs are unchanged, so Core progress is not wiped. Generated tickets: `ticketbench-tickets-v1`. Reset from the dashboard.
+Progress is `localStorage` key `ticketbench-progress-v1` (same as before; new fields are additive: `autoRead`, `lastSubject`, `brain`, `brain.feed`, `lingo`, `projectChecks`, `completedProjects`). Existing A+ lesson and quiz IDs are unchanged, so Core progress is not wiped. Generated tickets: `ticketbench-tickets-v1`. Reset from the dashboard.
 
 Old `/learn/mobile-devices` URLs redirect to `/learn/tech/mobile-devices`.
 
@@ -158,6 +159,7 @@ Crossword UX: tap a cell, type a letter or use the on-screen letter pad, arrow k
 | Language step correct (first / repeat / wrong) | 10 / 4 / 2 |
 | Language “I said it” (first) | 8 |
 | Language lesson complete | 50 |
+| Project complete (first time) | the project’s `xp` (typically 90 / 120 / 150) |
 
 Levels: Spark → Scout → Pathfinder → Specialist → Scholar → Contender → Polymath → Mastery.
 
@@ -187,7 +189,13 @@ Extra Tech paths are additive study; they do not change those gates. If those ga
 3. Add checks in `src/content/path-checks.ts` or `path-checks-school.ts` (`afterHeading` must match a section heading)
 4. `lessonToPath` compiles intro + sections + checks + recap
 
-Client UI reads domain metadata from `@/content/registry` (no lesson/quiz/check JSON). Lab tickets stay AI-generated (`src/lib/ai-tickets.ts`). Subject challenges are static in `src/content/challenges.ts`. Brain Gym packs are generated JSON under `src/content/brain/packs/`. Language courses are generated JSON under `src/content/lingo/packs/`.
+Client UI reads domain metadata from `@/content/registry` (no lesson/quiz/check JSON). Lab tickets stay AI-generated (`src/lib/ai-tickets.ts`). Subject challenges are static in `src/content/challenges.ts`. Brain Gym packs are generated JSON under `src/content/brain/packs/`. Language courses are generated JSON under `src/content/lingo/packs/`. Hands-on projects live in `src/content/projects/` (`stem.ts`, `world.ts`, `make-life.ts`) and are listed from `/projects`.
+
+## Adding a project
+
+1. Add a `Project` in the matching `src/content/projects/*.ts` file (`id`, `subject`, `title`, `blurb`, `goal`, `materials`, ordered `steps`, `checklist`, optional `pathIds`, `difficulty`, `minutes`, `xp`)
+2. Keep Australian English where the rest of the hub does. Floor is **3 real projects per subject** (asserted at import)
+3. Optional `pathIds` should be existing domain ids so a finished path can suggest the project
 
 ## Stack
 

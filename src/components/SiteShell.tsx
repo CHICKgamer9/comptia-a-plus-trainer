@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { Disclaimer } from "./ui";
 import { StatusChip } from "./StatusChip";
 import { getSubject, isSubjectId } from "@/content/registry";
+import { getProject } from "@/content/projects";
 import { BRAIN_ACCENT, BRAIN_ACCENT_DIM } from "@/content/brain/types";
 import { LINGO_ACCENT, LINGO_ACCENT_DIM, LINGO_COURSES } from "@/content/lingo/courses";
 import { isLingoLangId } from "@/content/lingo/types";
@@ -14,6 +15,7 @@ import { isLingoLangId } from "@/content/lingo/types";
 const links = [
   { href: "/", label: "Home", icon: HomeIcon },
   { href: "/learn", label: "Learn", icon: BookIcon },
+  { href: "/projects", label: "Projects", icon: ProjectIcon },
   { href: "/brain", label: "Brain", icon: BrainIcon },
   { href: "/practice", label: "Quizzes", icon: QuizIcon },
   { href: "/lab", label: "Lab", icon: TicketIcon },
@@ -28,6 +30,11 @@ function isActive(pathname: string, href: string) {
 function subjectFromPath(pathname: string) {
   const learn = pathname.match(/^\/learn\/([^/]+)/);
   if (learn && isSubjectId(learn[1])) return getSubject(learn[1]);
+  const projectPage = pathname.match(/^\/projects\/([^/]+)/);
+  if (projectPage) {
+    const project = getProject(projectPage[1]);
+    if (project) return getSubject(project.subject);
+  }
   const play = pathname.match(/^\/play\/([^/]+)/);
   if (play) {
     // challenges live under /play; accent stays default unless we look up later
@@ -99,7 +106,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "rounded-lg px-3 py-1.5 text-sm transition-colors",
+                    "rounded-lg px-2.5 py-1.5 text-sm transition-colors",
                     active
                       ? "bg-surface-2 text-foreground"
                       : "text-muted hover:bg-surface hover:text-foreground",
@@ -133,7 +140,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
       {immersive ? null : (
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 backdrop-blur-xl md:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-6 px-1 pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto grid max-w-lg grid-cols-7 px-0.5 pb-[env(safe-area-inset-bottom)]">
           {links.map((link) => {
             const active = isActive(pathname, link.href);
             const Icon = link.icon;
@@ -191,6 +198,19 @@ function BookIcon({ active }: { active: boolean }) {
         strokeWidth={active ? 2 : 1.6}
       />
       <path d="M5 21.5A2.5 2.5 0 0 1 7.5 19H20" stroke="currentColor" strokeWidth={1.6} />
+    </svg>
+  );
+}
+
+function ProjectIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4.5 8.5 12 4l7.5 4.5V16.5L12 21l-7.5-4.5V8.5Z"
+        stroke="currentColor"
+        strokeWidth={active ? 2 : 1.6}
+      />
+      <path d="M12 12v9M12 12 4.5 8.5M12 12l7.5-3.5" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   );
 }
