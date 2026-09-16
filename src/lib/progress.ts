@@ -1,4 +1,6 @@
 import type { DomainId, ExamId, ScenarioTheme, SubjectId } from "@/content/types";
+import type { LingoLangId } from "@/content/lingo/types";
+import { isLingoLangId } from "@/content/lingo/types";
 import { isSubjectId } from "@/content/subjects";
 import { unlockedBadgeIds } from "./badges";
 import { updateStreak } from "./sydney-date";
@@ -68,6 +70,18 @@ export interface BrainAnswerInput {
   crossword?: boolean;
 }
 
+export interface LingoLangProgress {
+  completedNodes: string[];
+  lastNodeId?: string;
+  cursor?: Record<string, number>;
+}
+
+export interface LingoState {
+  lastLang?: LingoLangId;
+  byLang: Partial<Record<LingoLangId, LingoLangProgress>>;
+  correctSteps: string[];
+}
+
 export interface ProgressState {
   completedLessons: string[];
   quizScores: Record<string, QuizResult>;
@@ -81,6 +95,7 @@ export interface ProgressState {
   lastSubject?: SubjectId;
   game?: GameState;
   brain?: BrainState;
+  lingo?: LingoState;
 }
 
 const listeners = new Set<() => void>();
@@ -100,6 +115,35 @@ export const emptyBrain = (): BrainState => ({
   days: {},
   crosswordSolved: [],
 });
+
+export const emptyLingoLang = (): LingoLangProgress => ({
+  completedNodes: [],
+});
+
+export const emptyLingo = (): LingoState => ({
+  byLang: {},
+  correctSteps: [],
+});
+
+function parseLingo(raw: LingoState | undefined): LingoState | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const byLang: LingoState["byLang"] = {};
+  const source = raw.byLang ?? {};
+  for (const key of Object.keys(source)) {
+    if (!isLingoLangId(key)) continue;
+    const row = source[key];
+    byLang[key] = {
+      completedNodes: Array.isArray(row?.completedNodes) ? row.completedNodes.filter((id) => typeof id === "string") : [],
+      lastNodeId: typeof row?.lastNodeId === "string" ? row.lastNodeId : undefined,
+      cursor: row?.cursor && typeof row.cursor === "object" ? row.cursor : {},
+    };
+  }
+  return {
+    lastLang: typeof raw.lastLang === "string" && isLingoLangId(raw.lastLang) ? raw.lastLang : undefined,
+    byLang,
+    correctSteps: Array.isArray(raw.correctSteps) ? raw.correctSteps.filter((id) => typeof id === "string") : [],
+  };
+}
 
 function parseFeed(raw: BrainFeedState | undefined): BrainFeedState | undefined {
   if (!raw || typeof raw !== "object") return undefined;
@@ -161,6 +205,7 @@ export function parseProgress(raw: string): ProgressState {
             feed: parseFeed(parsed.brain.feed),
           }
         : undefined,
+      lingo: parseLingo(parsed.lingo),
     };
     if (!base.game) {
       return backfillGame(base);
@@ -423,6 +468,79 @@ export function recordBrainSkipIn(
 ): ProgressState {
   const brain: BrainState = { ...(prev.brain ?? emptyBrain()), feed };
   return withActivity({ ...prev, brain }, XP.brainSkip);
+}
+
+function lingoOf(prev: ProgressState): LingoState {
+  const current = prev.lingo ?? emptyLingo();
+  return {
+    lastLang: current.lastLang,
+    byLang: { ...current.byLang },
+    correctSteps: [...(current.correctSteps ?? [])],
+  };
+}
+
+function langRow(lingo: LingoState, lang: LingoLangId): LingoLangProgress {
+  const row = lingo.byLang[lang];
+  return {
+    completedNodes: [...(row?.completedNodes ?? [])],
+    lastNodeId: row?.lastNodeId,
+    cursor: { ...(row?.cursor ?? {}) },
+  };
+}
+
+export function saveLingoCursorIn(
+  prev: ProgressState,
+  lang: LingoLangId,
+  nodeId: string,
+  index: number,
+): ProgressState {
+  const lingo = lingoOf(prev);
+  const row = langRow(lingo, lang);
+  row.lastNodeId = nodeId;
+  const cursor = row.cursor ?? {};
+  cursor[nodeId] = Math.max(0, Math.floor(index));
+  row.cursor = cursor;
+  lingo.byLang[lang] = row;
+  lingo.lastLang = lang;
+  return { ...prev, lingo };
+}
+
+export function recordLingoStepIn(
+  prev: ProgressState,
+  input: { lang: LingoLangId; nodeId: string; stepId: string; correct: boolean; speak?: boolean },
+): ProgressState {
+  const lingo = lingoOf(prev);
+  const row = langRow(lingo, input.lang);
+  row.lastNodeId = input.nodeId;
+  lingo.byLang[input.lang] = row;
+  lingo.lastLang = input.lang;
+  const first = input.correct && !lingo.correctSteps.includes(input.stepId);
+  if (first) lingo.correctSteps = [...lingo.correctSteps, input.stepId];
+  let xpGain = input.correct
+    ? first
+      ? input.speak
+        ? XP.lingoSpeak
+        : XP.lingoCorrectFirst
+      : XP.lingoCorrectRepeat
+    : XP.lingoWrong;
+  if (input.speak && first) xpGain = XP.lingoSpeak;
+  return withActivity({ ...prev, lingo }, xpGain);
+}
+
+export function completeLingoNodeIn(
+  prev: ProgressState,
+  lang: LingoLangId,
+  nodeId: string,
+): ProgressState {
+  const lingo = lingoOf(prev);
+  const row = langRow(lingo, lang);
+  const already = row.completedNodes.includes(nodeId);
+  row.lastNodeId = nodeId;
+  if (!already) row.completedNodes = [...row.completedNodes, nodeId];
+  lingo.byLang[lang] = row;
+  lingo.lastLang = lang;
+  const next = { ...prev, lingo };
+  return already ? next : withActivity(next, XP.lingoLesson);
 }
 
 export function mutateProgress(mutator: (prev: ProgressState) => ProgressState) {

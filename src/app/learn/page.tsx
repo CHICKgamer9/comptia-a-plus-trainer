@@ -18,6 +18,17 @@ export default function LearnPage() {
         inside a subject. Tech keeps Core 1 and Core 2 exam-gated; extra Tech paths have no exam tag.
       </p>
       <Link
+        href="/lingo"
+        className="mb-4 block rounded-3xl border border-accent/30 bg-surface p-5 text-center active:border-accent/50"
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">Speak</p>
+        <p className="mt-1 text-lg font-semibold">Languages · FR / ID / IS</p>
+        <p className="mt-1 text-sm text-muted">
+          French, Indonesian, and Icelandic skill trees. Bite-sized taps. Linguistics paths still sit
+          in the Languages hub below.
+        </p>
+      </Link>
+      <Link
         href="/brain/feed"
         className="mb-8 block rounded-3xl border border-accent/30 bg-surface p-5 text-center active:border-accent/50"
       >

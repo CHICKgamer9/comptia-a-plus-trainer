@@ -8,6 +8,8 @@ import { Disclaimer } from "./ui";
 import { StatusChip } from "./StatusChip";
 import { getSubject, isSubjectId } from "@/content/registry";
 import { BRAIN_ACCENT, BRAIN_ACCENT_DIM } from "@/content/brain/types";
+import { LINGO_ACCENT, LINGO_ACCENT_DIM, LINGO_COURSES } from "@/content/lingo/courses";
+import { isLingoLangId } from "@/content/lingo/types";
 
 const links = [
   { href: "/", label: "Home", icon: HomeIcon },
@@ -41,10 +43,17 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     /^\/practice\/[^/]+$/.test(pathname) ||
     /^\/play\/[^/]+$/.test(pathname) ||
     /^\/brain\/play\//.test(pathname) ||
+    /^\/lingo\/[^/]+\/[^/]+$/.test(pathname) ||
     pathname.startsWith("/lab/t/");
   const immersive = pathname === "/brain/feed" || pathname.startsWith("/brain/feed/");
   const subject = subjectFromPath(pathname);
   const brain = pathname.startsWith("/brain");
+  const lingoMatch = pathname.match(/^\/lingo(?:\/([^/]+))?/);
+  const lingo = lingoMatch
+    ? lingoMatch[1] && isLingoLangId(lingoMatch[1])
+      ? LINGO_COURSES[lingoMatch[1]]
+      : { accent: LINGO_ACCENT, accentDim: LINGO_ACCENT_DIM }
+    : undefined;
 
   return (
     <div
@@ -54,6 +63,11 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           ? ({
               "--accent": BRAIN_ACCENT,
               "--accent-dim": BRAIN_ACCENT_DIM,
+            } as CSSProperties)
+          : lingo
+          ? ({
+              "--accent": lingo.accent,
+              "--accent-dim": lingo.accentDim,
             } as CSSProperties)
           : subject
           ? ({

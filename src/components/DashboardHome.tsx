@@ -86,6 +86,16 @@ export function DashboardHome() {
 
       <div className="mb-8 grid gap-3 sm:grid-cols-2">
         <Link
+          href="/lingo"
+          className="rounded-3xl border border-accent/30 bg-surface p-4 active:border-accent/50"
+        >
+          <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Speak</p>
+          <p className="mt-1 text-sm font-medium">Languages · French, Indonesian, Icelandic</p>
+          <p className="mt-1 text-xs text-muted">
+            Duolingo-style skill trees. Tap, match, type, say it. XP and streak — no hearts.
+          </p>
+        </Link>
+        <Link
           href="/brain/feed"
           className="rounded-3xl border border-accent/30 bg-surface p-4 active:border-accent/50"
         >
@@ -97,7 +107,7 @@ export function DashboardHome() {
         </Link>
         <Link
           href="/lab"
-          className="rounded-3xl border border-border bg-surface p-4 active:border-accent/40"
+          className="rounded-3xl border border-border bg-surface p-4 active:border-accent/40 sm:col-span-2"
         >
           <p className="text-[11px] uppercase tracking-[0.16em] text-muted">A+ lab</p>
           <p className="mt-1 text-sm font-medium">Helpdesk tickets for Core 1 / Core 2</p>

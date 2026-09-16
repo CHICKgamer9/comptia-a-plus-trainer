@@ -1,8 +1,8 @@
 # TicketBench
 
-A **multi-subject** study bench: **Tech (CompTIA A+)** plus Maths, Science, History, English, Geography, Coding, Business, Health, Music, Art, Civics, Languages, Logic, and Digital citizenship. Each hub has **at least 60 interactive lesson paths** (concept → try-this → why), one-problem quizzes, Listen / Auto-read, and shared XP. Tech still has the AI helpdesk lab and an honest Core 1 / Core 2 readiness meter. **Brain Gym** is a separate daily 2-hour puzzle desk plus a **phone feed** (short-form challenge cards instead of empty scrolling) — not a 16th school subject.
+A **multi-subject** study bench: **Tech (CompTIA A+)** plus Maths, Science, History, English, Geography, Coding, Business, Health, Music, Art, Civics, Languages, Logic, and Digital citizenship. Each hub has **at least 60 interactive lesson paths** (concept → try-this → why), one-problem quizzes, Listen / Auto-read, and shared XP. **Languages (speak)** is a separate Duolingo-style area for **French, Indonesian, and Icelandic** (`/lingo`) — 60 bite-sized lessons each — and does not replace the linguistics catalog. Tech still has the AI helpdesk lab and an honest Core 1 / Core 2 readiness meter. **Brain Gym** is a separate daily 2-hour puzzle desk plus a **phone feed** (short-form challenge cards instead of empty scrolling) — not a school subject.
 
-This is **not** an official CompTIA product, school curriculum, or Brilliant product, and is not affiliated with, endorsed by, or sponsored by CompTIA **or Brilliant**. CompTIA A+® is a registered trademark of CompTIA. AI tickets are study aids, not exam dumps. School paths use Australian-friendly hooks where they are natural; they are not a syllabus. Brain Gym is not an IQ test.
+This is **not** an official CompTIA product, school curriculum, Brilliant product, or Duolingo product, and is not affiliated with, endorsed by, or sponsored by CompTIA **or Brilliant**. CompTIA A+® is a registered trademark of CompTIA. AI tickets are study aids, not exam dumps. School paths use Australian-friendly hooks where they are natural; they are not a syllabus. Brain Gym is not an IQ test. Language courses are beginner practice, not a fluency certificate.
 
 ## Run locally
 
@@ -19,6 +19,7 @@ Without an AI key the **Tech lab** still works: **Generate ticket** loads a sing
 ```bash
 npm run catalog   # regenerate factory JSON from scripts/topics/*.mjs
 npm run brain     # regenerate Brain Gym packs (scripts/brain/*.mjs)
+npm run lingo     # regenerate French / Indonesian / Icelandic courses
 npm run build
 npm start
 ```
@@ -39,17 +40,18 @@ Generation is rate-limited (8 requests / 10 minutes / IP) and the Generate butto
 
 ## What you can do
 
-- **Home** — grouped subject cards, today’s path (remembers last subject), Sydney streak, level, Core 1 / Core 2 glance, Brain Gym card
+- **Home** — grouped subject cards, today’s path (remembers last subject), Sydney streak, level, Core 1 / Core 2 glance, Languages + Brain Gym cards
 - **Learn** — `/learn/[subject]/[path]`. Each hub is a searchable catalog with topic filters. Tech keeps nine A+ domains exam-gated; extra Tech paths have **no** `exam` tag so readiness stays on the original cores. Brain Gym is linked from Learn but is **not** a SubjectId
+- **Languages (speak)** (`/lingo`) — French, Indonesian, and Icelandic skill trees (units → skills → lessons). Vocab tap, listen/read meaning, word order, match pairs, type translation (accents optional), honor-system “I said it”. **60 lessons per language**, static in-repo curriculum, no paid translation API. Progress is additive on `progress.lingo`. The `/learn/languages` hub still has the 60 linguistics paths plus a banner into `/lingo`
 - **Brain Gym** (`/brain`) — challenge mode. **Phone feed** at `/brain/feed` is a full-viewport, mobile-first scroll of mixed packs (new riddles/trivia/emoji/odd-one-out plus the original desk) hashed from the Australia/Sydney date. Skip costs a little XP so it is not empty scrolling. `/brain/today` still builds a ~**120 minute** playlist; `/brain/browse` lazy-loads packs; `/brain/play/[id]` is the player (typed mini crosswords, word reveal, cryptograms, memory flash, choices)
-- **Listen** — speaker control in every lesson / quiz / lab / challenge / Brain Gym player. **Auto-read** speaks each new prompt (not the four choices). **Choices** reads options on demand. Stop cancels speech. Browser Web Speech API (no TTS key). Preference is stored with progress
+- **Listen** — speaker control in every lesson / quiz / lab / challenge / Brain Gym player. Language lessons try `fr-FR` / `id-ID` / `is-IS` when the browser has a voice (Icelandic and Indonesian TTS are often missing — text + phonetic stay). **Auto-read** speaks each new prompt (not the four choices). **Choices** reads options on demand. Stop cancels speech. Browser Web Speech API (no TTS key). Preference is stored with progress
 - **Quizzes** — one problem at a time (practice or exam drill), filterable by subject, search, first 48 shown until you narrow
 - **Lab** — Tech only: generate a ticket. Investigate gather → tools → cause → fix
 - **Challenges** — authored cafe-till / bushfire / Federation-floor runs under `/play/[id]` (also linked from the subject hub)
 - **Ready** (`/ready`) — A+ exam-readiness rubric (unchanged gates)
 - **Sheets** — A+ ports/RAID plus pocket Maths / Science / History tables
 
-Progress is `localStorage` key `ticketbench-progress-v1` (same as before; new fields are additive: `autoRead`, `lastSubject`, `brain`, `brain.feed`). Existing A+ lesson and quiz IDs are unchanged, so Core progress is not wiped. Generated tickets: `ticketbench-tickets-v1`. Reset from the dashboard.
+Progress is `localStorage` key `ticketbench-progress-v1` (same as before; new fields are additive: `autoRead`, `lastSubject`, `brain`, `brain.feed`, `lingo`). Existing A+ lesson and quiz IDs are unchanged, so Core progress is not wiped. Generated tickets: `ticketbench-tickets-v1`. Reset from the dashboard.
 
 Old `/learn/mobile-devices` URLs redirect to `/learn/tech/mobile-devices`.
 
@@ -71,13 +73,25 @@ Hard floor: **60 distinct interactive paths in every hub.** 15 subjects × 60 = 
 | Music | **60** | Beat, pitch, texture, listening |
 | Art | **60** | Seeing, colour, layout |
 | Civics | **60** | Rules, parliaments, rights, votes |
-| Languages | **60** | How languages work (intro, not fluency) |
+| Languages | **60** | How languages work (intro, not fluency). Speak courses are extra, under `/lingo` |
 | Logic | **60** | Arguments, fallacies, evidence |
 | Digital | **60** | Privacy, scams, feeds, sharing |
 
 **None under 60.** Grand total **901** paths.
 
 Browse by topic chips and search inside each hub so 60+ stays usable.
+
+## Languages (speak) — French, Indonesian, Icelandic
+
+Not the linguistics catalog. Hub: `/lingo`. Trees: `/lingo/fr`, `/lingo/id`, `/lingo/is`. Factory: `npm run lingo` (`scripts/lingo/*.mjs` → `src/content/lingo/packs/`).
+
+| Course | Lessons | Notes |
+| --- | --- | --- |
+| French | **60** | 10 units × 6 lessons (greetings through daily life) |
+| Indonesian | **60** | Same path shape; real Bahasa Indonesia spelling |
+| Icelandic | **60** | þ ð æ ö kept; phonetic hints; TTS optional |
+
+Each lesson mixes vocab tap, listen/read meaning, word order / fill-blank, match pairs, type (forgiving normalize), and honor-system speak. No hearts. XP: first correct 10, repeat 4, wrong 2, speak 8, lesson complete 50.
 
 ## Brain Gym (daily 2-hour challenge)
 
@@ -141,6 +155,9 @@ Crossword UX: tap a cell, type a letter or use the on-screen letter pad, arrow k
 | Phone feed skip | −2 (plus a short cooldown) |
 | Mini crossword complete | +40 (reveal letter −5, reveal word −12) |
 | Daily 120 min desk cleared | +80 |
+| Language step correct (first / repeat / wrong) | 10 / 4 / 2 |
+| Language “I said it” (first) | 8 |
+| Language lesson complete | 50 |
 
 Levels: Spark → Scout → Pathfinder → Specialist → Scholar → Contender → Polymath → Mastery.
 
@@ -170,7 +187,7 @@ Extra Tech paths are additive study; they do not change those gates. If those ga
 3. Add checks in `src/content/path-checks.ts` or `path-checks-school.ts` (`afterHeading` must match a section heading)
 4. `lessonToPath` compiles intro + sections + checks + recap
 
-Client UI reads domain metadata from `@/content/registry` (no lesson/quiz/check JSON). Lab tickets stay AI-generated (`src/lib/ai-tickets.ts`). Subject challenges are static in `src/content/challenges.ts`. Brain Gym packs are generated JSON under `src/content/brain/packs/`.
+Client UI reads domain metadata from `@/content/registry` (no lesson/quiz/check JSON). Lab tickets stay AI-generated (`src/lib/ai-tickets.ts`). Subject challenges are static in `src/content/challenges.ts`. Brain Gym packs are generated JSON under `src/content/brain/packs/`. Language courses are generated JSON under `src/content/lingo/packs/`.
 
 ## Stack
 
