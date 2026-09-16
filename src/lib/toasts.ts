@@ -37,10 +37,12 @@ export function subscribeToasts(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
+const EMPTY_TOASTS: ToastEvent[] = [];
+
 export function getToastSnapshot() {
   return queue;
 }
 
 export function getServerToastSnapshot(): ToastEvent[] {
-  return [];
+  return EMPTY_TOASTS;
 }
