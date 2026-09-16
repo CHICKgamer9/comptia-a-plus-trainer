@@ -487,24 +487,6 @@ export function startShift(bench: BenchState, lengthMin: 8 | 15 | 25, xp: number
   };
 }
 
-function weakTag(bench: BenchState, completedLessons: string[]): string {
-  const counts = new Map<string, number>();
-  for (const domain of domains.filter((item) => item.exam)) {
-    const done = completedLessons.includes(domain.lessonId) ? 1 : 0;
-    counts.set(domain.id, done);
-  }
-  let worst = "mobile-devices";
-  let worstScore = Infinity;
-  for (const [id, score] of counts) {
-    if (score < worstScore) {
-      worst = id;
-      worstScore = score;
-    }
-  }
-  void bench;
-  return worst;
-}
-
 export function weekKey(at = Date.now()) {
   const d = new Date(at);
   const utc = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());

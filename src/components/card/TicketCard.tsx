@@ -13,7 +13,7 @@ import {
   subtitleFor,
 } from "@/content/bench-cards";
 import { cn } from "@/lib/cn";
-import { formatStampDate, type CardLevel, type OwnedCard, type WearMark } from "@/lib/binder";
+import { formatStampDate, type OwnedCard, type WearMark } from "@/lib/binder";
 import { CardArt } from "./CardArt";
 
 const HUB: Record<string, string> = {

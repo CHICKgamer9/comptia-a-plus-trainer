@@ -40,16 +40,11 @@ export function BinderView() {
   const [tab, setTab] = useState<CardType | "all">("all");
   const [subject, setSubject] = useState<SubjectId | "all">("all");
   const [page, setPage] = useState(0);
-  const [flipped, setFlipped] = useState<string | null>(null);
-  const [dragId, setDragId] = useState<string | null>(null);
   const search = useSearchParams();
+  const [flipped, setFlipped] = useState<string | null>(() => search.get("card"));
+  const [dragId, setDragId] = useState<string | null>(null);
   const owned = bench.owned;
   const seen = new Set(bench.seenCardIds ?? []);
-
-  useEffect(() => {
-    const focus = search.get("card");
-    if (focus) setFlipped(focus);
-  }, [search]);
 
   const rotting = rottingDomain(progress.completedLessons, progress.lastSubject);
   const hunt = huntCards(rotting.id);

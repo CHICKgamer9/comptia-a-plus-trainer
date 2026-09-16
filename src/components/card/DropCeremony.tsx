@@ -8,27 +8,20 @@ import { TicketCard } from "./TicketCard";
 export function DropCeremony() {
   const { bench, acknowledgePrint } = useProgress();
   const pending = bench.pendingPrints?.[0];
-  const [phase, setPhase] = useState<"idle" | "slide" | "stamp" | "ink" | "draw" | "ready">("idle");
+  const printKey = pending ? `${pending.cardId}:${pending.printIndex}:${pending.source}` : "";
+  const [readyKey, setReadyKey] = useState("");
 
   useEffect(() => {
-    if (!pending) {
-      setPhase("idle");
-      return;
-    }
-    setPhase("slide");
-    const timers = [
-      window.setTimeout(() => setPhase("stamp"), 420),
-      window.setTimeout(() => setPhase("ink"), 820),
-      window.setTimeout(() => setPhase("draw"), 1180),
-      window.setTimeout(() => setPhase("ready"), 1680),
-    ];
-    return () => timers.forEach((id) => window.clearTimeout(id));
-  }, [pending?.cardId, pending?.printIndex, pending?.source]);
+    if (!printKey) return;
+    const timer = window.setTimeout(() => setReadyKey(printKey), 1680);
+    return () => window.clearTimeout(timer);
+  }, [printKey]);
 
   if (!pending) return null;
   const card = getBenchCard(pending.cardId);
   if (!card) return null;
   const owned = bench.owned.find((row) => row.cardId === pending.cardId);
+  const ready = readyKey === printKey;
 
   return (
     <div className="drop-ceremony" role="dialog" aria-label="Ticket printed">
@@ -41,25 +34,21 @@ export function DropCeremony() {
         </div>
         <p className="drop-printer-label">THERMAL · TICKETBENCH</p>
       </div>
-      <div className={`drop-ticket is-${phase} ${pending.dust ? "is-dust" : ""}`}>
-        {phase === "slide" ? (
-          <div className="drop-blank" />
-        ) : (
-          <TicketCard
-            card={card}
-            owned={owned}
-            size="hero"
-            draw={phase === "draw" || phase === "ready"}
-            interactive={phase === "ready"}
-            showBack={false}
-          />
-        )}
+      <div className={`drop-ticket is-ready ${pending.dust ? "is-dust" : ""}`}>
+        <TicketCard
+          card={card}
+          owned={owned}
+          size="hero"
+          draw
+          interactive={ready}
+          showBack={false}
+        />
         {pending.dust ? <div className="drop-dust-stamp">DUST</div> : null}
       </div>
       <button
         type="button"
         className="drop-slot"
-        disabled={phase !== "ready"}
+        disabled={!ready}
         onClick={() => acknowledgePrint()}
       >
         Slot in binder

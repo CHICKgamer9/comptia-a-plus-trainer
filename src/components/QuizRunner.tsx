@@ -49,7 +49,6 @@ export function QuizRunner({
   const [log, setLog] = useState<{ pick: number; ok: boolean }[]>([]);
   const [deck, setDeck] = useState(() => buildDeck(quiz, preset ?? "full"));
   const [remain, setRemain] = useState(preset === "timed" ? 20 * 60 : 0);
-  scoreRef.current = score;
   const best = quizBest(quiz.id);
   const question = deck[index];
   const locked = picked !== null;
@@ -69,23 +68,25 @@ export function QuizRunner({
   useEffect(() => {
     if (preset !== "timed" || !started || done) return;
     const id = window.setInterval(() => {
-      setRemain((value) => (value <= 1 ? 0 : value - 1));
+      setRemain((value) => {
+        if (value > 1) return value - 1;
+        window.clearInterval(id);
+        window.setTimeout(() => finish(scoreRef.current), 0);
+        return 0;
+      });
     }, 1000);
     return () => window.clearInterval(id);
   }, [preset, started, done]);
-
-  useEffect(() => {
-    if (preset === "timed" && started && !done && remain === 0) {
-      finish(scoreRef.current);
-    }
-  }, [preset, started, done, remain]);
 
   function choose(choiceIndex: number) {
     if (locked || !question) return;
     setPicked(choiceIndex);
     const ok = choiceIndex === question.correctIndex;
     recordQuizAnswer(question.id, ok);
-    if (ok) setScore((value) => value + 1);
+    if (ok) {
+      scoreRef.current += 1;
+      setScore(scoreRef.current);
+    }
     setLog((value) => [...value, { pick: choiceIndex, ok }]);
   }
 

@@ -322,7 +322,7 @@ const ART: Record<string, (draw?: boolean) => ReactNode> = {
   "g-binary-subnet": (draw) => (
     <Frame draw={draw}>
       <path d="M20 80h120" {...ink()} />
-      {[20, 60, 100, 140].map((x, i) => (
+      {[20, 60, 100, 140].map((x) => (
         <path key={x} d={`M${x} 72v16`} {...ink()} />
       ))}
       <text x="40" y="64" className="fill-current text-[8px]">
