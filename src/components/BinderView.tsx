@@ -43,6 +43,7 @@ export function BinderView() {
   const search = useSearchParams();
   const [flipped, setFlipped] = useState<string | null>(() => search.get("card"));
   const [dragId, setDragId] = useState<string | null>(null);
+  const [armedBay, setArmedBay] = useState<number | null>(null);
   const owned = bench.owned;
   const seen = new Set(bench.seenCardIds ?? []);
 
@@ -150,8 +151,17 @@ export function BinderView() {
                       key={`hunt-${huntGhost.id}`}
                       card={huntGhost}
                       owned={ownedHunt}
-                      flipped={flipped === huntGhost.id}
-                      onFlip={() => setFlipped((id) => (id === huntGhost.id ? null : huntGhost.id))}
+                      flipped={false}
+                      onFlip={() => {
+                        if (armedBay !== null) {
+                          const next = [...loadout] as typeof loadout;
+                          next[armedBay] = huntGhost.id;
+                          setLoadout(next);
+                          setArmedBay(null);
+                          return;
+                        }
+                        setFlipped(huntGhost.id);
+                      }}
                       onNote={setFieldNote}
                       onReview={reviewCard}
                       dragId={dragId}
@@ -185,8 +195,17 @@ export function BinderView() {
                   key={card.id}
                   card={card}
                   owned={row}
-                  flipped={flipped === card.id}
-                  onFlip={() => setFlipped((id) => (id === card.id ? null : card.id))}
+                  flipped={false}
+                  onFlip={() => {
+                    if (armedBay !== null) {
+                      const next = [...loadout] as typeof loadout;
+                      next[armedBay] = card.id;
+                      setLoadout(next);
+                      setArmedBay(null);
+                      return;
+                    }
+                    setFlipped((id) => (id === card.id ? null : card.id));
+                  }}
                   onNote={setFieldNote}
                   onReview={reviewCard}
                   dragId={dragId}
@@ -212,7 +231,7 @@ export function BinderView() {
 
       <section className="binder-loadout">
         <h2>Lab loadout</h2>
-        <p>Drag a printed card onto a bay. Flip the card to review — equip only happens here.</p>
+        <p>Drag a printed card onto a bay, or tap a bay then a card. Flip to review — equip only happens here.</p>
         <div className="loadout-mat">
           {loadout.map((id, index) => {
             const card = id ? getBenchCard(id) : undefined;
@@ -220,7 +239,11 @@ export function BinderView() {
             return (
               <div
                 key={`bay-${index}`}
-                className={cn("loadout-bay", !card && "is-empty")}
+                className={cn("loadout-bay", !card && "is-empty", armedBay === index && "is-armed")}
+                onClick={() => {
+                  if (card) return;
+                  setArmedBay((current) => (current === index ? null : index));
+                }}
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={(event) => {
                   event.preventDefault();
@@ -232,6 +255,7 @@ export function BinderView() {
                   next[index] = nextId;
                   setLoadout(next);
                   setDragId(null);
+                  setArmedBay(null);
                 }}
               >
                 {card && row ? (
@@ -307,6 +331,57 @@ export function BinderView() {
           })}
         </ul>
       </section>
+
+      {flipped ? (
+        <InspectCard
+          cardId={flipped}
+          owned={owned.find((row) => row.cardId === flipped)}
+          onClose={() => setFlipped(null)}
+          onNote={setFieldNote}
+          onReview={reviewCard}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function InspectCard({
+  cardId,
+  owned,
+  onClose,
+  onNote,
+  onReview,
+}: {
+  cardId: string;
+  owned?: OwnedCard;
+  onClose: () => void;
+  onNote: (cardId: string, note: string) => void;
+  onReview: (cardId: string, grade: "again" | "hard" | "easy") => void;
+}) {
+  const card = getBenchCard(cardId);
+  const [face, setFace] = useState(false);
+  if (!card || !owned) return null;
+  return (
+    <div className="binder-inspect" role="dialog" aria-label={card.title}>
+      <button type="button" className="binder-inspect-scrim" onClick={onClose} aria-label="Close card" />
+      <TicketCard
+        card={card}
+        owned={owned}
+        flipped={face}
+        onFlip={() => setFace((value) => !value)}
+        size="hero"
+        onFieldNote={(note) => onNote(card.id, note)}
+        reviewSlot={
+          <div className="ticket-review">
+            {(["again", "hard", "easy"] as const).map((grade) => (
+              <button key={grade} type="button" onClick={() => onReview(card.id, grade)}>
+                {grade}
+              </button>
+            ))}
+            <span>{dueLabel(owned.dueAt)}</span>
+          </div>
+        }
+      />
     </div>
   );
 }
@@ -314,19 +389,16 @@ export function BinderView() {
 function Pocket({
   card,
   owned,
-  flipped,
   onFlip,
-  onNote,
-  onReview,
   dragId,
   setDragId,
 }: {
   card: NonNullable<ReturnType<typeof getBenchCard>>;
   owned: OwnedCard;
-  flipped: boolean;
+  flipped?: boolean;
   onFlip: () => void;
-  onNote: (cardId: string, note: string) => void;
-  onReview: (cardId: string, grade: "again" | "hard" | "easy") => void;
+  onNote?: (cardId: string, note: string) => void;
+  onReview?: (cardId: string, grade: "again" | "hard" | "easy") => void;
   dragId: string | null;
   setDragId: (id: string | null) => void;
 }) {
@@ -343,21 +415,10 @@ function Pocket({
       <TicketCard
         card={card}
         owned={owned}
-        flipped={flipped}
         onFlip={onFlip}
         size="pocket"
+        showBack={false}
         dragging={dragId === card.id}
-        onFieldNote={(note) => onNote(card.id, note)}
-        reviewSlot={
-          <div className="ticket-review">
-            {(["again", "hard", "easy"] as const).map((grade) => (
-              <button key={grade} type="button" onClick={() => onReview(card.id, grade)}>
-                {grade}
-              </button>
-            ))}
-            <span>{dueLabel(owned.dueAt)}</span>
-          </div>
-        }
       />
     </div>
   );

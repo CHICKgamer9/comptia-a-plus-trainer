@@ -711,3 +711,29 @@ body {
 .fusion-craft button:disabled {
   opacity: 0.4;
 }
+
+.loadout-bay.is-armed {
+  border-style: solid;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgb(45 212 191 / 0.25);
+}
+
+.binder-inspect {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.binder-inspect-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(4 6 9 / 0.78);
+}
+
+.binder-inspect .ticket-card-wrap {
+  position: relative;
+  z-index: 1;
+}
