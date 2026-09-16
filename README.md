@@ -1,8 +1,8 @@
 # TicketBench
 
-A **multi-subject** study bench: **Tech (CompTIA A+)** plus Maths, Science, History, English, Geography, Coding, Business, Health, Music, Art, Civics, Languages, Logic, and Digital citizenship. Each hub has **at least 60 interactive lesson paths** (concept → try-this → why), one-problem quizzes, Listen / Auto-read, and shared XP. **Languages (speak)** is a separate Duolingo-style area for **French, Indonesian, and Icelandic** (`/lingo`) — 60 bite-sized lessons each — and does not replace the linguistics catalog. Tech still has the AI helpdesk lab and an honest Core 1 / Core 2 readiness meter. **Brain Gym** is a separate daily 2-hour puzzle desk plus a **phone feed** (short-form challenge cards instead of empty scrolling) — not a school subject.
+A **multi-subject** study bench: **Tech (CompTIA A+)** plus Maths, Science, History, English, Geography, Coding, Business, Health, Music, Art, Civics, Languages, Logic, and Digital citizenship. Each hub has **at least 60 interactive lesson paths** (concept → try-this → why) plus a large factory volume pass, **three hands-on projects**, one-problem quizzes, Listen / Auto-read, and shared XP. **Binder** is a knowledge-card layer (not stickers): correct work drops cards you slot into a Home chassis. **Languages (speak)** is a separate Duolingo-style area for **French, Indonesian, and Icelandic** (`/lingo`) — 60 bite-sized lessons each — and does not replace the linguistics catalog. Tech still has the AI helpdesk lab and an honest Core 1 / Core 2 readiness meter. **Brain Gym** is a separate daily 2-hour puzzle desk plus a **phone feed** (short-form challenge cards instead of empty scrolling) — not a school subject. **Projects** sit beside Learn / Quizzes / Lab / Brain.
 
-This is **not** an official CompTIA product, school curriculum, Brilliant product, or Duolingo product, and is not affiliated with, endorsed by, or sponsored by CompTIA **or Brilliant**. CompTIA A+® is a registered trademark of CompTIA. AI tickets are study aids, not exam dumps. School paths use Australian-friendly hooks where they are natural; they are not a syllabus. Brain Gym is not an IQ test. Language courses are beginner practice, not a fluency certificate.
+This is **not** an official CompTIA product, school curriculum, Brilliant product, or Duolingo product, and is not affiliated with, endorsed by, or sponsored by CompTIA **or Brilliant**. CompTIA A+® is a registered trademark of CompTIA. AI tickets are study aids, not exam dumps. School paths and projects use Australian-friendly hooks where they are natural; they are not a syllabus. Brain Gym is not an IQ test. Language courses are beginner practice, not a fluency certificate.
 
 ## Run locally
 
@@ -40,44 +40,47 @@ Generation is rate-limited (8 requests / 10 minutes / IP) and the Generate butto
 
 ## What you can do
 
-- **Home** — grouped subject cards, today’s path (remembers last subject), Sydney streak, level, Core 1 / Core 2 glance, Languages + Brain Gym cards
-- **Learn** — `/learn/[subject]/[path]`. Each hub is a searchable catalog with topic filters. Tech keeps nine A+ domains exam-gated; extra Tech paths have **no** `exam` tag so readiness stays on the original cores. Brain Gym is linked from Learn but is **not** a SubjectId
+- **Home** — grouped subject cards, today’s path (remembers last subject), Bench chassis, Sydney streak, level, Core 1 / Core 2 glance, Languages + Brain Gym + Projects cards
+- **Learn** — `/learn/[subject]/[path]`. Each hub is a searchable catalog with topic filters. Tech keeps nine A+ domains exam-gated; extra Tech paths have **no** `exam` tag so readiness stays on the original cores. Brain Gym is linked from Learn but is **not** a SubjectId. Subject cards include **Try a project**
+- **Projects** (`/projects`, `/projects/[id]`) — hands-on builds in every hub (3 each, 45 total). Filter with `?hub=maths`. Steps + done-when checklist; completion writes `projectChecks` / `completedProjects` on the same local progress object and awards the project’s XP. Tech’s helpdesk-reply project uses this UI, then points at Lab
+- **Binder** (`/binder`) — knowledge cards (components, symptoms, tools, procedures, gotchas, crests, glue). Flip for the back face. Equip chassis slots. Fusion spends extra copies only. Lab loadout of 3 cards
 - **Languages (speak)** (`/lingo`) — French, Indonesian, and Icelandic skill trees (units → skills → lessons). Vocab tap, listen/read meaning, word order, match pairs, type translation (accents optional), honor-system “I said it”. **60 lessons per language**, static in-repo curriculum, no paid translation API. Progress is additive on `progress.lingo`. The `/learn/languages` hub still has the 60 linguistics paths plus a banner into `/lingo`
 - **Brain Gym** (`/brain`) — challenge mode. **Phone feed** at `/brain/feed` is a full-viewport, mobile-first scroll of mixed packs (new riddles/trivia/emoji/odd-one-out plus the original desk) hashed from the Australia/Sydney date. Skip costs a little XP so it is not empty scrolling. `/brain/today` still builds a ~**120 minute** playlist; `/brain/browse` lazy-loads packs; `/brain/play/[id]` is the player (typed mini crosswords, word reveal, cryptograms, memory flash, choices)
 - **Listen** — speaker control in every lesson / quiz / lab / challenge / Brain Gym player. Language lessons try `fr-FR` / `id-ID` / `is-IS` when the browser has a voice (Icelandic and Indonesian TTS are often missing — text + phonetic stay). **Auto-read** speaks each new prompt (not the four choices). **Choices** reads options on demand. Stop cancels speech. Browser Web Speech API (no TTS key). Preference is stored with progress
 - **Quizzes** — one problem at a time (practice or exam drill), filterable by subject, search, first 48 shown until you narrow
-- **Lab** — Tech only: generate a ticket. Investigate gather → tools → cause → fix
+- **Lab** — Tech only: generate a ticket. Investigate gather → tools → cause → fix. A full Binder loadout biases the ticket and adds XP on close
+- **Desk Shift** — 8 / 15 / 25 minutes from Home. Header pill while open. Close the desk → Night Pack (no “keep going?” nag)
 - **Challenges** — authored cafe-till / bushfire / Federation-floor runs under `/play/[id]` (also linked from the subject hub)
 - **Ready** (`/ready`) — A+ exam-readiness rubric (unchanged gates)
-- **Sheets** — A+ ports/RAID plus pocket Maths / Science / History tables
+- **Sheets** — A+ ports/RAID plus pocket Maths / Science / History tables; Binder backs deep-link from matching sheets
 
-Progress is `localStorage` key `ticketbench-progress-v1` (same as before; new fields are additive: `autoRead`, `lastSubject`, `brain`, `brain.feed`, `lingo`). Existing A+ lesson and quiz IDs are unchanged, so Core progress is not wiped. Generated tickets: `ticketbench-tickets-v1`. Reset from the dashboard.
+Progress is `localStorage` key `ticketbench-progress-v1` (same as before; new fields are additive: `autoRead`, `lastSubject`, `brain`, `brain.feed`, `lingo`, `projectChecks`, `completedProjects`, `bench`). Existing A+ lesson and quiz IDs are unchanged, so Core progress is not wiped. Generated tickets: `ticketbench-tickets-v1`. Reset from the dashboard wipes the Binder too.
 
 Old `/learn/mobile-devices` URLs redirect to `/learn/tech/mobile-devices`.
 
 ## Path count per subject
 
-Hard floor: **60 distinct interactive paths in every hub.** 15 subjects × 60 = 900 minimum. Current totals (hand-authored originals + factory seeds):
+Hard floor: **60 distinct interactive paths in every hub.** Extra factory seeds (`scripts/topics/extra/`, including the `more/` balance pass) add **1,799** lessons. Before volume: **901**. After: **2,700**. Every major hub is topped to **180** so coverage is complete, not just past the 1,400 floor.
 
 | Subject | Paths | Notes |
 | --- | --- | --- |
-| Tech | **60** | 9 original A+ domains (exam-gated) + 51 extra shop-craft paths (no exam tag) |
-| Maths | **61** | 5 original + 56 factory |
-| Science | **60** | 5 original + 55 factory |
-| History | **60** | 5 original + 55 factory |
-| English | **60** | Literacy / sentences / reading moves |
-| Geography | **60** | Maps, climate, cities, Country |
-| Coding | **60** | Variables, loops, bugs, the web |
-| Business | **60** | Prices, tax, work, small enterprise |
-| Health | **60** | Movement, food, sleep, first aid |
-| Music | **60** | Beat, pitch, texture, listening |
-| Art | **60** | Seeing, colour, layout |
-| Civics | **60** | Rules, parliaments, rights, votes |
-| Languages | **60** | How languages work (intro, not fluency). Speak courses are extra, under `/lingo` |
-| Logic | **60** | Arguments, fallacies, evidence |
-| Digital | **60** | Privacy, scams, feeds, sharing |
+| Tech | **180** | 9 original A+ domains (exam-gated) + 51 shop-craft + 120 volume (no exam tag) |
+| Maths | **180** | 5 original + 56 factory + 119 volume |
+| Science | **180** | 5 original + 55 factory + 120 volume |
+| History | **180** | 5 original + 55 factory + 120 volume |
+| English | **180** | 60 factory + 120 volume |
+| Geography | **180** | 60 factory + 120 volume |
+| Coding | **180** | 60 factory + 120 volume |
+| Business | **180** | 60 factory + 120 volume |
+| Health | **180** | 60 factory + 120 volume |
+| Music | **180** | 60 factory + 120 volume |
+| Art | **180** | 60 factory + 120 volume |
+| Civics | **180** | 60 factory + 120 volume |
+| Languages | **180** | 60 factory + 120 volume. Speak courses are extra, under `/lingo` |
+| Logic | **180** | 60 factory + 120 volume |
+| Digital | **180** | 60 factory + 120 volume |
 
-**None under 60.** Grand total **901** paths.
+**None under 60.** Grand total **2,700** paths (**+1,799** new). About one in five volume lessons ships a captioned teaching diagram.
 
 Browse by topic chips and search inside each hub so 60+ stays usable.
 
@@ -158,10 +161,31 @@ Crossword UX: tap a cell, type a letter or use the on-screen letter pad, arrow k
 | Language step correct (first / repeat / wrong) | 10 / 4 / 2 |
 | Language “I said it” (first) | 8 |
 | Language lesson complete | 50 |
+| Project complete (first time) | the project’s `xp` (typically 90 / 120 / 150) |
+| Lab close with 3-card loadout | +20 |
 
 Levels: Spark → Scout → Pathfinder → Specialist → Scholar → Contender → Polymath → Mastery.
 
 Daily streak uses the **Australia/Sydney** calendar date, not the browser time zone.
+
+## Binder (knowledge cards)
+
+Cards are parts, symptoms, tools, procedures — not stickers. Catalog: `src/content/bench-cards.ts` (asserted ≥40 cards and ≥5 fusion recipes). Owned state lives on `progress.bench` in the same localStorage object.
+
+**Drops (never on skip):**
+
+| Event | Drop |
+| --- | --- |
+| Learn bite correct | 60% common/uncommon tagged to the path |
+| First wrong on a concept | 100% gotcha once; replay from the Binder |
+| Brain correct | 40% from the category; skip (−XP) never drops |
+| Lab ticket closed | 1 symptom/procedure + 30% tool |
+| Domain lesson done + quiz ≥80% | 1 crest (exam domains that have a crest card) |
+| Desk Shift ends | Night Pack: 3 cards (1 weak-spot + 2 session/common). Early close with ≥1 card → 2. Early close with 0 cards → no pack. |
+
+Duplicates: 2nd copy is dust; 3rd copy levels the card (subtitle evolves) and resets the extra. Fusion spends dust only — a unique never goes below 1. No shop, no IAP.
+
+**Add a card:** append a `BenchCard` in `src/content/bench-cards.ts` (`body` is the back face). Optional `slot` for the Home chassis, `sheetId` to deep-link from `/reference/[sheetId]`, `tags` so path/lab/brain drops can find it. Add a `FusionRecipe` if it should combine. Line-art is type-based in `KnowledgeCard`; `artHint` documents the teaching sketch.
 
 ## Exam-readiness rubric (Tech / A+ only)
 
@@ -180,6 +204,8 @@ Extra Tech paths are additive study; they do not change those gates. If those ga
 
 **Factory (preferred at this scale):** add a unique seed row in `scripts/topics/<subject>.mjs`, then `npm run catalog`. Seeds must not reuse reserved original IDs (`mobile-devices`, `number-sense`, …). Extra Tech seeds must omit `exam`.
 
+**Factory volume (same schema):** add a unique `vx-` or `vy-` seed in `scripts/topics/extra/<subject>.mjs` (first pass) or `scripts/topics/extra/more/<subject>.mjs` (balance pass) — `pack()` rows: id, cluster, title, fact, trap, move, extra — then `npm run catalog`. Floor for extra seeds is **1,400** (`VOLUME_FLOOR`). A later balance pass tops every hub to **180** paths. About one in five volume lessons also gets a captioned `ContentFigure` diagram.
+
 **Hand-authored (originals):**
 
 1. Add a `Domain` with `subject` in `src/content/domains.ts` or `domains-school.ts`
@@ -187,7 +213,51 @@ Extra Tech paths are additive study; they do not change those gates. If those ga
 3. Add checks in `src/content/path-checks.ts` or `path-checks-school.ts` (`afterHeading` must match a section heading)
 4. `lessonToPath` compiles intro + sections + checks + recap
 
-Client UI reads domain metadata from `@/content/registry` (no lesson/quiz/check JSON). Lab tickets stay AI-generated (`src/lib/ai-tickets.ts`). Subject challenges are static in `src/content/challenges.ts`. Brain Gym packs are generated JSON under `src/content/brain/packs/`. Language courses are generated JSON under `src/content/lingo/packs/`.
+Client UI reads domain metadata from `@/content/registry` (no lesson/quiz/check JSON). Lab tickets stay AI-generated (`src/lib/ai-tickets.ts`). Subject challenges are static in `src/content/challenges.ts`. Brain Gym packs are generated JSON under `src/content/brain/packs/`. Language courses are generated JSON under `src/content/lingo/packs/`. Hands-on projects live in `src/content/projects/` (`stem.ts`, `world.ts`, `make-life.ts`) and are listed from `/projects`.
+
+## Adding a project
+
+1. Add a `Project` in the matching `src/content/projects/*.ts` file (`id`, `subject`, `title`, `blurb`, `goal`, `materials`, ordered `steps`, `checklist`, optional `pathIds`, `difficulty`, `minutes`, `xp`)
+2. Keep Australian English where the rest of the hub does. Floor is **3 real projects per subject** (asserted at import)
+3. Optional `pathIds` should be existing domain ids so a finished path can suggest the project
+4. Optional `figure` on the project or a `figure` on a step (`diagramFigure` / `imageFigure` / `videoFigure` from `src/content/figures.ts`)
+
+## Adding a figure (paths and projects)
+
+Teaching media is a `ContentFigure` (`kind`: `diagram` | `image` | `video`) with **alt** and **caption**. Colour is never the only legend — diagrams use labels, ticks, solid vs dashed.
+
+**Where it hangs**
+
+- `Lesson.figure` — opening beat of a path
+- `LessonSection.figure` — that section’s hook beat (`lessonToPath` copies it)
+- `Project.figure` / `ProjectStep.figure` — rendered by `TeachFigure`
+
+If a path has no authored figure, `lessonToPath` still attaches a captioned diagram from the domain map or `diagramForCluster(cluster, subject)` so factory paths are not blank.
+
+**How to add one**
+
+```ts
+import { diagramFigure, imageFigure, videoFigure } from "@/content/figures";
+
+figure: diagramFigure(
+  "rear-io", // see TeachDiagramId in src/content/types.ts
+  "Alt text that works without the drawing.",
+  "Caption: what to notice. Labels in the drawing are the legend.",
+)
+
+figure: imageFigure("/figures/my-port-photo.webp", "Alt…", "Caption…") // file in public/figures/
+
+figure: videoFigure(
+  "https://www.youtube.com/watch?v=AYdF7b3nMto",
+  "Alt / iframe title",
+  "Caption. Optional extra — the path still stands if they skip it.",
+  "Credit · no autoplay",
+)
+```
+
+New labelled SVGs go in `src/components/teach-diagrams.tsx` (add the id to `TeachDiagramId`). Prefer that over stock photos. Embeds use youtube-nocookie / Vimeo, `loading="lazy"`, **no autoplay**. Raster images: keep them small, `loading="lazy"`.
+
+Sample set already wired: Core 1 mobile / networking / hardware, Core 2 OS / security, Maths number-sense, Science ecosystems, plus Projects (cable map, Wi-Fi map, budget, room scale, food web, study timer, fact-check, suburb map, 4-bar, privacy audit).
 
 ## Stack
 

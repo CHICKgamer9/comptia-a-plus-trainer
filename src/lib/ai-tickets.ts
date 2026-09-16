@@ -34,17 +34,25 @@ function resolveFilters(input: GenerateRequest) {
   };
 }
 
-function promptFor(filters: ReturnType<typeof resolveFilters>, seed: string) {
+function promptFor(
+  filters: ReturnType<typeof resolveFilters>,
+  seed: string,
+  loadoutHint?: string,
+) {
   const hardHint =
     filters.difficulty === "hard"
       ? "Include a plausible red herring (recent change that is unrelated). The correct path still follows CompTIA's identify → theory → test → plan → verify → document loop."
       : "Keep the root cause singular and fair. Distractors should be tempting but clearly worse methodology.";
+  const loadoutLine = loadoutHint
+    ? `The tech equipped these knowledge cards as a loadout: ${loadoutHint}. Bias the ticket toward those parts, symptoms, or tools when it still stays a fair original ticket.`
+    : "";
   return `Create one original CompTIA A+ style helpdesk ticket for study practice.
 
 Exam: ${filters.exam} (${filters.exam === "220-1101" ? "Core 1" : "Core 2"})
 Theme: ${filters.theme} (${THEME_HINT[filters.theme]})
 Difficulty: ${filters.difficulty}
 Variety seed (do not mention in the ticket): ${seed}
+${loadoutLine}
 
 Rules:
 - Write like a real ticket, not an exam dump of official objectives.
@@ -60,7 +68,11 @@ Rules:
 ${hardHint}`;
 }
 
-async function callModel(filters: ReturnType<typeof resolveFilters>, seed: string) {
+async function callModel(
+  filters: ReturnType<typeof resolveFilters>,
+  seed: string,
+  loadoutHint?: string,
+) {
   const result = await generateText({
     model: MODEL,
     output: Output.object({
@@ -68,7 +80,7 @@ async function callModel(filters: ReturnType<typeof resolveFilters>, seed: strin
       name: "APlusTicket",
       description: "A four-step CompTIA A+ helpdesk troubleshooting ticket",
     }),
-    prompt: promptFor(filters, seed),
+    prompt: promptFor(filters, seed, loadoutHint),
   });
   if (!result.output) {
     throw new Error("Model returned no object");
@@ -102,10 +114,10 @@ export async function generateTicket(input: GenerateRequest): Promise<{
   }
 
   try {
-    return { ticket: await callModel(filters, seed), source: "ai" };
+    return { ticket: await callModel(filters, seed, input.loadoutHint), source: "ai" };
   } catch {
     try {
-      return { ticket: await callModel(filters, `${seed}-retry`), source: "ai" };
+      return { ticket: await callModel(filters, `${seed}-retry`, input.loadoutHint), source: "ai" };
     } catch {
       return {
         ticket: fallbackTicket(),

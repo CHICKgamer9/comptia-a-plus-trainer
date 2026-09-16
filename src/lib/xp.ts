@@ -22,14 +22,16 @@ export const XP = {
   ticketSolid: 20,
   brainCorrect: 10,
   brainWrong: 2,
+  brainSkip: -2,
   brainCrossword: 40,
   brainDayComplete: 80,
-  brainSkip: -2,
   lingoCorrectFirst: 10,
   lingoCorrectRepeat: 4,
   lingoWrong: 2,
   lingoLesson: 50,
   lingoSpeak: 8,
+  projectDefault: 120,
+  labLoadout: 20,
 } as const;
 
 export function levelForXp(xp: number) {

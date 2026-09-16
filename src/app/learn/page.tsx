@@ -18,6 +18,16 @@ export default function LearnPage() {
         inside a subject. Tech keeps Core 1 and Core 2 exam-gated; extra Tech paths have no exam tag.
       </p>
       <Link
+        href="/projects"
+        className="mb-4 block rounded-3xl border border-border bg-surface p-5 text-center active:border-accent/50"
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Hands-on</p>
+        <p className="mt-1 text-lg font-semibold">Projects · every subject hub</p>
+        <p className="mt-1 text-sm text-muted">
+          Cable maps, weekly budgets, fact-checks, phrasebooks. Shared XP. Separate from Lab tickets.
+        </p>
+      </Link>
+      <Link
         href="/lingo"
         className="mb-4 block rounded-3xl border border-accent/30 bg-surface p-5 text-center active:border-accent/50"
       >

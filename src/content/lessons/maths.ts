@@ -1,4 +1,5 @@
 import type { Lesson } from "../types";
+import { diagramFigure } from "../figures";
 
 export const mathsLessons: Lesson[] = [
   {
@@ -8,6 +9,11 @@ export const mathsLessons: Lesson[] = [
     minutes: 12,
     intro:
       "Number sense is not speed-times-tables. It is knowing whether 47 × 19 should land near 900 or near 9,000 before you touch a calculator. Estimation, place value, and order of operations are the same skill: keep the digits in the rooms they belong.",
+    figure: diagramFigure(
+      "number-line",
+      "Number line from 0 to 4 with a mark at one half, labelled as the same tick as 0.5.",
+      "Places are rooms. 1/2 and 0.5 share a tick; 1/2 + 1/3 is not “2/5”.",
+    ),
     sections: [
       {
         heading: "Place value is an address",

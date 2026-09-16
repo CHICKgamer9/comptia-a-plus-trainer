@@ -8,6 +8,7 @@ import { nextDomainPreferring } from "./CoursePath";
 import { examReadiness, overallReadiness } from "@/lib/readiness";
 import { Disclaimer, ProgressBar } from "./ui";
 import { cn } from "@/lib/cn";
+import { BenchChassis } from "./BenchChassis";
 
 export function DashboardHome() {
   const { ready, stats, progress, resetProgress } = useProgress();
@@ -25,8 +26,8 @@ export function DashboardHome() {
           {upcoming ? upcoming.title : "Pick a subject"}
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">
-          Interactive bites across Tech (A+), STEM, world, make, and life hubs. Try a beat, then read
-          why. Not a textbook dump — and not CompTIA, a school, or Brilliant.
+          Interactive bites across Tech (A+), STEM, world, make, and life hubs. Try a beat, a
+          project, then read why. Not a textbook dump — and not CompTIA, a school, or Brilliant.
         </p>
       </div>
 
@@ -34,6 +35,10 @@ export function DashboardHome() {
         <StatPill label="Streak" value={`${stats.streak}d`} hint="Sydney calendar" />
         <StatPill label="Level" value={stats.levelTitle} hint={`${stats.xp} XP`} />
         <StatPill label="A+ ready" value={`${overall.percent}%`} hint={overall.status} />
+      </div>
+
+      <div className="mb-4">
+        <BenchChassis continueHref={upcoming ? pathHref(upcoming) : "/learn"} />
       </div>
 
       <div className="mb-4 rounded-3xl border border-accent/30 bg-gradient-to-br from-accent-dim/80 to-surface p-6">
@@ -106,6 +111,16 @@ export function DashboardHome() {
           </p>
         </Link>
         <Link
+          href="/projects"
+          className="rounded-3xl border border-accent/30 bg-surface p-4 hover:border-accent/50"
+        >
+          <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Projects</p>
+          <p className="mt-1 text-sm font-medium">Hands-on builds in every subject hub</p>
+          <p className="mt-1 text-xs text-muted">
+            Cable maps, budgets, food webs, phrasebooks. Tick a checklist — XP stays on this device.
+          </p>
+        </Link>
+        <Link
           href="/lab"
           className="rounded-3xl border border-border bg-surface p-4 active:border-accent/40 sm:col-span-2"
         >
@@ -131,7 +146,7 @@ export function DashboardHome() {
         <button
           type="button"
           onClick={() => {
-            if (window.confirm("Reset all local progress and tickets on this device?")) {
+            if (window.confirm("Reset all local progress, tickets, and the Binder on this device?")) {
               resetProgress();
             }
           }}
@@ -141,8 +156,8 @@ export function DashboardHome() {
         </button>
       </div>
       <p className="mt-3 text-[11px] text-muted">
-        {stats.lessonsDone} paths finished · {stats.quizzesDone} quizzes · {stats.scenariosDone}{" "}
-        tickets/challenges
+        {stats.lessonsDone} paths finished · {stats.quizzesDone} quizzes · {stats.projectsDone}{" "}
+        projects · {stats.scenariosDone} tickets/challenges · {stats.cardsOwned} cards
       </p>
     </div>
   );

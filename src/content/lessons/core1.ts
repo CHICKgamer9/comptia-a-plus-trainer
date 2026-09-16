@@ -1,4 +1,5 @@
 import type { Lesson } from "../types";
+import { diagramFigure, videoFigure } from "../figures";
 
 export const core1Lessons: Lesson[] = [
   {
@@ -8,6 +9,11 @@ export const core1Lessons: Lesson[] = [
     minutes: 18,
     intro:
       "Mobile devices fail in predictable ways: a hinge, a battery, a dock pin, or a radio that will not associate. Learn the parts you can replace, the ports you will see on a ticket, and why “it charges but will not turn on” is a different problem from “it will not charge at all.”",
+    figure: diagramFigure(
+      "fru-laptop",
+      "Laptop broken into labelled field-replaceable units: lid and antennas, SODIMM, M.2 storage, and battery.",
+      "Name the FRU before you order. The lid often hides Wi-Fi antennas; the CPU is frequently soldered.",
+    ),
     sections: [
       {
         heading: "Think in replaceable parts",
@@ -35,6 +41,11 @@ export const core1Lessons: Lesson[] = [
           "A flaky dock is often a damaged USB-C receptacle on the laptop, not the dock itself. Wiggle test, then try a known-good cable.",
           "Legacy docks (proprietary barrel + pin) are model-specific. Do not force a connector.",
         ],
+        figure: diagramFigure(
+          "usb-c-roles",
+          "Three USB-C jobs side by side: charge only, DisplayPort Alt Mode, and Thunderbolt.",
+          "The hole looks the same. The spec sheet says whether video and data actually ride along.",
+        ),
       },
       {
         heading: "Phones and tablets: batteries, accessories, and sync",
@@ -89,6 +100,11 @@ export const core1Lessons: Lesson[] = [
     minutes: 22,
     intro:
       "Networking on A+ is not a CCNA. It is the practical layer: which port, which cable, which SOHO box, and which command proves the path. If you can read an ipconfig, explain DHCP vs. APIPA, and pick the right port number under pressure, you are already ahead of most first-attempt testers.",
+    figure: diagramFigure(
+      "osi-where",
+      "Four stacked layers showing where a ticket lives: app/DNS, ports, IP/router, and cable/NIC.",
+      "You do not recite seven OSI names on every ticket. You ask which layer still works.",
+    ),
     sections: [
       {
         heading: "A mental model, not a memorized OSI poster",
@@ -135,6 +151,11 @@ export const core1Lessons: Lesson[] = [
           "PoE (802.3af/at/bt) powers phones, cameras, and APs over the same drop. A dead AP with a good cable may be a dead PoE injector or switch budget.",
           "NAT lets many private hosts share one public IP. CGNAT on a carrier can break inbound port-forwards — that is not your LAN firewall being “haunted.”",
         ],
+        figure: diagramFigure(
+          "soho-topo",
+          "Left-to-right SOHO path: ONT or modem, router, switch, then AP or PC, labelled WAN, NAT, LAN, host.",
+          "A consumer “router” is often three of these boxes in one. Ping in order: gateway, public IP, then a name.",
+        ),
       },
       {
         heading: "IPv4, IPv6, and the addresses that mean something",
@@ -170,6 +191,12 @@ export const core1Lessons: Lesson[] = [
           "A toner and probe find the other end of a drop. A cable tester checks pairs and splits. A loopback plug tests a NIC. A Wi-Fi analyzer shows channel overlap. A crimper and punch-down tool are how you make the cable in the first place (T568A vs T568B — pick one standard and stay consistent on both ends).",
           "On the host: ipconfig /all, ping, tracert, nslookup, netstat, and pathping. ping 127.0.0.1 tests the stack. ping the gateway tests L2/L3 on the LAN. ping a public IP tests WAN. nslookup tests DNS. Learn that order; it is a career, not just an exam trick.",
         ],
+        figure: videoFigure(
+          "https://www.youtube.com/watch?v=AYdF7b3nMto",
+          "Code.org animation of packets taking different router paths and being reassembled with TCP.",
+          "Optional 6-minute extra: packets, alternate routes, and why ping can succeed when a website fails. The path still stands if you skip the video.",
+          "Code.org · YouTube embed, no autoplay · not affiliated with CompTIA",
+        ),
       },
     ],
     keyTakeaways: [
@@ -194,6 +221,11 @@ export const core1Lessons: Lesson[] = [
           "Video: HDMI (audio + video, common on TVs and many PCs), DisplayPort (audio + video, common on business monitors, daisy-chain capable), DVI (digital, some analog via DVI-A/I), VGA (analog only, 15-pin, blue). Adapters cannot invent a signal the GPU port does not speak — a DisplayPort-to-HDMI passive dongle works when the GPU can output HDMI TMDS; an active adapter is needed in other cases.",
           "USB: Type-A (classic rectangle), Type-B (printers), Mini/Micro (legacy phones), Type-C (reversible). USB 2.0 is 480 Mbps. USB 3.x SuperSpeed starts at 5 Gbps and is usually blue or teal on Type-A. Thunderbolt 3/4 uses USB-C and can carry PCIe. A USB-C cable that only charges may lack SuperSpeed or Alt Mode wires — cables matter as much as ports.",
         ],
+        figure: diagramFigure(
+          "rear-io",
+          "Rear panel with labelled HDMI, DisplayPort, USB-A, USB-C, RJ45, and DC ports, plus power versus data notes.",
+          "Name the connector in writing. USB-C is not one capability — check whether that hole does video.",
+        ),
         table: {
           headers: ["Storage / power", "Looks like", "Use"],
           rows: [

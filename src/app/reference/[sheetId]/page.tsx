@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cheatsheets, getCheatsheet } from "@/content/cheatsheets";
+import { cardsForSheet } from "@/content/bench-cards";
 import { Card } from "@/components/ui";
 
 export function generateStaticParams() {
@@ -80,6 +81,26 @@ export default async function CheatsheetPage({
             <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-6">
               {sheet.notes.map((note) => (
                 <li key={note}>{note}</li>
+              ))}
+            </ul>
+          </Card>
+        ) : null}
+        {cardsForSheet(sheet.id).length ? (
+          <Card>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+              Binder backs
+            </p>
+            <p className="mt-2 text-sm text-muted">
+              These knowledge cards share this sheet. Open the Binder to flip them.
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+              {cardsForSheet(sheet.id).map((card) => (
+                <li key={card.id}>
+                  <Link href={`/binder?card=${card.id}`} className="text-accent hover:underline">
+                    {card.title}
+                  </Link>
+                  <span className="text-muted"> — {card.subtitle}</span>
+                </li>
               ))}
             </ul>
           </Card>

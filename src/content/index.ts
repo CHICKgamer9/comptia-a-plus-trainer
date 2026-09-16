@@ -26,6 +26,16 @@ import {
   pathHref,
   quizHref,
 } from "./registry";
+import {
+  PROJECT_COUNTS,
+  getProject,
+  getProjectsBySubject,
+  projectHref,
+  projects,
+  projectsHubHref,
+  suggestedProjectForPath,
+} from "./projects";
+import { diagramFigure, diagramForCluster, imageFigure, videoFigure } from "./figures";
 
 export {
   techDomains,
@@ -61,6 +71,18 @@ export {
   labThemeForDomain,
 };
 
+export {
+  projects,
+  getProject,
+  getProjectsBySubject,
+  projectHref,
+  projectsHubHref,
+  suggestedProjectForPath,
+  PROJECT_COUNTS,
+};
+
+export { diagramFigure, diagramForCluster, imageFigure, videoFigure };
+
 export { getCheatsheet };
 
 export const CONTENT_COUNTS = {
@@ -70,4 +92,6 @@ export const CONTENT_COUNTS = {
   questions: quizzes.reduce((sum, quiz) => sum + quiz.questions.length, 0),
   cheatsheets: cheatsheets.length,
   challenges: challenges.length,
+  projects: PROJECT_COUNTS.total,
+  projectsBySubject: PROJECT_COUNTS.bySubject,
 } as const;

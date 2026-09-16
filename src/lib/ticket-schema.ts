@@ -63,7 +63,8 @@ export const generateRequestSchema = z.object({
   exam: z.union([examEnum, z.literal("surprise")]).optional(),
   theme: z.union([themeEnum, z.literal("surprise")]).optional(),
   difficulty: z.union([difficultyEnum, z.literal("surprise")]).optional(),
-  forceStub: z.boolean().optional(),
+          forceStub: z.boolean().optional(),
+  loadoutHint: z.string().max(200).optional(),
 });
 
 export type GenerateRequest = z.infer<typeof generateRequestSchema>;

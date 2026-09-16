@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SUBJECT_GROUPS, SUBJECTS, getDomainsBySubject, getSubject } from "@/content/registry";
+import { getProjectsBySubject, projectsHubHref } from "@/content/projects";
 import type { SubjectId } from "@/content/types";
 
 export function SubjectPicker({
@@ -19,31 +20,39 @@ export function SubjectPicker({
               if (!subject) return null;
               const count = getDomainsBySubject(id).length;
               const done = doneBySubject?.[id];
+              const projectCount = getProjectsBySubject(id).length;
               return (
-                <Link
+                <div
                   key={id}
-                  href={`/learn/${id}`}
-                  className="rounded-3xl border border-border bg-surface p-5 hover:border-accent/40"
+                  className="overflow-hidden rounded-3xl border border-border bg-surface hover:border-accent/40"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className="grid h-9 w-9 place-items-center rounded-lg font-mono text-sm font-bold"
-                      style={{ color: subject.accent, background: subject.accentDim }}
-                    >
-                      {subject.mark}
-                    </span>
-                    <p className="font-mono text-xs text-muted">
-                      {done != null ? `${done}/` : ""}
-                      {count}
+                  <Link href={`/learn/${id}`} className="block p-5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className="grid h-9 w-9 place-items-center rounded-lg font-mono text-sm font-bold"
+                        style={{ color: subject.accent, background: subject.accentDim }}
+                      >
+                        {subject.mark}
+                      </span>
+                      <p className="font-mono text-xs text-muted">
+                        {done != null ? `${done}/` : ""}
+                        {count}
+                      </p>
+                    </div>
+                    <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted">
+                      {subject.kicker}
                     </p>
-                  </div>
-                  <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted">
-                    {subject.kicker}
-                  </p>
-                  <h3 className="mt-1 text-lg font-semibold">{subject.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted">{subject.blurb}</p>
-                  <p className="mt-3 text-xs text-accent">{count} paths</p>
-                </Link>
+                    <h3 className="mt-1 text-lg font-semibold">{subject.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted">{subject.blurb}</p>
+                    <p className="mt-3 text-xs text-accent">{count} paths</p>
+                  </Link>
+                  <Link
+                    href={projectsHubHref(id)}
+                    className="block border-t border-border px-5 py-3 text-xs text-muted hover:bg-surface-2 hover:text-foreground"
+                  >
+                    Try a project · {projectCount} in this hub
+                  </Link>
+                </div>
               );
             })}
           </div>

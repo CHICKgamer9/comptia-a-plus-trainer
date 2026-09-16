@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <EmptyState
       title="That page is not in the queue"
-      body="The lesson, quiz, or ticket id may be wrong. Head back to the desk and pick another item."
+      body="The lesson, quiz, project, or ticket id may be wrong. Head back to the desk and pick another item."
     >
       <Link
         href="/"

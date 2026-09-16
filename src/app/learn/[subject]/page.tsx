@@ -8,6 +8,7 @@ import {
   getSubject,
   isSubjectId,
 } from "@/content/registry";
+import { getProjectsBySubject, projectHref, projectsHubHref } from "@/content/projects";
 import { getChallengesBySubject } from "@/content/challenges";
 import { PathCatalog } from "@/components/PathCatalog";
 
@@ -36,6 +37,7 @@ export default async function SubjectLearnPage({
   if (!meta) notFound();
   const challenges = getChallengesBySubject(subject);
   const count = getDomainsBySubject(subject).length;
+  const hubProjects = getProjectsBySubject(subject);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -60,6 +62,34 @@ export default async function SubjectLearnPage({
           </p>
           <p className="mt-4 text-sm font-semibold text-accent">Open the Languages hub →</p>
         </Link>
+      ) : null}
+      {hubProjects.length ? (
+        <div className="mb-8">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">
+              Try a project
+            </h2>
+            <Link href={projectsHubHref(subject)} className="text-xs text-accent hover:underline">
+              All {hubProjects.length} in {meta.title}
+            </Link>
+          </div>
+          <ul className="grid gap-3">
+            {hubProjects.map((project) => (
+              <li key={project.id}>
+                <Link
+                  href={projectHref(project)}
+                  className="block rounded-3xl border border-border bg-surface px-4 py-4 hover:border-accent/40"
+                >
+                  <p className="text-[11px] uppercase tracking-wider text-accent">
+                    {project.minutes} min · +{project.xp} XP
+                  </p>
+                  <p className="mt-1 font-semibold">{project.title}</p>
+                  <p className="mt-1 text-sm text-muted">{project.blurb}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
       <PathCatalog subject={subject} />
       {challenges.length ? (

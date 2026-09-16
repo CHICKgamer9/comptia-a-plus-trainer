@@ -69,7 +69,7 @@ export function BrainPlayScreen({ id }: { id: string }) {
         minutesTarget={inToday ? DAILY_TARGET_MINUTES : undefined}
         nextHref={nextHref}
         nextLabel={nextId && nextId !== id ? "Next in playlist" : "Today’s desk"}
-        onResolved={(correct, _spoken, penalty) => {
+        onResolved={(correct, _spoken, penalty, skipped) => {
           if (recorded.current) return;
           recorded.current = true;
           recordBrainAnswer({
@@ -79,8 +79,10 @@ export function BrainPlayScreen({ id }: { id: string }) {
             minutes: item.minutes,
             minutesTarget: DAILY_TARGET_MINUTES,
             correct,
+            skipped,
             penalty: penalty ? -penalty : 0,
             crossword: item.kind === "crossword",
+            cat: item.cat,
           });
         }}
       />
