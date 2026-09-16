@@ -266,4 +266,77 @@ export const cheatsheets: Cheatsheet[] = [
       "Test restores or you have a ritual.",
     ],
   },
+  {
+    id: "percent-tricks",
+    subject: "maths",
+    title: "Percent tricks",
+    summary: "GST, multipliers, and the moves that keep a till honest.",
+    tables: [
+      {
+        title: "Multipliers",
+        headers: ["Change", "Multiply by"],
+        rows: [
+          ["+10% / GST exclusive → inclusive", "1.10"],
+          ["Inclusive → pre-GST (10%)", "÷ 1.1 or × 10/11"],
+          ["GST amount inside inclusive", "÷ 11"],
+          ["20% off", "0.80"],
+          ["Increase 20%", "1.20"],
+          ["Find original after 20% off", "÷ 0.80"],
+        ],
+      },
+    ],
+    notes: [
+      "Stacked discounts multiply. They do not add.",
+      "Percent change divides by the original, not the new value.",
+    ],
+  },
+  {
+    id: "si-units",
+    subject: "science",
+    title: "SI & forces",
+    summary: "The units and Newton lines you actually use in a check.",
+    tables: [
+      {
+        title: "Keep these straight",
+        headers: ["Quantity", "Unit"],
+        rows: [
+          ["Mass", "kg"],
+          ["Weight / force", "N"],
+          ["Energy / work", "J"],
+          ["Power", "W (J/s)"],
+          ["g (Earth)", "~9.8 m/s²"],
+        ],
+      },
+    ],
+    notes: [
+      "Net force zero means constant velocity, including rest.",
+      "Energy changes form; waste heat still counts.",
+    ],
+  },
+  {
+    id: "dates-that-earn-their-keep",
+    subject: "history",
+    title: "Dates that earn their keep",
+    summary: "Scaffolding only. The path still wants causes and sources.",
+    tables: [
+      {
+        title: "Australia, roughly",
+        headers: ["When", "What it is not / is"],
+        rows: [
+          ["Deep time", "Not a prologue — the main occupancy story"],
+          ["1770", "Cook chart/claim — not the colony"],
+          ["1788", "First Fleet on Eora land"],
+          ["1901", "Federation"],
+          ["1915 / 1916–18", "Gallipoli myth / larger AIF deaths in France"],
+          ["1942", "Singapore, Darwin, alliance shift"],
+          ["1967", "Not “got the vote” as a one-liner — check the question"],
+          ["1992", "Mabo: terra nullius dumped in common law"],
+        ],
+      },
+    ],
+    notes: [
+      "A date without a cause-braid is trivia.",
+      "Ask who wrote the source and who is missing.",
+    ],
+  },
 ];

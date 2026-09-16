@@ -7,6 +7,7 @@ import { useProgress } from "./ProgressProvider";
 import { PlayerButton, PlayerFrame } from "./PlayerFrame";
 import { Badge } from "./ui";
 import { cn } from "@/lib/cn";
+import { getDomain, pathHref } from "@/content";
 import { joinSpeech } from "@/lib/speech";
 
 export function QuizRunner({ quiz }: { quiz: Quiz }) {
@@ -23,6 +24,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
   const locked = picked !== null;
   const correct = picked === question?.correctIndex;
   const letters = useMemo(() => ["A", "B", "C", "D", "E"], []);
+  const domain = getDomain(quiz.domainId);
 
   function choose(choiceIndex: number) {
     if (locked || !question) return;
@@ -126,7 +128,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
           <PlayerButton onClick={restart}>Try again</PlayerButton>
           <Link
-            href={`/learn/${quiz.domainId}`}
+            href={domain ? pathHref(domain) : "/learn"}
             className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
           >
             Back to the path

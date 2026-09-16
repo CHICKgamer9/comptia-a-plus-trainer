@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDomain, getQuiz, quizzes } from "@/content";
+import { getDomain, getQuiz, pathHref, quizzes } from "@/content";
 import { QuizRunner } from "@/components/QuizRunner";
 
 export function generateStaticParams() {
@@ -37,7 +37,7 @@ export default async function QuizPage({
         {domain ? (
           <>
             <span className="text-muted"> · </span>
-            <Link href={`/learn/${domain.id}`} className="text-sm text-accent hover:underline">
+            <Link href={pathHref(domain)} className="text-sm text-accent hover:underline">
               {domain.title} path
             </Link>
           </>

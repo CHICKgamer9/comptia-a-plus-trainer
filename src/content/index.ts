@@ -1,18 +1,30 @@
-import { domains } from "./domains";
+import { techDomains } from "./domains";
+import { schoolDomains } from "./domains-school";
 import { lessons, getLesson, getLessonByDomain } from "./lessons";
 import { quizzes, getQuiz, getQuizByDomain } from "./quizzes";
 import { cheatsheets } from "./cheatsheets";
-import type { Domain, DomainId, ExamId, ScenarioTheme } from "./types";
+import { SUBJECTS, getSubject, isSubjectId } from "./subjects";
+import { challenges, getChallenge, getChallengesBySubject } from "./challenges";
+import type { Domain, DomainId, ExamId, ScenarioTheme, SubjectId } from "./types";
+
+export const domains: Domain[] = [...techDomains, ...schoolDomains];
 
 export {
-  domains,
+  techDomains,
+  schoolDomains,
   lessons,
   quizzes,
   cheatsheets,
+  challenges,
+  SUBJECTS,
   getLesson,
   getLessonByDomain,
   getQuiz,
   getQuizByDomain,
+  getChallenge,
+  getChallengesBySubject,
+  getSubject,
+  isSubjectId,
 };
 
 export function getDomain(id: string) {
@@ -21,6 +33,10 @@ export function getDomain(id: string) {
 
 export function getDomainsByExam(exam: ExamId) {
   return domains.filter((domain) => domain.exam === exam);
+}
+
+export function getDomainsBySubject(subject: SubjectId) {
+  return domains.filter((domain) => domain.subject === subject);
 }
 
 export function getCheatsheet(id: string) {
@@ -32,11 +48,25 @@ export function examLabel(exam: ExamId) {
 }
 
 export function domainTitle(domain: Domain) {
-  return `${examLabel(domain.exam)} · ${domain.number}. ${domain.title}`;
+  if (domain.exam) return `${examLabel(domain.exam)} · ${domain.number}. ${domain.title}`;
+  const subject = getSubject(domain.subject);
+  return `${subject?.title ?? domain.subject} · ${domain.number}. ${domain.title}`;
 }
 
-export function labThemeForDomain(domainId: DomainId): ScenarioTheme {
-  const map: Record<DomainId, ScenarioTheme> = {
+export function pathHref(domain: Pick<Domain, "subject" | "id">) {
+  return `/learn/${domain.subject}/${domain.id}`;
+}
+
+export function quizHref(quizId: string) {
+  return `/practice/${quizId}`;
+}
+
+export function challengeHref(id: string) {
+  return `/play/${id}`;
+}
+
+export function labThemeForDomain(domainId: DomainId): ScenarioTheme | undefined {
+  const map: Record<string, ScenarioTheme> = {
     "mobile-devices": "mobile",
     networking: "network",
     hardware: "hardware",
@@ -56,4 +86,5 @@ export const CONTENT_COUNTS = {
   quizzes: quizzes.length,
   questions: quizzes.reduce((sum, quiz) => sum + quiz.questions.length, 0),
   cheatsheets: cheatsheets.length,
+  challenges: challenges.length,
 } as const;

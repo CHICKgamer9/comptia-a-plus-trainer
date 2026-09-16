@@ -1,13 +1,8 @@
-import type {
-  DiagramId,
-  DomainId,
-  Lesson,
-  PathBeat,
-  PathCheck,
-} from "@/content/types";
+import type { DiagramId, Lesson, PathBeat, PathCheck } from "@/content/types";
 import { PATH_CHECKS } from "@/content/path-checks";
+import { getDomain } from "@/content";
 
-const DIAGRAM: Record<DomainId, DiagramId> = {
+const DIAGRAM: Record<string, DiagramId> = {
   "mobile-devices": "laptop",
   networking: "layers",
   hardware: "connectors",
@@ -17,6 +12,21 @@ const DIAGRAM: Record<DomainId, DiagramId> = {
   security: "lock",
   "software-troubleshooting": "boot",
   "operational-procedures": "clipboard",
+  "number-sense": "balance",
+  fractions: "balance",
+  percentages: "prism",
+  "algebra-foundations": "balance",
+  "geometry-measure": "prism",
+  "atoms-matter": "atom",
+  "forces-motion": "loop",
+  "energy-systems": "prism",
+  "cells-life": "leaf",
+  "ecosystems-au": "leaf",
+  "historical-thinking": "scroll",
+  "ancient-worlds": "scroll",
+  "country-contact": "leaf",
+  "making-australia": "scroll",
+  "twentieth-century": "scroll",
 };
 
 function firstSentences(text: string, count = 1): { hook: string; rest: string } {
@@ -52,7 +62,7 @@ function tableToCheck(lessonId: string, heading: string, table: Lesson["sections
       type: "match",
       prompt: `Match each ${table.headers[0].toLowerCase()} to the right idea.`,
       pairs,
-      why: `These pairings are the ones A+ actually asks. Scan them once, then keep moving.`,
+      why: `These pairings are worth keeping in your pocket. Scan them once, then keep moving.`,
     };
   }
   return null;
@@ -118,10 +128,10 @@ export function lessonToPath(lesson: Lesson): PathBeat[] {
         check: {
           id: `${lesson.id}-order-${sectionIndex}`,
           type: "order",
-          prompt: "Put these in the order a careful tech would actually use.",
+          prompt: "Put these in a careful order.",
           items,
           correctOrder: items.map((item) => item.id),
-          why: "Order is the skill. The exam and the bench both punish skipping identify or verify.",
+          why: "Order is the skill. Skipping a step is how the whole thing unravels.",
         },
       });
     }
@@ -151,15 +161,18 @@ export function lessonToPath(lesson: Lesson): PathBeat[] {
     }
 
     if (section.callout) {
+      const subject = getDomain(lesson.domainId)?.subject;
+      const examish = section.callout.type === "exam";
       beats.push({
         id: `${lesson.id}-s${sectionIndex}-tip`,
         kind: "tip",
-        title:
-          section.callout.type === "exam"
+        title: examish
+          ? subject === "tech"
             ? "Exam cue"
-            : section.callout.type === "watch"
-              ? "Watch out"
-              : "Field tip",
+            : "Test cue"
+          : section.callout.type === "watch"
+            ? "Watch out"
+            : "Field tip",
         callout: section.callout,
         body: [section.callout.text],
       });
@@ -182,7 +195,11 @@ export function lessonToPath(lesson: Lesson): PathBeat[] {
     kind: "recap",
     title: "You can close this path",
     bullets: lesson.keyTakeaways,
-    body: ["Keep these in your pocket. The quiz and a live ticket will ask them again, not as an essay."],
+    body: [
+      getDomain(lesson.domainId)?.subject === "tech"
+        ? "Keep these in your pocket. The quiz and a live ticket will ask them again, not as an essay."
+        : "Keep these in your pocket. The quiz — and a challenge, if there is one — will ask them again.",
+    ],
   });
 
   return beats;

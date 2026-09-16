@@ -1,4 +1,4 @@
-import type { DomainId, ExamId, ScenarioTheme } from "@/content/types";
+import type { DomainId, ExamId, ScenarioTheme, SubjectId } from "@/content/types";
 import { unlockedBadgeIds } from "./badges";
 import { updateStreak } from "./sydney-date";
 import { levelForXp, ticketXp, XP } from "./xp";
@@ -41,6 +41,7 @@ export interface ProgressState {
   quizHistory?: Record<string, QuizResult[]>;
   lessonCursor?: Record<string, number>;
   autoRead?: boolean;
+  lastSubject?: SubjectId;
   game?: GameState;
 }
 
@@ -86,6 +87,13 @@ export function parseProgress(raw: string): ProgressState {
       quizHistory: parsed.quizHistory ?? {},
       lessonCursor: parsed.lessonCursor ?? {},
       autoRead: parsed.autoRead === true,
+      lastSubject:
+        parsed.lastSubject === "tech" ||
+        parsed.lastSubject === "maths" ||
+        parsed.lastSubject === "science" ||
+        parsed.lastSubject === "history"
+          ? parsed.lastSubject
+          : undefined,
       game: parsed.game ? { ...emptyGame(), ...parsed.game } : undefined,
     };
     if (!base.game) {
@@ -290,6 +298,10 @@ export function recordScenarioIn(
 
 export function setAutoReadIn(prev: ProgressState, autoRead: boolean): ProgressState {
   return { ...prev, autoRead };
+}
+
+export function setLastSubjectIn(prev: ProgressState, lastSubject: SubjectId): ProgressState {
+  return { ...prev, lastSubject };
 }
 
 export function mutateProgress(mutator: (prev: ProgressState) => ProgressState) {

@@ -1,12 +1,12 @@
 export const LEVELS = [
-  { min: 0, title: "Helpdesk Rookie" },
-  { min: 120, title: "Bench Tech" },
-  { min: 320, title: "Field Tech" },
-  { min: 600, title: "Desktop Specialist" },
-  { min: 980, title: "Escalation Tech" },
-  { min: 1500, title: "A+ Contender" },
-  { min: 2200, title: "Core-Ready Tech" },
-  { min: 3200, title: "Dual-Core Contender" },
+  { min: 0, title: "Spark" },
+  { min: 120, title: "Scout" },
+  { min: 320, title: "Pathfinder" },
+  { min: 600, title: "Specialist" },
+  { min: 980, title: "Scholar" },
+  { min: 1500, title: "Contender" },
+  { min: 2200, title: "Polymath" },
+  { min: 3200, title: "Mastery" },
 ] as const;
 
 export const XP = {

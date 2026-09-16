@@ -158,7 +158,7 @@ export function examReadiness(
     if (!progress.completedLessons.includes(domain.lessonId)) {
       gaps.push({
         text: `${domain.title} lesson not finished`,
-        href: `/learn/${domain.id}`,
+        href: `/learn/tech/${domain.id}`,
       });
     }
   });
@@ -199,7 +199,7 @@ export function examReadiness(
   cold.forEach((domain) => {
     gaps.push({
       text: `${domain.title} is still cold — no lesson, quiz, or ticket`,
-      href: `/learn/${domain.id}`,
+      href: `/learn/tech/${domain.id}`,
     });
   });
 

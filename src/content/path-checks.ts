@@ -1,6 +1,7 @@
-import type { DomainId, PathCheck } from "./types";
+import type { PathCheck } from "./types";
+import { schoolChecks } from "./path-checks-school";
 
-export const PATH_CHECKS: Record<DomainId, PathCheck[]> = {
+const aplusChecks: Record<string, PathCheck[]> = {
   "mobile-devices": [
     {
       id: "md-fru",
@@ -560,4 +561,9 @@ export const PATH_CHECKS: Record<DomainId, PathCheck[]> = {
       why: "You still want backups even if RAID and snapshots exist. Test restores or you have a ritual.",
     },
   ],
+};
+
+export const PATH_CHECKS: Record<string, PathCheck[]> = {
+  ...aplusChecks,
+  ...schoolChecks,
 };

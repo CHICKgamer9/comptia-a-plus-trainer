@@ -86,10 +86,10 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
           <PlayerButton onClick={restart}>Run it again</PlayerButton>
           <button
             type="button"
-            onClick={() => router.push("/lab")}
+            onClick={() => router.push(scenario.kind === "challenge" ? `/learn/${scenario.subject}` : "/lab")}
             className="rounded-2xl border border-border px-4 py-3.5 text-sm font-semibold hover:bg-surface-2"
           >
-            New ticket
+            {scenario.kind === "challenge" ? "More paths" : "New ticket"}
           </button>
         </div>
       </PlayerFrame>
@@ -120,11 +120,15 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
           >
             {scenario.priority}
           </Badge>
-          <ExamBadge exam={scenario.exam} />
-          <ThemeBadge theme={scenario.theme} />
+          {scenario.exam ? <ExamBadge exam={scenario.exam} /> : <Badge tone="accent">{scenario.subject}</Badge>}
+          {scenario.theme ? <ThemeBadge theme={scenario.theme} /> : null}
           <DifficultyBadge level={scenario.difficulty} />
-          <Badge tone={scenario.source === "fallback" ? "warn" : "accent"}>
-            {scenario.source === "fallback" ? "Practice stub" : "AI study aid"}
+          <Badge tone={scenario.kind === "challenge" ? "accent" : scenario.source === "fallback" ? "warn" : "accent"}>
+            {scenario.kind === "challenge"
+              ? "Challenge"
+              : scenario.source === "fallback"
+                ? "Practice stub"
+                : "AI study aid"}
           </Badge>
         </div>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight">{scenario.title}</h1>
@@ -133,7 +137,9 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
         </p>
         <p className="mt-5 text-[16px] leading-8">{scenario.ticket}</p>
         <p className="mt-4 text-xs text-muted">
-          One beat at a time: gather → tools → cause → fix. Study aid, not official CompTIA.
+          {scenario.kind === "challenge"
+            ? "One beat at a time. Look, try a model, decide, check. Not an official curriculum."
+            : "One beat at a time: gather → tools → cause → fix. Study aid, not official CompTIA."}
         </p>
       </PlayerFrame>
     );
@@ -158,12 +164,12 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
                   : "bg-surface-2 text-muted",
             )}
           >
-            {phaseLabel(item.phase)}
+            {phaseLabel(item.phase, scenario.kind ?? "ticket")}
           </span>
         ))}
       </div>
       <PlayerFrame
-        kicker={phaseLabel(step.phase)}
+        kicker={phaseLabel(step.phase, scenario.kind ?? "ticket")}
         index={stepIndex + 1}
         total={totalBeats}
         narration={{
@@ -229,8 +235,8 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
         ) : null}
       </PlayerFrame>
       <p className="mx-auto mt-4 max-w-xl text-center">
-        <Link href="/lab" className="text-sm text-muted hover:text-foreground">
-          ← Queue
+        <Link href={scenario.kind === "challenge" ? `/learn/${scenario.subject}` : "/lab"} className="text-sm text-muted hover:text-foreground">
+          ← {scenario.kind === "challenge" ? "Paths" : "Queue"}
         </Link>
       </p>
     </div>

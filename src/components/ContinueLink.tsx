@@ -2,23 +2,23 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { domains, quizzes } from "@/content";
+import { domains, pathHref, quizzes } from "@/content";
 import { useProgress } from "./ProgressProvider";
-import { nextDomain } from "./CoursePath";
+import { nextDomainPreferring } from "./CoursePath";
 
 export function useContinueHref() {
   const { progress } = useProgress();
-  const upcoming = nextDomain(progress.completedLessons);
-  if (upcoming) return `/learn/${upcoming.id}`;
+  const upcoming = nextDomainPreferring(progress.completedLessons, progress.lastSubject);
+  if (upcoming) return pathHref(upcoming);
 
   const nextQuiz = quizzes.find((quiz) => !progress.quizScores[quiz.id]);
   if (nextQuiz) return `/practice/${nextQuiz.id}`;
 
   if (progress.lastLessonId) {
     const domain = domains.find((item) => item.lessonId === progress.lastLessonId);
-    if (domain) return `/learn/${domain.id}`;
+    if (domain) return pathHref(domain);
   }
-  return "/lab";
+  return "/learn";
 }
 
 export function ContinueLink({

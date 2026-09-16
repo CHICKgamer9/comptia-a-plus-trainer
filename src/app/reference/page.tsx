@@ -13,7 +13,7 @@ export default function ReferencePage() {
       <PageHeader
         kicker="Reference"
         title="Ports, RAID, tools — without the scroll"
-        description="The tables you want open in a second monitor while you work a quiz or a ticket."
+        description="Tables you want open in a second monitor: A+ ports and RAID, plus Maths / Science / History pocket sheets."
       />
       <div className="grid gap-3 md:grid-cols-2">
         {cheatsheets.map((sheet) => (

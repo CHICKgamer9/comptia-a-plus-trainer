@@ -1,6 +1,5 @@
 import { domains, quizzes } from "@/content";
-import type { ExamId } from "@/content/types";
-import { LEVELS } from "./xp";
+import type { ExamId, SubjectId } from "@/content/types";
 
 export interface BadgeDef {
   id: string;
@@ -81,13 +80,33 @@ export const BADGES: BadgeDef[] = [
   },
   {
     id: "field-tech",
-    title: "Field Tech",
-    blurb: "Reached the Field Tech level.",
+    title: "Pathfinder",
+    blurb: "Reached the Pathfinder level.",
   },
   {
     id: "contender",
-    title: "A+ Contender",
-    blurb: "Reached the A+ Contender level.",
+    title: "Contender",
+    blurb: "Reached the Contender level.",
+  },
+  {
+    id: "maths-paths",
+    title: "Maths paths",
+    blurb: "Finished every Maths lesson path.",
+  },
+  {
+    id: "science-paths",
+    title: "Science paths",
+    blurb: "Finished every Science lesson path.",
+  },
+  {
+    id: "history-paths",
+    title: "History paths",
+    blurb: "Finished every History lesson path.",
+  },
+  {
+    id: "four-subjects",
+    title: "Four desks",
+    blurb: "Touched Tech, Maths, Science, and History.",
   },
 ];
 
@@ -101,10 +120,20 @@ export interface BadgeInput {
 
 export function unlockedBadgeIds(input: BadgeInput): string[] {
   const ids: string[] = [];
-  const core1 = domains.filter((domain) => domain.exam === "220-1101");
-  const core2 = domains.filter((domain) => domain.exam === "220-1102");
-  const lessonDone = (exam: ExamId) =>
+  const tech = domains.filter((domain) => domain.subject === "tech");
+  const core1 = tech.filter((domain) => domain.exam === "220-1101");
+  const core2 = tech.filter((domain) => domain.exam === "220-1102");
+  const subjectDone = (subject: SubjectId) =>
     domains
+      .filter((domain) => domain.subject === subject)
+      .every((domain) => input.completedLessons.includes(domain.lessonId));
+  const subjectTouched = (subject: SubjectId) =>
+    domains.some(
+      (domain) =>
+        domain.subject === subject && input.completedLessons.includes(domain.lessonId),
+    );
+  const lessonDone = (exam: ExamId) =>
+    tech
       .filter((domain) => domain.exam === exam)
       .every((domain) => input.completedLessons.includes(domain.lessonId));
   const quizPct = (quizId: string) => {
@@ -112,7 +141,7 @@ export function unlockedBadgeIds(input: BadgeInput): string[] {
     return row && row.total > 0 ? row.score / row.total : 0;
   };
   const allQuizzesAt = (exam: ExamId, min: number) =>
-    domains
+    tech
       .filter((domain) => domain.exam === exam)
       .every((domain) => quizPct(domain.quizId) >= min);
 
@@ -139,11 +168,19 @@ export function unlockedBadgeIds(input: BadgeInput): string[] {
   if (allQuizzesAt("220-1102", 0.8)) ids.push("quiz-80-core2");
   if (input.streakCount >= 3) ids.push("streak-3");
   if (input.streakCount >= 10) ids.push("streak-10");
-  const fieldMin = LEVELS.find((level) => level.title === "Field Tech")?.min ?? 320;
-  const contenderMin =
-    LEVELS.find((level) => level.title === "A+ Contender")?.min ?? 1500;
-  if (input.xp >= fieldMin) ids.push("field-tech");
-  if (input.xp >= contenderMin) ids.push("contender");
+  if (input.xp >= 320) ids.push("field-tech");
+  if (input.xp >= 1500) ids.push("contender");
+  if (subjectDone("maths")) ids.push("maths-paths");
+  if (subjectDone("science")) ids.push("science-paths");
+  if (subjectDone("history")) ids.push("history-paths");
+  if (
+    subjectTouched("tech") &&
+    subjectTouched("maths") &&
+    subjectTouched("science") &&
+    subjectTouched("history")
+  ) {
+    ids.push("four-subjects");
+  }
   return ids;
 }
 

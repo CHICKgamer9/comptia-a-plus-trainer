@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Disclaimer } from "./ui";
 import { StatusChip } from "./StatusChip";
+import { getSubject, isSubjectId } from "@/content";
 
 const links = [
   { href: "/", label: "Home", icon: HomeIcon },
@@ -19,25 +20,48 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function subjectFromPath(pathname: string) {
+  const learn = pathname.match(/^\/learn\/([^/]+)/);
+  if (learn && isSubjectId(learn[1])) return getSubject(learn[1]);
+  const play = pathname.match(/^\/play\/([^/]+)/);
+  if (play) {
+    // challenges live under /play; accent stays default unless we look up later
+    return undefined;
+  }
+  return undefined;
+}
+
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const player =
-    /^\/learn\/[^/]+$/.test(pathname) ||
+    /^\/learn\/(tech|maths|science|history)\/[^/]+$/.test(pathname) ||
     /^\/practice\/[^/]+$/.test(pathname) ||
+    /^\/play\/[^/]+$/.test(pathname) ||
     pathname.startsWith("/lab/t/");
+  const subject = subjectFromPath(pathname);
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div
+      className="flex min-h-full flex-col"
+      style={
+        subject
+          ? ({
+              "--accent": subject.accent,
+              "--accent-dim": subject.accentDim,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
       <header className="sticky top-0 z-30 border-b border-border/80 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-dim font-mono text-sm font-bold text-accent ring-1 ring-accent/30">
-              A+
+              TB
             </span>
             <span className="leading-tight">
               <span className="block text-sm font-semibold">TicketBench</span>
               <span className="hidden text-[11px] text-muted sm:block">
-                CompTIA A+ study lab
+                Tech · Maths · Science · History
               </span>
             </span>
           </Link>

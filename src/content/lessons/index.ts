@@ -1,8 +1,17 @@
 import type { Lesson } from "../types";
 import { core1Lessons } from "./core1";
 import { core2Lessons } from "./core2";
+import { mathsLessons } from "./maths";
+import { scienceLessons } from "./science";
+import { historyLessons } from "./history";
 
-export const lessons: Lesson[] = [...core1Lessons, ...core2Lessons];
+export const lessons: Lesson[] = [
+  ...core1Lessons,
+  ...core2Lessons,
+  ...mathsLessons,
+  ...scienceLessons,
+  ...historyLessons,
+];
 
 export function getLesson(id: string) {
   return lessons.find((lesson) => lesson.id === id);

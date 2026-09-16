@@ -1,66 +1,116 @@
 "use client";
 
 import Link from "next/link";
-import { domains } from "@/content";
+import { SUBJECTS, getDomainsBySubject, pathHref } from "@/content";
 import { useProgress } from "./ProgressProvider";
-import { CoursePath, nextDomain } from "./CoursePath";
+import { nextDomainPreferring } from "./CoursePath";
 import { examReadiness, overallReadiness } from "@/lib/readiness";
 import { Disclaimer, ProgressBar } from "./ui";
 import { cn } from "@/lib/cn";
 
 export function DashboardHome() {
   const { ready, stats, progress, resetProgress } = useProgress();
-  const upcoming = nextDomain(progress.completedLessons);
+  const upcoming = nextDomainPreferring(progress.completedLessons, progress.lastSubject);
   const overall = overallReadiness(progress);
   const core1 = examReadiness(progress, "220-1101");
   const core2 = examReadiness(progress, "220-1102");
-  const greeting = stats.streak > 1 ? `Day ${stats.streak}` : stats.xp ? "Welcome back" : "Start a path";
+  const greeting = stats.streak > 1 ? `Day ${stats.streak}` : stats.xp ? "Welcome back" : "Pick a subject";
 
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-8 text-center">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">{greeting}</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          {upcoming ? upcoming.title : "You cleared the lesson path"}
+          {upcoming ? upcoming.title : "Four subjects, one bench"}
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">
-          Short interactive A+ paths — try a beat, then read why. Not a textbook dump, and not official CompTIA.
+          Interactive bites for Tech (A+), Maths, Science, and History. Try a beat, then read why.
+          Not a textbook dump — and not CompTIA, a school, or Brilliant.
         </p>
       </div>
 
       <div className="mb-6 grid grid-cols-3 gap-2">
         <StatPill label="Streak" value={`${stats.streak}d`} hint="Sydney calendar" />
         <StatPill label="Level" value={stats.levelTitle} hint={`${stats.xp} XP`} />
-        <StatPill label="Ready" value={`${overall.percent}%`} hint={overall.status} />
+        <StatPill label="A+ ready" value={`${overall.percent}%`} hint={overall.status} />
       </div>
 
       <div className="mb-4 rounded-3xl border border-accent/30 bg-gradient-to-br from-accent-dim/80 to-surface p-6">
         <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Today</p>
         <p className="mt-2 text-xl font-semibold">
-          {upcoming ? `Continue ${upcoming.title}` : "Practice a ticket"}
+          {upcoming ? `Continue ${upcoming.title}` : "Replay a path or open a challenge"}
         </p>
         <p className="mt-1 text-sm text-muted">
           {upcoming
-            ? `${upcoming.exam === "220-1101" ? "Core 1" : "Core 2"} · Domain ${upcoming.number} · ${upcoming.weight}`
-            : "Lessons are done on this device. Keep the streak with a fresh lab ticket."}
+            ? upcoming.exam
+              ? `${upcoming.exam === "220-1101" ? "Core 1" : "Core 2"} · Domain ${upcoming.number}${upcoming.weight ? ` · ${upcoming.weight}` : ""}`
+              : `${upcoming.subject} · Path ${upcoming.number}`
+            : "Every authored path on this device is marked done. Keep the streak with a quiz or a challenge."}
         </p>
         <div className="mt-4">
           <ProgressBar value={stats.levelPercent} label={`To ${stats.nextTitle ?? "max"}`} />
         </div>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <Link
-            href={upcoming ? `/learn/${upcoming.id}` : "/lab"}
+            href={upcoming ? pathHref(upcoming) : "/learn"}
             className="flex-1 rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background"
           >
-            {upcoming ? "Continue" : "Generate a ticket"}
+            {upcoming ? "Continue" : "Browse subjects"}
           </Link>
           <Link
             href="/lab"
             className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
           >
-            Lab
+            A+ lab
           </Link>
         </div>
+      </div>
+
+      <h2 className="mb-3 text-center text-sm font-medium uppercase tracking-wider text-muted">
+        Subjects
+      </h2>
+      <div className="mb-8 grid gap-3 sm:grid-cols-2">
+        {SUBJECTS.map((subject) => {
+          const list = getDomainsBySubject(subject.id);
+          const done = list.filter((domain) => progress.completedLessons.includes(domain.lessonId)).length;
+          const next = list.find((domain) => !progress.completedLessons.includes(domain.lessonId));
+          return (
+            <Link
+              key={subject.id}
+              href={`/learn/${subject.id}`}
+              className="rounded-3xl border border-border bg-surface p-5 hover:border-accent/40"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className="grid h-9 w-9 place-items-center rounded-lg font-mono text-sm font-bold ring-1"
+                  style={{
+                    color: subject.accent,
+                    background: subject.accentDim,
+                    boxShadow: `inset 0 0 0 1px ${subject.accent}33`,
+                  }}
+                >
+                  {subject.mark}
+                </span>
+                <p className="font-mono text-sm text-muted">
+                  {done}/{list.length}
+                </p>
+              </div>
+              <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted">{subject.kicker}</p>
+              <h3 className="mt-1 text-lg font-semibold">{subject.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted">{subject.blurb}</p>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${list.length ? Math.round((done / list.length) * 100) : 0}%`,
+                    background: subject.accent,
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-accent">{next ? `Up next: ${next.title}` : "Replay paths"}</p>
+            </Link>
+          );
+        })}
       </div>
 
       <div className="mb-8 grid gap-3 sm:grid-cols-2">
@@ -68,18 +118,9 @@ export function DashboardHome() {
         <ReadinessGlance href="/ready" label="Core 2" percent={core2.percent} status={core2.status} />
       </div>
 
-      <h2 className="mb-3 text-center text-sm font-medium uppercase tracking-wider text-muted">
-        Core 1 path
-      </h2>
-      <CoursePath exam="220-1101" />
-      <h2 className="mt-10 mb-3 text-center text-sm font-medium uppercase tracking-wider text-muted">
-        Core 2 path
-      </h2>
-      <CoursePath exam="220-1102" />
-
       {ready && stats.lessonsDone === 0 ? (
         <p className="mt-8 text-center text-sm text-muted">
-          Progress stays on this device. Exam-ready is gated — a high XP number is not a pass.
+          Progress stays on this device. A+ exam-ready is gated — a high XP number is not a pass.
         </p>
       ) : null}
 
@@ -98,8 +139,8 @@ export function DashboardHome() {
         </button>
       </div>
       <p className="mt-3 text-[11px] text-muted">
-        {domains.length} paths · {stats.lessonsDone} finished · {stats.quizzesDone} quizzes ·{" "}
-        {stats.scenariosDone} tickets
+        {stats.lessonsDone} paths finished · {stats.quizzesDone} quizzes · {stats.scenariosDone}{" "}
+        tickets/challenges
       </p>
     </div>
   );

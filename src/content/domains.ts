@@ -1,8 +1,9 @@
 import type { Domain } from "./types";
 
-export const domains: Domain[] = [
+export const techDomains: Domain[] = [
   {
     id: "mobile-devices",
+    subject: "tech",
     exam: "220-1101",
     number: 1,
     title: "Mobile Devices",
@@ -14,6 +15,7 @@ export const domains: Domain[] = [
   },
   {
     id: "networking",
+    subject: "tech",
     exam: "220-1101",
     number: 2,
     title: "Networking",
@@ -25,6 +27,7 @@ export const domains: Domain[] = [
   },
   {
     id: "hardware",
+    subject: "tech",
     exam: "220-1101",
     number: 3,
     title: "Hardware",
@@ -36,6 +39,7 @@ export const domains: Domain[] = [
   },
   {
     id: "virtualization-cloud",
+    subject: "tech",
     exam: "220-1101",
     number: 4,
     title: "Virtualization & Cloud",
@@ -47,6 +51,7 @@ export const domains: Domain[] = [
   },
   {
     id: "hw-net-troubleshooting",
+    subject: "tech",
     exam: "220-1101",
     number: 5,
     title: "Hardware & Network Troubleshooting",
@@ -58,6 +63,7 @@ export const domains: Domain[] = [
   },
   {
     id: "operating-systems",
+    subject: "tech",
     exam: "220-1102",
     number: 1,
     title: "Operating Systems",
@@ -69,6 +75,7 @@ export const domains: Domain[] = [
   },
   {
     id: "security",
+    subject: "tech",
     exam: "220-1102",
     number: 2,
     title: "Security",
@@ -80,6 +87,7 @@ export const domains: Domain[] = [
   },
   {
     id: "software-troubleshooting",
+    subject: "tech",
     exam: "220-1102",
     number: 3,
     title: "Software Troubleshooting",
@@ -91,6 +99,7 @@ export const domains: Domain[] = [
   },
   {
     id: "operational-procedures",
+    subject: "tech",
     exam: "220-1102",
     number: 4,
     title: "Operational Procedures",
