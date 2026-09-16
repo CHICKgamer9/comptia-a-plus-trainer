@@ -12,6 +12,7 @@ import { getProject } from "@/content/projects";
 import { BRAIN_ACCENT, BRAIN_ACCENT_DIM } from "@/content/brain/types";
 import { LINGO_ACCENT, LINGO_ACCENT_DIM, LINGO_COURSES } from "@/content/lingo/courses";
 import { isLingoLangId } from "@/content/lingo/types";
+import { useProgress } from "./ProgressProvider";
 
 const links = [
   { href: "/", label: "Home", icon: HomeIcon },
@@ -114,7 +115,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                       : "text-muted hover:bg-surface hover:text-foreground",
                   )}
                 >
-                  {link.label}
+                  {link.href === "/binder" ? <BinderNavLabel /> : link.label}
                 </Link>
               );
             })}
@@ -157,7 +158,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <Icon active={active} />
-                {link.label}
+                {link.href === "/binder" ? <BinderNavLabel mobile /> : link.label}
               </Link>
             );
           })}
@@ -166,6 +167,20 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       )}
     </div>
   );
+}
+
+function BinderNavLabel({ mobile }: { mobile?: boolean }) {
+  const { bench } = useProgress();
+  const count = bench.owned.length;
+  if (mobile) {
+    return (
+      <span>
+        Binder
+        {count ? <span className="ml-0.5 text-accent">{count}</span> : null}
+      </span>
+    );
+  }
+  return <>Binder{count ? ` · ${count}` : ""}</>;
 }
 
 function HomeIcon({ active }: { active: boolean }) {

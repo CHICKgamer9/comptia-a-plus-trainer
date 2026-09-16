@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   BENCH_SLOTS,
   CARD_TYPE_TABS,
@@ -27,8 +28,14 @@ export function BinderView() {
   const [tab, setTab] = useState<CardType | "all">("all");
   const [query, setQuery] = useState("");
   const [subject, setSubject] = useState<SubjectId | "all">("all");
-  const [flipped, setFlipped] = useState<string | null>(null);
+  const search = useSearchParams();
+  const [flipped, setFlipped] = useState<string | null>(search.get("card"));
   const owned = bench.owned;
+
+  useEffect(() => {
+    const focus = search.get("card");
+    if (focus) setFlipped(focus);
+  }, [search]);
 
   const list = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -62,7 +69,7 @@ export function BinderView() {
         <p>
           {owned.length} unique · {Object.values(bench.slotted).filter(Boolean).length} slotted
         </p>
-        <Link href={`/learn/tech/${rotting.id}`} className="text-accent hover:underline">
+        <Link href={`/learn/${rotting.subject}/${rotting.id}?hunt=1`} className="text-accent hover:underline">
           Weak-spot hunt · {rotting.title}
         </Link>
       </div>
@@ -71,15 +78,30 @@ export function BinderView() {
         <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
           <p className="text-[11px] uppercase tracking-wider text-muted">Rotting domain</p>
           <p className="mt-1 text-sm">
-            Three cards from {rotting.title}. Open a path or{" "}
+            Three cards from {rotting.title}.{" "}
+            <Link href={`/learn/${rotting.subject}/${rotting.id}?hunt=1`} className="text-accent hover:underline">
+              3-bite Learn queue
+            </Link>{" "}
+            or{" "}
             <Link href="/brain/today" className="text-accent hover:underline">
               Brain Gym
             </Link>
             .
           </p>
-          <ul className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
+          <ul className="mt-2 flex flex-wrap gap-2 text-xs">
             {hunt.map((card) => (
-              <li key={card.id}>{card.title}</li>
+              <li key={card.id}>
+                {card.pathId ? (
+                  <Link
+                    href={`/learn/${card.subject}/${card.pathId}`}
+                    className="text-accent hover:underline"
+                  >
+                    {card.title}
+                  </Link>
+                ) : (
+                  <span className="text-muted">{card.title}</span>
+                )}
+              </li>
             ))}
           </ul>
         </div>
@@ -136,7 +158,7 @@ export function BinderView() {
           Cards drop on correct work — never on a skip.
         </p>
       ) : (
-        <ul className="mb-10 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <ul className="mb-10 grid grid-cols-2 gap-3">
           {list.map(({ row, card }) => (
             <li key={row.cardId}>
               <KnowledgeCard
@@ -161,6 +183,14 @@ export function BinderView() {
                   >
                     {bench.slotted[card.slot] === card.id ? "Unequip" : `Equip ${card.slot}`}
                   </button>
+                ) : null}
+                {card.type === "gotcha" && card.pathId ? (
+                  <Link
+                    href={`/learn/${card.subject}/${card.pathId}${row.gotchaFrom ? `?check=${encodeURIComponent(row.gotchaFrom)}` : ""}`}
+                    className="rounded-xl border border-danger/40 px-3 py-1.5 text-xs text-danger hover:bg-danger/10"
+                  >
+                    Replay the bite
+                  </Link>
                 ) : null}
                 <LoadoutButton
                   cardId={card.id}

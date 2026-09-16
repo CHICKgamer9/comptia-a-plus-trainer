@@ -33,7 +33,7 @@ export function DeskShiftChip() {
     return (
       <Link
         href="/binder"
-        className="hidden items-center rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] text-muted hover:text-foreground lg:flex"
+        className="hidden items-center rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] text-muted hover:text-foreground sm:flex"
       >
         Binder {bench.owned.length ? `· ${bench.owned.length}` : ""}
       </Link>

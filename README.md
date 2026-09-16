@@ -178,10 +178,10 @@ Cards are parts, symptoms, tools, procedures — not stickers. Catalog: `src/con
 | --- | --- |
 | Learn bite correct | 60% common/uncommon tagged to the path |
 | First wrong on a concept | 100% gotcha once; replay from the Binder |
-| Brain correct | 40% from the category; skip/fail never drops |
+| Brain correct | 40% from the category; skip (−XP) never drops |
 | Lab ticket closed | 1 symptom/procedure + 30% tool |
 | Domain lesson done + quiz ≥80% | 1 crest (exam domains that have a crest card) |
-| Desk Shift ends | Night Pack: 3 cards (2 if you close early with at least one card earned) |
+| Desk Shift ends | Night Pack: 3 cards (1 weak-spot + 2 session/common). Early close with ≥1 card → 2. Early close with 0 cards → no pack. |
 
 Duplicates: 2nd copy is dust; 3rd copy levels the card (subtitle evolves) and resets the extra. Fusion spends dust only — a unique never goes below 1. No shop, no IAP.
 

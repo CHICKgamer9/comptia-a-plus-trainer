@@ -38,7 +38,7 @@ export function DashboardHome() {
       </div>
 
       <div className="mb-4">
-        <BenchChassis />
+        <BenchChassis continueHref={upcoming ? pathHref(upcoming) : "/learn"} />
       </div>
 
       <div className="mb-4 rounded-3xl border border-accent/30 bg-gradient-to-br from-accent-dim/80 to-surface p-6">

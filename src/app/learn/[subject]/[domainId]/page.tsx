@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { domains, getDomain, isSubjectId } from "@/content/registry";
 import { getLessonByDomain } from "@/content/lessons";
@@ -30,5 +31,9 @@ export default async function SubjectLessonPage({
   const lesson = getLessonByDomain(domainId);
   if (!domain || !lesson || domain.subject !== subject) notFound();
 
-  return <LessonView domain={domain} lesson={lesson} checks={PATH_CHECKS[domainId] ?? []} />;
+  return (
+    <Suspense fallback={<p className="text-sm text-muted">Opening the path…</p>}>
+      <LessonView domain={domain} lesson={lesson} checks={PATH_CHECKS[domainId] ?? []} />
+    </Suspense>
+  );
 }

@@ -84,6 +84,7 @@ export interface BrainAnswerInput {
   minutes: number;
   minutesTarget: number;
   correct: boolean;
+  skipped?: boolean;
   penalty?: number;
   crossword?: boolean;
   cat?: BrainCat;
@@ -550,14 +551,19 @@ export function recordBrainAnswerIn(prev: ProgressState, input: BrainAnswerInput
     brain.bestDay = { ymd: input.ymd, minutes: minutesDone };
   }
 
-  let xpGain = input.correct ? XP.brainCorrect : XP.brainWrong;
-  if (input.crossword && input.correct) xpGain += XP.brainCrossword;
+  let xpGain = input.skipped
+    ? XP.brainSkip
+    : input.correct
+      ? XP.brainCorrect
+      : XP.brainWrong;
+  if (input.crossword && input.correct && !input.skipped) xpGain += XP.brainCrossword;
   xpGain += input.penalty ?? 0;
   if (completed && !wasComplete) xpGain += XP.brainDayComplete;
 
   const withXp = withActivity({ ...prev, brain }, xpGain);
   const drop = dropFromBrain(withXp.bench ?? emptyBench(), {
     correct: input.correct,
+    skipped: input.skipped,
     cat: input.cat,
   });
   return { ...withXp, bench: applyAwards(withXp.bench ?? emptyBench(), drop) };

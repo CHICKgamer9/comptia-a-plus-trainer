@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import type { Domain, Lesson, PathBeat, PathCheck } from "@/content/types";
 import { lessonToPath } from "@/lib/lesson-path";
 import { challengeHref, labThemeForDomain, quizHref } from "@/content/registry";
@@ -34,13 +35,23 @@ export function LessonPlayer({
 }) {
   const { progress, markLessonComplete, saveLessonCursor, recordQuizAnswer, lessonDone } =
     useProgress();
-  const beats = useMemo(
-    () => lessonToPath(lesson, checks, domain.subject, domain.cluster),
-    [lesson, checks, domain.subject, domain.cluster],
-  );
-  const [index, setIndex] = useState(() =>
-    resumeIndex(progress.lessonCursor?.[lesson.id], beats.length),
-  );
+  const search = useSearchParams();
+  const hunt = search.get("hunt") === "1";
+  const replayCheck = search.get("check");
+  const beats = useMemo(() => {
+    const all = lessonToPath(lesson, checks, domain.subject, domain.cluster);
+    if (!hunt) return all;
+    const checksOnly = all.filter((item) => item.kind === "check").slice(0, 3);
+    return checksOnly.length ? checksOnly : all.slice(0, 3);
+  }, [lesson, checks, domain.subject, domain.cluster, hunt]);
+  const [index, setIndex] = useState(() => {
+    if (replayCheck) {
+      const found = beats.findIndex((item) => item.check?.id === replayCheck);
+      if (found >= 0) return found;
+    }
+    if (hunt) return 0;
+    return resumeIndex(progress.lessonCursor?.[lesson.id], beats.length);
+  });
   const [checkOk, setCheckOk] = useState(false);
   const [followUp, setFollowUp] = useState<string | undefined>();
   const beat = beats[index];
@@ -50,14 +61,26 @@ export function LessonPlayer({
   function continuePath() {
     if (beat?.kind === "check" && !checkOk) return;
     if (last) {
-      markLessonComplete(lesson.id);
+      if (!hunt) markLessonComplete(lesson.id);
       return;
     }
     const next = index + 1;
     setIndex(next);
     setCheckOk(false);
     setFollowUp(undefined);
-    saveLessonCursor(lesson.id, next);
+    if (!hunt) saveLessonCursor(lesson.id, next);
+  }
+
+  function skipBeat() {
+    if (beat?.kind !== "check" || !beat.check || checkOk) return;
+    setCheckOk(true);
+    setFollowUp("Skipped. No card.");
+    recordQuizAnswer(`path-${beat.check.id}`, false, {
+      domainId: domain.id,
+      subject: domain.subject,
+      conceptId: beat.check.id,
+      skipped: true,
+    });
   }
 
   if (!beat) return null;
@@ -75,7 +98,7 @@ export function LessonPlayer({
       </div>
 
       <PlayerFrame
-        kicker={`${domain.number}. ${domain.title}`}
+        kicker={`${hunt ? "Hunt · " : ""}${domain.number}. ${domain.title}`}
         title={lesson.title}
         index={index}
         total={beats.length}
@@ -86,22 +109,51 @@ export function LessonPlayer({
           followUp,
         }}
         footer={
-          last && done ? (
+          last && done && !hunt ? (
             <EndLinks domain={domain} restart={() => { setIndex(0); setCheckOk(false); setFollowUp(undefined); }} />
+          ) : last && hunt && (beat.kind !== "check" || checkOk) ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Link
+                href="/binder"
+                className="rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background"
+              >
+                Back to Binder
+              </Link>
+              <Link
+                href="/brain/today"
+                className="rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold hover:bg-surface-2"
+              >
+                Brain Gym
+              </Link>
+            </div>
           ) : (
-            <PlayerButton onClick={continuePath} disabled={beat.kind === "check" && !checkOk}>
-              {beat.kind === "check" && !checkOk
-                ? "Answer to continue"
-                : last
-                  ? "Finish path · +80 XP"
-                  : "Continue"}
-            </PlayerButton>
+            <div className="grid gap-2">
+              <PlayerButton onClick={continuePath} disabled={beat.kind === "check" && !checkOk}>
+                {beat.kind === "check" && !checkOk
+                  ? "Answer to continue"
+                  : last
+                    ? hunt
+                      ? "Finish hunt"
+                      : "Finish path · +80 XP"
+                    : "Continue"}
+              </PlayerButton>
+              {beat.kind === "check" && !checkOk ? (
+                <button
+                  type="button"
+                  onClick={skipBeat}
+                  className="text-center text-xs text-muted underline-offset-2 hover:text-foreground hover:underline"
+                >
+                  Skip this beat — no card
+                </button>
+              ) : null}
+            </div>
           )
         }
       >
         <BeatView
           beat={beat}
           onCheck={(correct, checkId, spoken) => {
+            if (checkOk) return;
             setCheckOk(true);
             setFollowUp(spoken);
             recordQuizAnswer(`path-${checkId}`, correct, {

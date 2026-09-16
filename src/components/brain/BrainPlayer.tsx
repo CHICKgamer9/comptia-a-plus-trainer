@@ -26,17 +26,17 @@ export function BrainPlayer({
   kicker?: string;
   minutesLeft?: number;
   minutesTarget?: number;
-  onResolved: (correct: boolean, spoken?: string, penalty?: number) => void;
+  onResolved: (correct: boolean, spoken?: string, penalty?: number, skipped?: boolean) => void;
   nextHref?: string;
   nextLabel?: string;
 }) {
   const [followUp, setFollowUp] = useState<string | undefined>();
   const [done, setDone] = useState(false);
 
-  function resolved(correct: boolean, spoken?: string, penalty?: number) {
+  function resolved(correct: boolean, spoken?: string, penalty?: number, skipped?: boolean) {
     setFollowUp(spoken);
     setDone(true);
-    onResolved(correct, spoken, penalty);
+    onResolved(correct, spoken, penalty, skipped);
   }
 
   const remainingPct =
@@ -83,6 +83,14 @@ export function BrainPlayer({
             {nextLabel ?? "Next"}
           </Link>
         </div>
+      ) : !done ? (
+        <button
+          type="button"
+          onClick={() => resolved(false, "Skipped. −XP, no card.", 0, true)}
+          className="mt-4 w-full text-center text-xs text-muted underline-offset-2 hover:text-foreground hover:underline"
+        >
+          Skip (−XP) — no card
+        </button>
       ) : null}
     </div>
   );

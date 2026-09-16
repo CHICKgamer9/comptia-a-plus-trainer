@@ -1,22 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getBenchCard } from "@/content/bench-cards";
 import { KnowledgeCard } from "./KnowledgeCard";
 import { useProgress } from "./ProgressProvider";
 
 export function NightPackHost() {
+  const router = useRouter();
   const { bench, openNightPack } = useProgress();
   const pack = bench.pendingPack;
   const packKey = pack?.cardIds.join("|") ?? "";
   const [revealed, setRevealed] = useState<number[]>([]);
+
+  useEffect(() => {
+    setRevealed([]);
+  }, [packKey]);
 
   if (!pack) return null;
 
   const allUp = revealed.length >= pack.cardIds.length;
 
   return (
-    <div key={packKey} className="fixed inset-0 z-40 grid place-items-center bg-background/80 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-3xl border border-accent/30 bg-surface p-5 shadow-xl">
         <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Night Pack</p>
         <p className="mt-1 text-xl font-semibold">Desk is closing</p>
@@ -35,7 +41,7 @@ export function NightPackHost() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setRevealed((list) => [...list, index])}
+                    onClick={() => setRevealed((list) => (list.includes(index) ? list : [...list, index]))}
                     className="flex h-24 w-full items-center justify-center rounded-2xl border border-accent/40 bg-accent-dim text-sm font-semibold text-accent"
                   >
                     Tap to flip
@@ -51,6 +57,7 @@ export function NightPackHost() {
           onClick={() => {
             openNightPack();
             setRevealed([]);
+            router.push("/");
           }}
           className="mt-5 w-full rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-background disabled:opacity-40"
         >

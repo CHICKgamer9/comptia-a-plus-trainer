@@ -7,7 +7,13 @@ import { emptyBench, ownedCount, slottedCount } from "@/lib/binder";
 import { cn } from "@/lib/cn";
 import { useProgress } from "./ProgressProvider";
 
-export function BenchChassis({ compact }: { compact?: boolean }) {
+export function BenchChassis({
+  compact,
+  continueHref,
+}: {
+  compact?: boolean;
+  continueHref?: string;
+}) {
   const { bench, startDeskShift, closeDeskShift } = useProgress();
   const state = bench ?? emptyBench();
   const shift = state.activeShift && !state.activeShift.endedAt ? state.activeShift : undefined;
@@ -78,6 +84,16 @@ export function BenchChassis({ compact }: { compact?: boolean }) {
           </div>
         )}
       </div>
+      {!compact ? (
+        <div className="mt-3 flex flex-wrap gap-3 text-xs">
+          <Link href={continueHref ?? "/learn"} className="text-muted hover:text-foreground">
+            Continue
+          </Link>
+          <Link href="/brain/today" className="text-muted hover:text-foreground">
+            Scroll brain
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

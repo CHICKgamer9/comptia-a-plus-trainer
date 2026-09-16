@@ -96,7 +96,7 @@ export default async function CheatsheetPage({
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
               {cardsForSheet(sheet.id).map((card) => (
                 <li key={card.id}>
-                  <Link href="/binder" className="text-accent hover:underline">
+                  <Link href={`/binder?card=${card.id}`} className="text-accent hover:underline">
                     {card.title}
                   </Link>
                   <span className="text-muted"> — {card.subtitle}</span>

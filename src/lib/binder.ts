@@ -147,9 +147,17 @@ export function addCopy(
 function noteShiftCard(bench: BenchState, cardId: string) {
   const shift = bench.activeShift;
   if (!shift || shift.endedAt) return;
-  if (!shift.cardsEarned.includes(cardId)) {
-    shift.cardsEarned = [...shift.cardsEarned, cardId];
-  }
+  const card = getBenchCard(cardId);
+  const tags = new Set(shift.tags);
+  for (const tag of card?.tags ?? []) tags.add(tag);
+  if (card?.subject) tags.add(card.subject);
+  bench.activeShift = {
+    ...shift,
+    cardsEarned: shift.cardsEarned.includes(cardId)
+      ? shift.cardsEarned
+      : [...shift.cardsEarned, cardId],
+    tags: [...tags],
+  };
 }
 
 function roll(chance: number) {
@@ -252,10 +260,13 @@ export function dropFromPath(
   return { bench: next, awarded };
 }
 
-export function dropFromBrain(bench: BenchState, input: { correct: boolean; cat?: BrainCat }): DropResult {
+export function dropFromBrain(
+  bench: BenchState,
+  input: { correct: boolean; skipped?: boolean; cat?: BrainCat },
+): DropResult {
   const awarded: DropResult["awarded"] = [];
   let next = { ...bench, owned: [...bench.owned] };
-  if (!input.correct) return { bench: next, awarded };
+  if (input.skipped || !input.correct) return { bench: next, awarded };
   if (!roll(0.4)) return { bench: next, awarded };
   const pool = matchingCards(tagsForBrain(input.cat), ["glue", "component", "procedure", "tool"]);
   const pick = pickWeighted(pool.length ? pool : benchCards.filter((c) => c.type === "glue" || c.type === "component"), [
@@ -413,22 +424,35 @@ export function closeShift(
 function buildNightPack(bench: BenchState, shift: DeskShift, weak: string, size: number): string[] {
   const ids: string[] = [];
   const weakCards = matchingCards(tagsForDomain(weak, "tech"), ["component", "symptom", "procedure", "glue"]);
+  if (shift.cardsEarned.length === 0) {
+    const weakUncommon = (weakCards.length ? weakCards : benchCards).filter(
+      (card) => card.rarity === "uncommon" && card.type !== "crest" && card.type !== "gotcha",
+    );
+    const weakPick =
+      weakUncommon[Math.floor(Math.random() * Math.max(1, weakUncommon.length))] ??
+      pickWeighted(weakCards.length ? weakCards : benchCards, ["uncommon"]);
+    if (weakPick) ids.push(weakPick.id);
+    const commons = benchCards.filter(
+      (card) => card.rarity === "common" && card.type !== "crest" && card.type !== "gotcha",
+    );
+    while (ids.length < size) {
+      const pick = commons[Math.floor(Math.random() * commons.length)];
+      if (!pick) break;
+      if (!ids.includes(pick.id)) ids.push(pick.id);
+    }
+    return ids.slice(0, size);
+  }
   const weakPick = pickWeighted(weakCards.length ? weakCards : benchCards.filter((c) => c.rarity === "uncommon"), [
     "uncommon",
     "rare",
     "common",
   ]);
   if (weakPick) ids.push(weakPick.id);
-  if (shift.cardsEarned.length === 0) {
-    const commons = benchCards.filter((c) => c.rarity === "common" && c.type !== "crest" && c.type !== "gotcha");
-    while (ids.length < size) {
-      const pick = commons[Math.floor(Math.random() * commons.length)];
-      if (pick && !ids.includes(pick.id)) ids.push(pick.id);
-      else break;
-    }
-    return ids.slice(0, size);
-  }
-  const sessionPool = benchCards.filter((card) => shift.cardsEarned.includes(card.id) || card.tags.some((tag) => tagsForDomain(weak, "tech").includes(tag)));
+  const sessionTags = new Set([...shift.tags, ...tagsForDomain(weak, "tech")]);
+  const sessionPool = benchCards.filter(
+    (card) =>
+      shift.cardsEarned.includes(card.id) || card.tags.some((tag) => sessionTags.has(tag)),
+  );
   while (ids.length < size) {
     const pick = pickWeighted(sessionPool.length ? sessionPool : benchCards.filter((c) => c.type !== "crest"), [
       "common",
@@ -468,7 +492,13 @@ export function slotCard(bench: BenchState, slot: BenchSlot, cardId: string | un
   const owned = bench.owned.find((row) => row.cardId === cardId);
   if (!card || !owned || card.slot !== slot) return bench;
   slotted[slot] = cardId;
-  return { ...bench, slotted };
+  return {
+    ...bench,
+    slotted,
+    owned: bench.owned.map((row) =>
+      row.cardId === cardId ? { ...row, lastUsedAt: Date.now() } : row,
+    ),
+  };
 }
 
 export function setLoadout(bench: BenchState, loadout: BenchState["loadout"]): BenchState {

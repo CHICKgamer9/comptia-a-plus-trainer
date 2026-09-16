@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BinderView } from "@/components/BinderView";
 
 export const metadata: Metadata = {
@@ -6,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function BinderPage() {
-  return <BinderView />;
+  return (
+    <Suspense fallback={<p className="text-sm text-muted">Opening the Binder…</p>}>
+      <BinderView />
+    </Suspense>
+  );
 }
