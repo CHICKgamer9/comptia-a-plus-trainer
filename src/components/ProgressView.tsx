@@ -73,6 +73,13 @@ export function ProgressView() {
         })}
       </div>
 
+      <Link href="/lab" className="mb-3 block rounded-3xl border border-border bg-surface p-5 hover:border-accent/40">
+        <p className="text-[11px] uppercase tracking-wider text-muted">Tech Lab</p>
+        <p className="mt-1 font-semibold">Helpdesk tickets</p>
+        <p className="mt-1 text-sm text-muted">
+          Tech hub only. Generate a ticket, then investigate. Binder loadout still lives under Learn.
+        </p>
+      </Link>
       <Link href="/reference" className="mb-8 block rounded-3xl border border-border bg-surface p-5 hover:border-accent/40">
         <p className="text-[11px] uppercase tracking-wider text-muted">Sheets</p>
         <p className="mt-1 font-semibold">Quick reference</p>

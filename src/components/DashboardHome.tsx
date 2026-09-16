@@ -43,16 +43,32 @@ export function DashboardHome() {
       </div>
 
       {firstRun ? (
-        <ul className="mb-8 flex flex-wrap justify-center gap-2">
-          {["Lesson", "Quiz", "Project", "Helpdesk ticket", "Flashcards"].map((label) => (
-            <li
-              key={label}
-              className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted"
-            >
-              {label}
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="mb-4 flex flex-wrap justify-center gap-2">
+            {["Lesson", "Quiz", "Project", "Helpdesk ticket", "Flashcards"].map((label) => (
+              <li
+                key={label}
+                className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted"
+              >
+                {label}
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/brain/feed"
+            className="mb-8 block rounded-3xl border border-accent/30 bg-gradient-to-br from-accent-dim/80 to-surface p-6"
+          >
+            <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Brain Gym</p>
+            <p className="mt-2 text-xl font-semibold">Scroll Brain Gym</p>
+            <p className="mt-1 text-sm text-muted">
+              Open the phone feed — short challenges instead of empty scrolling. No hub pick
+              required.
+            </p>
+            <span className="mt-5 flex min-h-12 items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background">
+              Open phone feed
+            </span>
+          </Link>
+        </>
       ) : (
         <div className="mb-6 rounded-3xl border border-accent/30 bg-gradient-to-br from-accent-dim/80 to-surface p-6">
           <p className="text-[11px] uppercase tracking-[0.16em] text-accent">Today</p>
@@ -70,16 +86,24 @@ export function DashboardHome() {
                 ? `${lastMeta?.title ?? upcoming.subject} · ${upcoming.exam ? `Domain ${upcoming.number}` : `Path ${upcoming.number}`}`
                 : "Open a quiz, a project, or another subject."}
           </p>
-          <Link
-            href={upcoming ? pathHref(upcoming) : last ? `/learn/${last}` : "/learn"}
-            className="mt-5 flex min-h-12 w-full items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background active:brightness-110"
-          >
-            {upcoming?.cluster === "Start here"
-              ? "Start today’s lesson"
-              : upcoming
-                ? "Continue"
-                : "Open hub"}
-          </Link>
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+            <Link
+              href={upcoming ? pathHref(upcoming) : last ? `/learn/${last}` : "/learn"}
+              className="flex min-h-12 flex-1 items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background active:brightness-110"
+            >
+              {upcoming?.cluster === "Start here"
+                ? "Start today’s lesson"
+                : upcoming
+                  ? "Continue"
+                  : "Open hub"}
+            </Link>
+            <Link
+              href="/brain/feed"
+              className="flex min-h-12 items-center justify-center rounded-2xl border border-border px-4 py-3.5 text-center text-sm font-semibold active:bg-surface-2"
+            >
+              Scroll Brain Gym
+            </Link>
+          </div>
         </div>
       )}
 
