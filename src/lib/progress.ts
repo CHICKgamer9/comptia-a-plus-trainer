@@ -37,6 +37,43 @@ import { techDomains } from "@/content/domains";
 import { enqueueToasts, type ToastEvent } from "./toasts";
 
 export const PROGRESS_KEY = "ticketbench-progress-v1";
+export const ACTIVE_PROFILE_STORAGE_KEY = "ticketbench-active-profile";
+
+const listeners = new Set<() => void>();
+let scopeKey = PROGRESS_KEY;
+let remoteWriter: ((state: ProgressState) => void) | null = null;
+
+export function progressKeyFor(scope: "guest" | { profileId: string }) {
+  return scope === "guest" ? PROGRESS_KEY : `${PROGRESS_KEY}:profile:${scope.profileId}`;
+}
+
+export function getProgressScope() {
+  return scopeKey;
+}
+
+export function isGuestProgressScope() {
+  return scopeKey === PROGRESS_KEY;
+}
+
+export function setRemoteProgressWriter(writer: ((state: ProgressState) => void) | null) {
+  remoteWriter = writer;
+}
+
+export function setProgressScope(scope: "guest" | { profileId: string }) {
+  const next = progressKeyFor(scope);
+  if (scopeKey === next) return;
+  scopeKey = next;
+  if (typeof window !== "undefined") {
+    if (scope === "guest") window.localStorage.removeItem(ACTIVE_PROFILE_STORAGE_KEY);
+    else window.localStorage.setItem(ACTIVE_PROFILE_STORAGE_KEY, scope.profileId);
+  }
+  listeners.forEach((listener) => listener());
+}
+
+export function readGuestProgress(): ProgressState {
+  if (typeof window === "undefined") return emptyProgress();
+  return parseProgress(window.localStorage.getItem(PROGRESS_KEY) ?? "");
+}
 
 export interface QuizResult {
   score: number;
@@ -147,8 +184,6 @@ export interface PathAnswerContext {
   tags?: string[];
   objective?: string;
 }
-
-const listeners = new Set<() => void>();
 
 export const emptyGame = (): GameState => ({
   xp: 0,
@@ -323,13 +358,14 @@ function backfillGame(state: ProgressState): ProgressState {
 
 export function loadProgress(): ProgressState {
   if (typeof window === "undefined") return emptyProgress();
-  return parseProgress(window.localStorage.getItem(PROGRESS_KEY) ?? "");
+  return parseProgress(window.localStorage.getItem(scopeKey) ?? "");
 }
 
 export function saveProgress(state: ProgressState) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(PROGRESS_KEY, JSON.stringify(state));
+  window.localStorage.setItem(scopeKey, JSON.stringify(state));
   listeners.forEach((listener) => listener());
+  remoteWriter?.(state);
 }
 
 export function subscribeProgress(listener: () => void) {
@@ -338,7 +374,7 @@ export function subscribeProgress(listener: () => void) {
 }
 
 export function getProgressSnapshot() {
-  return window.localStorage.getItem(PROGRESS_KEY) ?? "";
+  return window.localStorage.getItem(scopeKey) ?? "";
 }
 
 export function getServerProgressSnapshot() {

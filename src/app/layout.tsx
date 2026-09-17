@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AuthProvider } from "@/components/AuthProvider";
+import { AccountProvider } from "@/components/AccountProvider";
 import { ProgressProvider } from "@/components/ProgressProvider";
 import { SiteShell } from "@/components/SiteShell";
 import { CelebrationHost } from "@/components/CelebrationHost";
 import { DropCeremony } from "@/components/card/DropCeremony";
+import { SaveBenchPrompt } from "@/components/SaveBenchPrompt";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,11 +53,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
-        <ProgressProvider>
-          <SiteShell>{children}</SiteShell>
-          <CelebrationHost />
-          <DropCeremony />
-        </ProgressProvider>
+        <AuthProvider>
+          <AccountProvider>
+            <ProgressProvider>
+              <SiteShell>{children}</SiteShell>
+              <CelebrationHost />
+              <DropCeremony />
+              <SaveBenchPrompt />
+            </ProgressProvider>
+          </AccountProvider>
+        </AuthProvider>
       </body>
     </html>
   );

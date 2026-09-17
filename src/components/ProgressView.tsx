@@ -123,7 +123,8 @@ export function ProgressView() {
       <section className="mb-8 rounded-3xl border border-border bg-surface p-5">
         <p className="text-sm font-semibold">Export / import</p>
         <p className="mt-1 text-sm text-muted">
-          Save a JSON copy, or restore one. There is no account sync in this build.
+          Save a JSON copy, or restore one. Signed-in profiles also sync this ledger to the
+          server — guests stay on this device until you save the bench.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
