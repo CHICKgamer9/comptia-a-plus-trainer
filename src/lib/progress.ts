@@ -2,6 +2,7 @@ import type { BenchSlot, DomainId, ExamId, ExamTrack, ScenarioTheme, SubjectId }
 import type { LingoLangId } from "@/content/lingo/types";
 import { isLingoLangId } from "@/content/lingo/types";
 import type { BrainCat } from "@/content/brain/types";
+import { catOfId } from "./brain-daily";
 import { isSubjectId } from "@/content/subjects";
 import { unlockedBadgeIds } from "./badges";
 import { updateStreak } from "./sydney-date";
@@ -143,6 +144,8 @@ export interface PathAnswerContext {
   cardId?: string;
   /** When false, record XP but do not drop a card (try beats). */
   awardCard?: boolean;
+  tags?: string[];
+  objective?: string;
 }
 
 const listeners = new Set<() => void>();
@@ -460,6 +463,8 @@ export function recordQuizAnswerIn(
       subject: ctx?.subject,
       conceptId: ctx?.conceptId ?? questionId,
       cardId: ctx?.cardId,
+      tags: ctx?.tags,
+      objective: ctx?.objective,
     });
     next = { ...next, bench: applyAwards(next.bench ?? emptyBench(), drop) };
   }
@@ -651,10 +656,12 @@ export function recordBrainAnswerIn(prev: ProgressState, input: BrainAnswerInput
   if (completed && !wasComplete) xpGain += XP.brainDayComplete;
 
   const withXp = withActivity({ ...prev, brain }, xpGain);
+  if (already || input.skipped || !input.correct) return withXp;
   const drop = dropFromBrain(withXp.bench ?? emptyBench(), {
     correct: input.correct,
     skipped: input.skipped,
-    cat: input.cat,
+    cat: input.cat ?? catOfId(input.id) ?? undefined,
+    itemId: input.id,
   });
   return { ...withXp, bench: applyAwards(withXp.bench ?? emptyBench(), drop) };
 }

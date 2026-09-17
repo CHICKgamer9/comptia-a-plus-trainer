@@ -177,9 +177,9 @@ Cards are parts, symptoms, tools, procedures — not stickers. Catalog: `src/con
 | Event | Drop |
 | --- | --- |
 | Learn bite finished | Exactly one ticket. Same concept → same card. Deterministic. |
-| Bite correct | Path card (not crest, not glue). First print is unique; repeats dust that unique. |
-| Bite wrong | Deterministic gotcha for that concept. Same moment, dust if already owned. |
-| Brain correct | Exactly one ticket from the category. Skip never prints. |
+| Bite correct | Path card (not crest, not glue). First print is unique; repeats dust that unique. Named `cardId` wins. Otherwise ~12% a tighter related pick (domain sheet / path / tags); the rest use the existing domain pool. |
+| Bite wrong | No card. Skip and try beats also print nothing. |
+| Brain correct (first time that item) | At most one ticket. Seed is `brain:{cat}:{itemId}` so a scroll session does not reprint one card. Most prints come from the general pool; **12%** are category-related (`RELATED_DROP_RATE`). The last 8 prints are excluded when another card is available. Skip / wrong / repeat = nothing. |
 | Lab ticket closed | Exactly one ticket from the ticket’s tags. Loadout cards take wear. |
 | Domain sheet full | Crest seal only — not a loot roll. |
 | Named fusion recipe | Glue ticket only. Ghost crafts stay visible on the tray. |
