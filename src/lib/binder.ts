@@ -18,6 +18,7 @@ import type {
 import { domains, getDomain } from "@/content/registry";
 import { isCore1, isCore2 } from "@/lib/exam";
 import type { BrainCat } from "@/content/brain/types";
+import { hashSeed } from "./brain-rng";
 
 /** Chance a correct drop uses a tighter related pool instead of the normal/unrelated pick. */
 export const RELATED_DROP_RATE = 0.12;
@@ -351,7 +352,7 @@ function tokenizeMeta(value?: string) {
 }
 
 export function wantsRelatedDrop(seed: string) {
-  return hash(`related:${seed}`) % 1000 < Math.round(RELATED_DROP_RATE * 1000);
+  return hashSeed(`related:${seed}`) % 1000 < Math.round(RELATED_DROP_RATE * 1000);
 }
 
 function pickAvoiding(cards: BenchCard[], seed: string, exclude: string[] = []) {
@@ -400,7 +401,19 @@ export function relatedCardsForPath(input: {
 }
 
 export function relatedCardsForBrain(cat?: BrainCat) {
-  return matchingCards(tagsForBrain(cat), ["component", "procedure", "tool"]);
+  const types: CardType[] = ["component", "procedure", "tool"];
+  const tags = tagsForBrain(cat);
+  const direct = matchingCards(tags, types);
+  if (direct.length) return direct;
+  // Maths/logic glue cards are fusion-only; borrow their neighbour tags (raid, subnet, …).
+  const neighbourTags = benchCards
+    .filter(
+      (card) =>
+        (cat && card.subject === cat) ||
+        card.tags.some((tag) => tags.includes(tag.toLowerCase())),
+    )
+    .flatMap((card) => card.tags);
+  return matchingCards(neighbourTags.length ? neighbourTags : tags, types);
 }
 
 function noteRecentDrop(bench: BenchState, cardId: string): BenchState {

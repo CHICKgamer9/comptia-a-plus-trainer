@@ -30,11 +30,14 @@ describe("drop rates and related chance", () => {
 
   it("marks about 12% of seeds as related", () => {
     let hits = 0;
-    const samples = 2000;
-    for (let i = 0; i < samples; i += 1) {
-      if (wantsRelatedDrop(`brain:trivia:b-trivia-${String(i).padStart(5, "0")}`)) hits += 1;
+    const cats = ["trivia", "maths", "riddle", "code", "fact"] as const;
+    const perCat = 400;
+    for (const cat of cats) {
+      for (let i = 0; i < perCat; i += 1) {
+        if (wantsRelatedDrop(`brain:${cat}:b-${cat}-${String(i).padStart(5, "0")}`)) hits += 1;
+      }
     }
-    const rate = hits / samples;
+    const rate = hits / (cats.length * perCat);
     expect(rate).toBeGreaterThan(0.08);
     expect(rate).toBeLessThan(0.16);
   });
