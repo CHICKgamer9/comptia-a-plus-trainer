@@ -11,6 +11,7 @@ export default function ProfilesPage() {
     ready,
     signedIn,
     account,
+    refresh,
     profiles,
     activeProfile,
     createProfile,
@@ -23,13 +24,26 @@ export default function ProfilesPage() {
   const [error, setError] = useState<string | null>(null);
 
   if (!ready) return <p className="text-sm text-muted">Loading profiles…</p>;
-  if (!signedIn || !account) {
+  if (!account) {
     return (
       <div className="mx-auto max-w-lg">
-        <PageHeader kicker="Profiles" title="Sign in first" />
-        <Link href="/sign-in" className="text-sm text-accent underline-offset-2 hover:underline">
-          Sign in
-        </Link>
+        <PageHeader
+          kicker="Profiles"
+          title={signedIn ? "Setting up your account…" : "Sign in first"}
+        />
+        {signedIn ? (
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="text-sm text-accent underline-offset-2 hover:underline"
+          >
+            Retry
+          </button>
+        ) : (
+          <Link href="/sign-in" className="text-sm text-accent underline-offset-2 hover:underline">
+            Sign in
+          </Link>
+        )}
       </div>
     );
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import {
   createContext,
   useCallback,
@@ -18,6 +19,7 @@ import {
 } from "@/lib/progress";
 import type { ProgressState } from "@/lib/progress";
 import type { AccountRecord, ProfilePublic } from "@/lib/account/types";
+import { clerkBrowserConfigured } from "./AuthProvider";
 
 export interface AccountPayload {
   id: string;
@@ -31,8 +33,11 @@ export interface AccountPayload {
 
 interface AccountContextValue {
   ready: boolean;
+  authReady: boolean;
   signedIn: boolean;
+  clerkSignedIn: boolean;
   account: AccountPayload | null;
+  accountUnavailable: boolean;
   profiles: ProfilePublic[];
   activeProfile: ProfilePublic | null;
   refresh: () => Promise<void>;
@@ -58,17 +63,58 @@ async function readJson(res: Response) {
 }
 
 export function AccountProvider({ children }: { children: React.ReactNode }) {
+  if (clerkBrowserConfigured()) {
+    return <ClerkLinkedAccountProvider>{children}</ClerkLinkedAccountProvider>;
+  }
+  return <AccountSessionProvider>{children}</AccountSessionProvider>;
+}
+
+function ClerkLinkedAccountProvider({ children }: { children: React.ReactNode }) {
+  const { isLoaded, userId, isSignedIn } = useAuth();
+  return (
+    <AccountSessionProvider
+      clerkLoaded={isLoaded}
+      clerkUserId={userId ?? null}
+      clerkSignedIn={Boolean(isSignedIn)}
+    >
+      {children}
+    </AccountSessionProvider>
+  );
+}
+
+function AccountSessionProvider({
+  children,
+  clerkLoaded = true,
+  clerkUserId,
+  clerkSignedIn,
+}: {
+  children: React.ReactNode;
+  clerkLoaded?: boolean;
+  clerkUserId?: string | null;
+  clerkSignedIn?: boolean;
+}) {
+  const clerkEnabled = clerkSignedIn !== undefined;
   const [ready, setReady] = useState(false);
   const [account, setAccount] = useState<AccountPayload | null>(null);
+  const [accountUnavailable, setAccountUnavailable] = useState(false);
   const [profiles, setProfiles] = useState<ProfilePublic[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const activeRef = useRef<string | null>(null);
   const syncTimer = useRef<number | undefined>(undefined);
+  const lastClerkUserId = useRef<string | null | undefined>(undefined);
 
   const applySession = useCallback((nextAccount: AccountPayload | null, nextProfiles: ProfilePublic[]) => {
     setAccount(nextAccount);
     setProfiles(nextProfiles);
   }, []);
+
+  const clearToGuest = useCallback(() => {
+    applySession(null, []);
+    setAccountUnavailable(false);
+    setProgressScope("guest");
+    setActiveProfileId(null);
+    activeRef.current = null;
+  }, [applySession]);
 
   const hydrateProfile = useCallback(async (profileId: string) => {
     setProgressScope({ profileId });
@@ -97,15 +143,26 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
   const refresh = useCallback(async () => {
     const res = await fetch("/api/account");
-    if (res.status === 401 || res.status === 503) {
+    if (res.status === 401) {
       applySession(null, []);
-      setProgressScope("guest");
-      setActiveProfileId(null);
-      activeRef.current = null;
+      setAccountUnavailable(false);
+      if (!clerkSignedIn) {
+        setProgressScope("guest");
+        setActiveProfileId(null);
+        activeRef.current = null;
+      }
+      setReady(true);
+      return;
+    }
+    if (res.status === 503) {
+      applySession(null, []);
+      setAccountUnavailable(true);
       setReady(true);
       return;
     }
     if (!res.ok) {
+      applySession(null, []);
+      setAccountUnavailable(false);
       setReady(true);
       return;
     }
@@ -113,6 +170,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     const nextAccount = (body.account as AccountPayload | undefined) ?? null;
     const nextProfiles = Array.isArray(body.profiles) ? (body.profiles as ProfilePublic[]) : [];
     applySession(nextAccount, nextProfiles);
+    setAccountUnavailable(false);
     const guest = readGuestProgress();
     const guestBusy = (guest.bench?.owned.length ?? 0) > 0 || (guest.game?.streakCount ?? 0) >= 2;
     const current = activeRef.current;
@@ -128,14 +186,26 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       activeRef.current = null;
     }
     setReady(true);
-  }, [applySession, hydrateProfile]);
+  }, [applySession, clerkSignedIn, hydrateProfile]);
 
   useEffect(() => {
+    if (!clerkLoaded) return;
+
+    const userId = clerkEnabled ? (clerkUserId ?? null) : null;
+    const prev = lastClerkUserId.current;
+    lastClerkUserId.current = userId;
+
+    if (clerkEnabled && prev && !userId) {
+      clearToGuest();
+      setReady(true);
+      return;
+    }
+
     const frame = window.requestAnimationFrame(() => {
       void refresh();
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [refresh]);
+  }, [clerkEnabled, clerkLoaded, clerkUserId, clearToGuest, refresh]);
 
   useEffect(() => {
     setRemoteProgressWriter((state: ProgressState) => {
@@ -227,12 +297,16 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   );
 
   const activeProfile = profiles.find((row) => row.id === activeProfileId) ?? null;
+  const clerkIsSignedIn = clerkEnabled ? Boolean(clerkSignedIn) : Boolean(account);
 
   const value = useMemo<AccountContextValue>(
     () => ({
       ready,
-      signedIn: Boolean(account),
+      authReady: clerkLoaded,
+      signedIn: clerkIsSignedIn,
+      clerkSignedIn: clerkIsSignedIn,
       account,
+      accountUnavailable,
       profiles,
       activeProfile,
       refresh,
@@ -244,7 +318,10 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       ready,
+      clerkLoaded,
+      clerkIsSignedIn,
       account,
+      accountUnavailable,
       profiles,
       activeProfile,
       refresh,

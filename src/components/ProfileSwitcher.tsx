@@ -14,12 +14,12 @@ import { clerkBrowserConfigured } from "./AuthProvider";
 import { useAccount } from "./AccountProvider";
 
 export function ProfileSwitcher() {
-  const { signedIn, account, profiles, activeProfile, switchProfile } = useAccount();
+  const { account, profiles, activeProfile, switchProfile } = useAccount();
   const [open, setOpen] = useState(false);
   const clerkOn = clerkBrowserConfigured();
   const router = useRouter();
 
-  if (!signedIn) {
+  if (!account) {
     if (clerkOn) {
       return (
         <div className="flex items-center gap-1.5">

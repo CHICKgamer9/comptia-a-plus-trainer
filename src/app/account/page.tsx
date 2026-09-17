@@ -5,26 +5,40 @@ import { PageHeader } from "@/components/ui";
 import { useAccount } from "@/components/AccountProvider";
 
 export default function AccountPage() {
-  const { signedIn, account, profiles, ready } = useAccount();
+  const { signedIn, account, profiles, ready, refresh } = useAccount();
 
   if (!ready) {
     return <p className="text-sm text-muted">Loading account…</p>;
   }
 
-  if (!signedIn || !account) {
+  if (!account) {
     return (
       <div className="mx-auto max-w-lg">
         <PageHeader
           kicker="Account"
-          title="Sign in to see the plan"
-          description="Start Here does not need an account. Sign in when you want seats and a Binder that follows a learner."
+          title={signedIn ? "Setting up your account…" : "Sign in to see the plan"}
+          description={
+            signedIn
+              ? "Signed in. Profiles need the account API — retry if this stays here."
+              : "Start Here does not need an account. Sign in when you want seats and a Binder that follows a learner."
+          }
         />
-        <Link
-          href="/sign-in"
-          className="inline-flex rounded-2xl bg-accent px-4 py-2.5 text-sm font-semibold text-background"
-        >
-          Sign in
-        </Link>
+        {signedIn ? (
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="inline-flex rounded-2xl bg-accent px-4 py-2.5 text-sm font-semibold text-background"
+          >
+            Retry
+          </button>
+        ) : (
+          <Link
+            href="/sign-in"
+            className="inline-flex rounded-2xl bg-accent px-4 py-2.5 text-sm font-semibold text-background"
+          >
+            Sign in
+          </Link>
+        )}
       </div>
     );
   }

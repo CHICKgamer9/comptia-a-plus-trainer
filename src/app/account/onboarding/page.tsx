@@ -11,7 +11,7 @@ import { useAccount } from "@/components/AccountProvider";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { ready, signedIn, account, profiles, createProfile, saveGuestBench, switchProfile } =
+  const { ready, signedIn, account, profiles, createProfile, saveGuestBench, switchProfile, refresh } =
     useAccount();
   const [name, setName] = useState("Learner 1");
   const [avatar, setAvatar] = useState<string>(PROFILE_AVATARS[0]);
@@ -21,13 +21,22 @@ export default function OnboardingPage() {
   const guestCards = guest.bench?.owned.length ?? 0;
 
   if (!ready) return <p className="text-sm text-muted">Loading…</p>;
-  if (!signedIn || !account) {
+  if (!account) {
     return (
       <div className="mx-auto max-w-lg">
-        <PageHeader kicker="Onboarding" title="Sign in first" />
-        <Link href="/sign-in" className="text-sm text-accent">
-          Sign in
-        </Link>
+        <PageHeader
+          kicker="Onboarding"
+          title={signedIn ? "Setting up your account…" : "Sign in first"}
+        />
+        {signedIn ? (
+          <button type="button" onClick={() => void refresh()} className="text-sm text-accent">
+            Retry
+          </button>
+        ) : (
+          <Link href="/sign-in" className="text-sm text-accent">
+            Sign in
+          </Link>
+        )}
       </div>
     );
   }
