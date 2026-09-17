@@ -31,7 +31,7 @@ export function SubjectPicker({
       {SUBJECT_GROUPS.map((group) => (
         <section key={group.id}>
           <h2 className="text-sm font-semibold tracking-tight">{group.title}</h2>
-          <p className="mt-1 mb-3 text-sm text-muted">{group.blurb}</p>
+          <p className="mt-1 mb-3 hidden text-sm text-muted md:block">{group.blurb}</p>
           <div className="grid gap-3 md:grid-cols-2">
             {group.ids.map((id) => {
               const subject = getSubject(id);
@@ -47,7 +47,7 @@ export function SubjectPicker({
                   <button
                     type="button"
                     onClick={() => openHub(id)}
-                    className="block w-full p-5 text-left [touch-action:manipulation]"
+                    className="block w-full p-4 text-left [touch-action:manipulation] md:p-5"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span
@@ -65,7 +65,7 @@ export function SubjectPicker({
                       {subject.kicker}
                     </p>
                     <h3 className="mt-1 text-lg font-semibold">{subject.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-muted">{subject.blurb}</p>
+                    <p className="mt-2 hidden text-sm leading-6 text-muted md:block">{subject.blurb}</p>
                     <p className="mt-3 text-xs text-accent">
                       {preferStarter && !done ? "4-minute start" : `${count} paths`}
                     </p>

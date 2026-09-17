@@ -28,7 +28,7 @@ export function PlayerFrame({
   const percent = total ? Math.round(((index + 1) / total) * 100) : 0;
   const count = `${Math.min(index + 1, total)}/${total}`;
   return (
-    <div className="mx-auto w-full max-w-xl">
+    <div className={cn("mx-auto w-full max-w-xl", footer ? "player-bottom-pad" : undefined)}>
       <div
         className={cn(
           "mb-4",

@@ -119,6 +119,19 @@ body {
     );
     padding-bottom: 12px;
   }
+
+  [data-phone-tabs="off"] .sticky-action {
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin: 0;
+    bottom: var(--keyboard-inset, 0px);
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  [data-phone-tabs="off"] .player-bottom-pad {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
 }
 
 @media (min-width: 768px) {
