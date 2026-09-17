@@ -19,7 +19,7 @@ export default function SignUpPage() {
             fallbackRedirectUrl="/account/onboarding"
             signInUrl="/sign-in"
             appearance={{
-              variables: { colorPrimary: "#2dd4bf", colorBackground: "#10151c", colorText: "#e8eef6" },
+              variables: { colorPrimary: "#2dd4bf", colorBackground: "#10151c" },
             }}
           />
         </div>

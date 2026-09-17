@@ -127,8 +127,8 @@ export async function handleUpdateProfile(profileId: string, request: Request) {
   try {
     const store = await getAccountStore();
     const profile = await store.updateProfile(authz.account.id, profileId, {
-      displayName: body.displayName,
-      avatar: body.avatar,
+      displayName: typeof body.displayName === "string" ? body.displayName : undefined,
+      avatar: typeof body.avatar === "string" ? body.avatar : undefined,
     });
     if (!profile) return json({ error: "Not found" }, 404);
     return json({ profile });
