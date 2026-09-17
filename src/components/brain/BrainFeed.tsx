@@ -139,6 +139,7 @@ export function BrainFeed() {
         correct,
         penalty: penalty ? -penalty : 0,
         crossword: item.kind === "crossword",
+        cat: item.cat,
       });
       const gain =
         (correct ? XP.brainCorrect : XP.brainWrong) +

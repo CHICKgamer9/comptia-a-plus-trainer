@@ -19,6 +19,11 @@ import { domains, getDomain } from "@/content/registry";
 import { isCore1, isCore2 } from "@/lib/exam";
 import type { BrainCat } from "@/content/brain/types";
 
+/** Chance a correct drop uses a tighter related pool instead of the normal/unrelated pick. */
+export const RELATED_DROP_RATE = 0.12;
+/** Consecutive Brain prints exclude these most-recent card ids when alternatives exist. */
+export const RECENT_DROP_WINDOW = 8;
+
 export type CardLevel = 1 | 2 | 3;
 
 export type ReviewGrade = "again" | "hard" | "easy";
@@ -88,6 +93,8 @@ export interface BenchState {
   pendingPrints?: PendingPrint[];
   seenCardIds?: string[];
   lastWeeklySpecialWeek?: string;
+  /** Last few printed card ids. Brain (and related) picks skip these when the pool allows. */
+  recentDropIds?: string[];
 }
 
 export const emptyBench = (): BenchState => ({
@@ -99,6 +106,7 @@ export const emptyBench = (): BenchState => ({
   shifts: [],
   pendingPrints: [],
   seenCardIds: [],
+  recentDropIds: [],
 });
 
 function hydrateOwned(row: OwnedCard): OwnedCard {
@@ -142,6 +150,9 @@ export function parseBench(raw: unknown): BenchState {
     seenCardIds: Array.isArray(parsed.seenCardIds) ? parsed.seenCardIds : [],
     lastWeeklySpecialWeek:
       typeof parsed.lastWeeklySpecialWeek === "string" ? parsed.lastWeeklySpecialWeek : undefined,
+    recentDropIds: Array.isArray(parsed.recentDropIds)
+      ? parsed.recentDropIds.filter((id): id is string => typeof id === "string").slice(-RECENT_DROP_WINDOW)
+      : [],
   };
 }
 
@@ -323,6 +334,80 @@ function pickDeterministic(cards: BenchCard[], seed: string) {
   return cards[hash(seed) % cards.length];
 }
 
+function playableCards(types?: CardType[]) {
+  return benchCards.filter((card) => {
+    if (isCrestCard(card) || isFusionOnly(card) || card.type === "gotcha") return false;
+    if (types && !types.includes(card.type)) return false;
+    return true;
+  });
+}
+
+function tokenizeMeta(value?: string) {
+  if (!value) return [];
+  return value
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 3);
+}
+
+export function wantsRelatedDrop(seed: string) {
+  return hash(`related:${seed}`) % 1000 < Math.round(RELATED_DROP_RATE * 1000);
+}
+
+function pickAvoiding(cards: BenchCard[], seed: string, exclude: string[] = []) {
+  if (!cards.length) return undefined;
+  const open = cards.filter((card) => !exclude.includes(card.id));
+  return pickDeterministic(open.length ? open : cards, seed);
+}
+
+function chooseAwardCard(input: {
+  seed: string;
+  related: BenchCard[];
+  general: BenchCard[];
+  exclude?: string[];
+}) {
+  const exclude = input.exclude ?? [];
+  if (wantsRelatedDrop(input.seed)) {
+    const related = pickAvoiding(input.related, `${input.seed}:related`, exclude);
+    if (related && !exclude.includes(related.id)) return related;
+  }
+  return pickAvoiding(input.general, input.seed, exclude);
+}
+
+export function relatedCardsForPath(input: {
+  domainId?: string;
+  subject?: SubjectId;
+  conceptId?: string;
+  tags?: string[];
+  objective?: string;
+}) {
+  const types: CardType[] = ["component", "symptom", "tool", "procedure"];
+  if (input.domainId) {
+    const sheet = collectibleForDomain(input.domainId).filter((card) => types.includes(card.type));
+    if (sheet.length) return sheet;
+    const byPath = playableCards(types).filter(
+      (card) => card.domain === input.domainId || card.pathId === input.domainId,
+    );
+    if (byPath.length) return byPath;
+  }
+  const tokens = [
+    ...tagsForDomain(input.domainId, input.subject),
+    ...(input.tags ?? []),
+    ...tokenizeMeta(input.objective),
+    ...tokenizeMeta(input.conceptId),
+  ];
+  return matchingCards(tokens, types);
+}
+
+export function relatedCardsForBrain(cat?: BrainCat) {
+  return matchingCards(tagsForBrain(cat), ["component", "procedure", "tool"]);
+}
+
+function noteRecentDrop(bench: BenchState, cardId: string): BenchState {
+  const recent = [...(bench.recentDropIds ?? []).filter((id) => id !== cardId), cardId];
+  return { ...bench, recentDropIds: recent.slice(-RECENT_DROP_WINDOW) };
+}
+
 function award(
   bench: BenchState,
   cardId: string,
@@ -342,7 +427,7 @@ function award(
     serial: result.serial,
     printIndex: result.printIndex,
   });
-  return result.bench;
+  return noteRecentDrop(result.bench, cardId);
 }
 
 /** Correct decide prints one ticket. Skip / wrong / try = no card. Same concept → same card. */
@@ -356,6 +441,8 @@ export function dropFromPath(
     conceptId: string;
     /** When set, award this card on a correct answer and skip the random pool. */
     cardId?: string;
+    tags?: string[];
+    objective?: string;
   },
 ): DropResult {
   const awarded: DropResult["awarded"] = [];
@@ -366,29 +453,36 @@ export function dropFromPath(
     return { bench: next, awarded };
   }
   const seed = `${input.domainId ?? "path"}:${input.conceptId}`;
-  const tags = tagsForDomain(input.domainId, input.subject);
-  const pool = matchingCards(tags, ["component", "symptom", "tool", "procedure"]);
-  const fallback = benchCards.filter(
-    (card) => !isCrestCard(card) && !isFusionOnly(card) && card.type !== "gotcha",
-  );
-  const pick = pickDeterministic(pool.length ? pool : fallback, seed);
+  const types: CardType[] = ["component", "symptom", "tool", "procedure"];
+  const general = matchingCards(tagsForDomain(input.domainId, input.subject), types);
+  const fallback = playableCards(types);
+  const pick = chooseAwardCard({
+    seed,
+    related: relatedCardsForPath(input),
+    general: general.length ? general : fallback,
+  });
   if (pick) next = award(next, pick.id, "path", awarded);
   return { bench: next, awarded };
 }
 
 export function dropFromBrain(
   bench: BenchState,
-  input: { correct: boolean; skipped?: boolean; cat?: BrainCat },
+  input: { correct: boolean; skipped?: boolean; cat?: BrainCat; itemId?: string },
 ): DropResult {
   const awarded: DropResult["awarded"] = [];
   let next = { ...bench, owned: [...bench.owned] };
   if (input.skipped || !input.correct) return { bench: next, awarded };
-  const seed = `brain:${input.cat ?? "logic"}`;
-  const pool = matchingCards(tagsForBrain(input.cat), ["component", "procedure", "tool"]);
-  const pick = pickDeterministic(
-    pool.length ? pool : benchCards.filter((card) => !isCrestCard(card) && !isFusionOnly(card)),
+  const cat = input.cat;
+  const itemId = input.itemId ?? "anon";
+  const seed = `brain:${cat ?? "logic"}:${itemId}`;
+  const types: CardType[] = ["component", "procedure", "tool"];
+  const general = playableCards(types);
+  const pick = chooseAwardCard({
     seed,
-  );
+    related: relatedCardsForBrain(cat),
+    general: general.length ? general : playableCards(),
+    exclude: next.recentDropIds ?? [],
+  });
   if (pick) next = award(next, pick.id, "brain", awarded);
   return { bench: next, awarded };
 }

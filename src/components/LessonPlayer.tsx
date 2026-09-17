@@ -186,6 +186,10 @@ export function LessonPlayer({
               conceptId: checkId,
               cardId: type === "decide" ? beat.cardId : undefined,
               awardCard: type === "decide",
+              objective: beat.objective,
+              tags: [domain.id, domain.subject, domain.cluster].filter(
+                (tag): tag is string => Boolean(tag),
+              ),
             });
           }}
         />
