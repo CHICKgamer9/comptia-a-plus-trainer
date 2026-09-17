@@ -17,12 +17,17 @@ function json(data: unknown, status = 200) {
   return Response.json(data, { status });
 }
 
+function unauthenticated() {
+  return json({ error: "Unauthorized", code: "unauthenticated" }, 401);
+}
+
 function storeError(error: unknown) {
   if (error instanceof StoreUnavailableError) {
     return json(
       {
         error:
           "Profiles need DATABASE_URL (Neon). Guest Start Here still works on this device.",
+        code: "database_unavailable",
       },
       503,
     );
@@ -43,7 +48,7 @@ export async function requireAccount(): Promise<
   { ok: true; account: AccountRecord } | { ok: false; response: Response }
 > {
   const identity = await getClerkIdentity();
-  if (!identity) return { ok: false, response: json({ error: "Unauthorized" }, 401) };
+  if (!identity) return { ok: false, response: unauthenticated() };
   try {
     const store = await getAccountStore();
     const account = await store.getOrCreateAccount(identity);
@@ -54,20 +59,21 @@ export async function requireAccount(): Promise<
 }
 
 export async function handleGetAccount() {
-  const authz = await requireAccount();
-  if (!authz.ok) return authz.response;
+  const identity = await getClerkIdentity();
+  if (!identity) return unauthenticated();
   try {
     const store = await getAccountStore();
-    const profiles = await store.listProfiles(authz.account.id);
+    const account = await store.getOrCreateAccount(identity);
+    const profiles = await store.listProfiles(account.id);
     return json({
       account: {
-        id: authz.account.id,
-        email: authz.account.email,
-        plan: authz.account.plan,
-        planLabel: planLabel(authz.account.plan),
-        seatLimit: authz.account.seatLimit,
-        stripeCustomerId: authz.account.stripeCustomerId,
-        createdAt: authz.account.createdAt,
+        id: account.id,
+        email: account.email,
+        plan: account.plan,
+        planLabel: planLabel(account.plan),
+        seatLimit: account.seatLimit,
+        stripeCustomerId: account.stripeCustomerId,
+        createdAt: account.createdAt,
       },
       profiles,
     });
