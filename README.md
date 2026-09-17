@@ -34,6 +34,31 @@ Tickets are created in `POST /api/tickets` with the Vercel AI SDK. Keys stay on 
 | `OPENAI_API_KEY` | Also accepted if you are not using the Gateway. |
 | `AI_MODEL` | Optional override (default `openai/gpt-5.4`). Use `provider/model` slugs. |
 
+## Accounts and learner profiles
+
+Guest **Start Here** still uses `localStorage` (`ticketbench-progress-v1`). No signup required.
+
+Signed-in **Accounts** are Clerk users (email magic link and/or Google + Apple — enable those providers in the Clerk dashboard; skip passwords for v1). **Profiles** (1–6) live in Neon. Progress, Binder, cards, lingo, and streaks are JSON on the profile, never on the account. Billing fields (`plan`, `seat_limit`, `stripe_customer_id`) stay on the account.
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk browser key. Leave empty to stay guest-only. |
+| `CLERK_SECRET_KEY` | Clerk server key. |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/sign-in` |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/sign-up` |
+| `DATABASE_URL` | Neon connection string. First signed-in request creates tables if missing. Also run `db/001_accounts.sql` for RLS policies. |
+| `HOUSE_SEAT_LIMIT` | Optional house seat seed (1–6, default 6). |
+
+Vercel setup: add the [Clerk](https://vercel.com/marketplace/clerk) and [Neon](https://vercel.com/marketplace/neon) Marketplace integrations to `comptia-a-plus-trainer`, or paste keys from clerk.com / neon.tech. Then `vercel env pull .env.local`. In Clerk, turn on Email, Google, and Apple. In Neon, apply `db/001_accounts.sql` (or let the app `CREATE TABLE` on first use, then apply the RLS section). House extra seats: `UPDATE accounts SET plan = 'house', seat_limit = 6 WHERE email = '…';`
+
+`/account` shows plan, seats, and email. `/account/profiles` adds, renames, and deletes learners (delete wipes that profile’s progress only). The header chip switches profiles without signing out again. After first signup, `/account/onboarding` asks “Who is learning?”. “Save this bench” copies guest state onto a new profile and does not wipe the guest key.
+
+| Plan | Default seats |
+| --- | --- |
+| Free | 1 |
+| Bench | 3 |
+| House | `seat_limit` (seed 6, max 6) |
+
 On Vercel, AI Gateway can also authenticate with the project’s OIDC token (`VERCEL_OIDC_TOKEN`). Add `AI_GATEWAY_API_KEY` in the project env if OIDC is not enough.
 
 Generation is rate-limited (8 requests / 10 minutes / IP) and the Generate button is debounced. Invalid model JSON is retried once, then the stub is returned instead of crashing the UI.

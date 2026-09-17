@@ -13,6 +13,7 @@ import { BRAIN_ACCENT, BRAIN_ACCENT_DIM } from "@/content/brain/types";
 import { LINGO_ACCENT, LINGO_ACCENT_DIM, LINGO_COURSES } from "@/content/lingo/courses";
 import { isLingoLangId } from "@/content/lingo/types";
 import { useProgress } from "./ProgressProvider";
+import { ProfileSwitcher } from "./ProfileSwitcher";
 
 const links: {
   href: string;
@@ -106,6 +107,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
           <div className="flex items-center gap-1">
+            <ProfileSwitcher />
             <nav className="hidden items-center gap-1 md:flex">
               {links.map((link) => {
                 const active = isActive(pathname, link.href, link.match);
