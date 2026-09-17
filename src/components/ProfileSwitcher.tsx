@@ -42,7 +42,7 @@ export function ProfileSwitcher() {
             </SignUpButton>
           </Show>
           <Show when="signed-in">
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
           </Show>
         </div>
       );
@@ -115,7 +115,7 @@ export function ProfileSwitcher() {
           </div>
         ) : null}
       </div>
-      {clerkOn ? <UserButton afterSignOutUrl="/" /> : null}
+      {clerkOn ? <UserButton /> : null}
     </div>
   );
 }
