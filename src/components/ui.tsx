@@ -102,25 +102,27 @@ export function PageHeader({
   title,
   description,
   actions,
+  compactOnPhone = false,
 }: {
   kicker?: string;
   title: string;
   description?: string;
   actions?: React.ReactNode;
+  compactOnPhone?: boolean;
 }) {
   return (
-    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className={cn("mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between", compactOnPhone && "mb-4 md:mb-8")}>
       <div className="max-w-2xl">
         {kicker ? (
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-accent">
             {kicker}
           </p>
         ) : null}
-        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
+        <h1 className={cn("text-2xl font-semibold tracking-tight text-balance sm:text-3xl", compactOnPhone && "text-xl md:text-3xl")}>
           {title}
         </h1>
         {description ? (
-          <p className="mt-2 text-sm leading-6 text-muted sm:text-[15px]">
+          <p className={cn("mt-2 text-sm leading-6 text-muted sm:text-[15px]", compactOnPhone && "hidden md:block")}>
             {description}
           </p>
         ) : null}

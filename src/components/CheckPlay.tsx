@@ -60,7 +60,7 @@ function ChoiceCheck({
                 onResolved(choice.correct, choice.why);
               }}
               className={cn(
-                "w-full rounded-2xl border px-4 py-3 text-left text-sm leading-6 transition min-h-11",
+                "w-full rounded-2xl border px-4 py-3 text-left text-sm leading-6 transition min-h-12 [touch-action:manipulation] whitespace-normal",
                 !locked && "border-border active:border-accent/50 active:bg-surface-2 hover:border-accent/50 hover:bg-surface-2",
                 locked && choice.correct && "border-ok/50 bg-ok/10",
                 locked && isPick && !choice.correct && "border-danger/50 bg-danger/10",
@@ -109,7 +109,7 @@ function TrueFalse({
                 onResolved(value === check.answer, check.why ?? "");
               }}
               className={cn(
-                "rounded-2xl border px-4 py-8 text-lg font-semibold transition",
+                "rounded-2xl border px-4 py-8 text-lg font-semibold transition min-h-12 [touch-action:manipulation]",
                 !locked && "border-border active:border-accent/50 active:bg-surface-2 hover:border-accent/50 hover:bg-surface-2",
                 locked && isAnswer && "border-ok/50 bg-ok/10 text-ok",
                 locked && isPick && !isAnswer && "border-danger/50 bg-danger/10 text-danger",
@@ -186,7 +186,7 @@ function OrderCheck({
               key={item.id}
               type="button"
               onClick={() => tap(item.id)}
-              className="min-h-11 rounded-full border border-border bg-surface-2 px-3 py-2 text-sm active:border-accent/50 hover:border-accent/50"
+              className="min-h-12 rounded-full border border-border bg-surface-2 px-3 py-2 text-sm active:border-accent/50 hover:border-accent/50"
             >
               {item.label}
             </button>
@@ -252,7 +252,7 @@ function MatchCheck({
               disabled={done || Boolean(matched[left])}
               onClick={() => setSelectedLeft(left)}
               className={cn(
-                "min-h-11 w-full rounded-2xl border px-3 py-3 text-left text-sm leading-6",
+                "min-h-12 w-full rounded-2xl border px-3 py-3 text-left text-sm leading-6",
                 matched[left] && "border-ok/40 bg-ok/10",
                 selectedLeft === left && "border-accent bg-accent-dim",
                 !matched[left] && selectedLeft !== left && "border-border active:border-accent/40 hover:border-accent/40",
@@ -272,7 +272,7 @@ function MatchCheck({
                 disabled={done || used || !selectedLeft}
                 onClick={() => pairRight(right)}
                 className={cn(
-                  "min-h-11 w-full rounded-2xl border px-3 py-3 text-left text-sm leading-6",
+                  "min-h-12 w-full rounded-2xl border px-3 py-3 text-left text-sm leading-6",
                   used && "border-ok/40 bg-ok/10",
                   miss === right && "border-danger/40 bg-danger/10",
                   !used && "border-border active:border-accent/40 hover:border-accent/40",

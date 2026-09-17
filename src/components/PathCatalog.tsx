@@ -66,14 +66,14 @@ export function PathCatalog({ subject }: { subject: SubjectId }) {
           Start today’s lesson · 4 min
         </Link>
       ) : null}
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div className="sticky top-[calc(var(--header-height)+env(safe-area-inset-top))] z-20 -mx-4 mb-4 bg-background/90 px-4 py-2 backdrop-blur md:static md:z-auto md:mx-0 md:mb-4 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
         <label className="block min-w-[12rem] flex-1">
           <span className="sr-only">Search paths</span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search titles, topics…"
-            className="w-full rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm outline-none ring-accent/30 focus:ring-2"
+            className="w-full rounded-2xl border border-border bg-surface px-4 py-2.5 text-base outline-none ring-accent/30 focus:ring-2 md:text-sm"
           />
         </label>
         <p className="text-xs text-muted">

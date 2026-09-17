@@ -38,7 +38,7 @@ export function LingoListen({
       type="button"
       onClick={() => (speaking ? stop() : speakTarget(text, lang))}
       className={cn(
-        "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border px-4 text-sm font-medium",
+        "inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-full border px-4 text-base font-medium [touch-action:manipulation]",
         speaking
           ? "border-accent/50 bg-accent-dim text-accent"
           : "border-border text-muted active:border-accent/40 active:text-foreground",
@@ -321,7 +321,7 @@ function MatchPlay({
   return (
     <div className="space-y-4">
       <p className="text-lg font-medium leading-8">{step.prompt}</p>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
         <div className="space-y-2">
           {lefts.map((left) => (
             <button

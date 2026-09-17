@@ -12,6 +12,9 @@
   --warn: #f5b942;
   --danger: #fb7185;
   --ok: #34d399;
+  --header-height: 3.25rem;
+  --tabbar-height: 4rem;
+  --keyboard-inset: 0px;
 }
 
 @theme inline {
@@ -42,6 +45,23 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+@media (max-width: 767.98px) {
+  body {
+    font-size: 16px;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  input,
+  textarea {
+    scroll-margin-bottom: 7rem;
+  }
+}
+
 ::selection {
   background: color-mix(in oklab, var(--accent) 35%, transparent);
 }
@@ -70,7 +90,59 @@ body {
 
 .feed-shell {
   overscroll-behavior: none;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+.sticky-action {
   touch-action: manipulation;
+}
+
+@media (max-width: 767.98px) {
+  .sticky-action {
+    position: sticky;
+    z-index: 20;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    margin-top: 0.75rem;
+    border-top: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+    background: color-mix(in oklab, var(--background) 94%, transparent);
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    backdrop-filter: blur(16px);
+    bottom: var(--keyboard-inset, 0px);
+  }
+
+  [data-phone-tabs="on"] .sticky-action {
+    bottom: max(
+      var(--keyboard-inset, 0px),
+      calc(var(--tabbar-height) + env(safe-area-inset-bottom))
+    );
+    padding-bottom: 12px;
+  }
+
+  [data-phone-tabs="off"] .sticky-action {
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin: 0;
+    bottom: var(--keyboard-inset, 0px);
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  [data-phone-tabs="off"] .player-bottom-pad {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 768px) {
+  .sticky-action {
+    position: static;
+    margin: 1.25rem 0 0;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    backdrop-filter: none;
+  }
 }
 
 .feed-card {
@@ -564,25 +636,51 @@ body {
   font-size: 12px;
 }
 
+@media (max-width: 767.98px) {
+  .binder-weekly {
+    margin-top: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .binder-weekly span {
+    display: none;
+  }
+
+  .binder-plate {
+    padding: 10px 12px;
+  }
+
+  .binder-plate-stat {
+    margin-top: 2px;
+    font-size: 14px;
+  }
+
+  .binder-cover {
+    margin-bottom: 12px;
+  }
+}
+
 .binder-book {
   display: grid;
   gap: 12px;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 768px) {
   .binder-book {
     grid-template-columns: 108px 1fr;
   }
 }
 
 .binder-spine {
-  display: flex;
+  display: none;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 768px) {
   .binder-spine {
+    display: flex;
     flex-direction: column;
   }
 }
@@ -605,7 +703,7 @@ body {
 
 .binder-sheet {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   padding: 12px;
   border-radius: 20px;
@@ -613,6 +711,12 @@ body {
     linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent),
     #0c1016;
   border: 1px solid var(--border);
+}
+
+@media (min-width: 640px) {
+  .binder-sheet {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .binder-pocket {

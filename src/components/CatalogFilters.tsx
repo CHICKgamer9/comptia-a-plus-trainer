@@ -43,13 +43,13 @@ export function QuizCatalog({ quizzes, domains }: { quizzes: QuizListItem[]; dom
 
   return (
     <>
-      <label className="mb-4 block">
+      <label className="sticky top-[calc(var(--header-height)+env(safe-area-inset-top))] z-20 mb-4 block -mx-4 bg-background/90 px-4 py-2 backdrop-blur md:static md:z-auto md:mx-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
         <span className="sr-only">Search quizzes</span>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search quizzes…"
-          className="w-full rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm outline-none ring-accent/30 focus:ring-2"
+          className="w-full rounded-2xl border border-border bg-surface px-4 py-2.5 text-base outline-none ring-accent/30 focus:ring-2 md:text-sm"
         />
       </label>
       <div className="mb-4 flex flex-wrap gap-2">
@@ -126,13 +126,13 @@ export function DomainCatalog({ domains }: { domains: Domain[] }) {
 
   return (
     <>
-      <label className="mb-4 block">
+      <label className="sticky top-[calc(var(--header-height)+env(safe-area-inset-top))] z-20 mb-4 block -mx-4 bg-background/90 px-4 py-2 backdrop-blur md:static md:z-auto md:mx-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
         <span className="sr-only">Search paths</span>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search paths…"
-          className="w-full rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm outline-none ring-accent/30 focus:ring-2"
+          className="w-full rounded-2xl border border-border bg-surface px-4 py-2.5 text-base outline-none ring-accent/30 focus:ring-2 md:text-sm"
         />
       </label>
       <div className="mb-4 flex flex-wrap gap-2">

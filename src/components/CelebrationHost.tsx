@@ -31,7 +31,7 @@ export function CelebrationHost() {
     <div
       className={cn(
         "pointer-events-none fixed inset-x-0 z-50 flex justify-center px-4",
-        feed ? "top-16" : "bottom-20 md:bottom-8",
+                        feed ? "top-16" : "bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+0.75rem)] md:bottom-8",
       )}
     >
       <div

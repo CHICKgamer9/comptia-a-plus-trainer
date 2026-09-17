@@ -106,7 +106,7 @@ export function LessonPlayer({
 
   return (
     <div>
-      <div className="mx-auto mb-6 flex max-w-xl items-center justify-between gap-3">
+      <div className="mx-auto mb-6 hidden max-w-xl items-center justify-between gap-3 md:flex">
         <Link href={`/learn/${domain.subject}`} className="text-sm text-muted hover:text-foreground">
           ← Path
         </Link>
@@ -117,6 +117,7 @@ export function LessonPlayer({
       </div>
 
       <PlayerFrame
+        backHref={`/learn/${domain.subject}`}
         kicker={`${hunt ? "Hunt · " : ""}${domain.number}. ${domain.title}`}
         title={lesson.title}
         index={index}
@@ -162,7 +163,7 @@ export function LessonPlayer({
                 <button
                   type="button"
                   onClick={skipBeat}
-                  className="text-center text-xs text-muted underline-offset-2 hover:text-foreground hover:underline"
+                  className="flex min-h-11 w-full items-center justify-center text-center text-xs text-muted underline-offset-2 hover:text-foreground hover:underline"
                 >
                   Skip this beat — no card
                 </button>

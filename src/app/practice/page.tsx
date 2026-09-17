@@ -18,7 +18,7 @@ export default function PracticePage() {
       <p className="mx-auto mt-3 mb-6 max-w-md text-center text-sm leading-6 text-muted">
         Practice explains immediately. Tech quick drill is 10 questions. Objective codes show on A+ cards.
       </p>
-      <div className="mb-8 grid gap-3 sm:grid-cols-2">
+      <div className="mb-8 grid gap-3 md:grid-cols-2">
         <Link
           href="/practice/mock/core1"
           className="rounded-3xl border border-accent/40 bg-surface p-5 hover:border-accent"

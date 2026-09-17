@@ -113,7 +113,7 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
 
   return (
     <div>
-      <div className="mx-auto mb-5 flex max-w-xl items-center justify-between gap-3">
+      <div className="mx-auto mb-5 hidden max-w-xl items-center justify-between gap-3 md:flex">
         <Link href={`/lingo/${lang}`} className="text-sm text-muted hover:text-foreground">
           ← {pack.nativeName}
         </Link>
@@ -122,6 +122,8 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
         </p>
       </div>
       <PlayerFrame
+        backHref={`/lingo/${lang}`}
+        backLabel={`← ${pack.nativeName}`}
         kicker={node.title}
         index={index}
         total={node.steps.length}
@@ -133,6 +135,32 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
           role: current.speakTarget ? "target" : "narrator",
           onEnded: () => setEndedFor(current.id),
         }}
+        footer={
+          lessonDone ? (
+            <div className="space-y-2">
+              <p className="text-center text-sm text-ok">Lesson done. XP is on this device.</p>
+              {nextNode ? (
+                <Link
+                  href={`/lingo/${lang}/${nextNode.id}`}
+                  className="flex min-h-12 items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-sm font-semibold text-background"
+                >
+                  Next · {nextNode.title}
+                </Link>
+              ) : (
+                <Link
+                  href={`/lingo/${lang}`}
+                  className="flex min-h-12 items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-sm font-semibold text-background"
+                >
+                  Back to the tree
+                </Link>
+              )}
+            </div>
+          ) : waiting || isIntro ? (
+            <PlayerButton onClick={advance} disabled={continueDisabled && !isIntro}>
+              {autoRead && !speechEnded && !isIntro ? "Listening…" : last ? "Finish lesson" : "Continue"}
+            </PlayerButton>
+          ) : undefined
+        }
       >
         <LingoPlay
           key={current.id}
@@ -146,33 +174,6 @@ export function LingoPlayer({ lang, nodeId }: { lang: LingoLangId; nodeId: strin
           autoplayTarget={gestured && (isIntro || type === "listen-pick")}
         />
       </PlayerFrame>
-      <div className="mx-auto mt-5 max-w-xl space-y-2">
-        {(waiting || isIntro) && !lessonDone ? (
-          <PlayerButton onClick={advance} disabled={continueDisabled && !isIntro}>
-            {autoRead && !speechEnded && !isIntro ? "Listening…" : last ? "Finish lesson" : "Continue"}
-          </PlayerButton>
-        ) : null}
-        {lessonDone ? (
-          <>
-            <p className="text-center text-sm text-ok">Lesson done. XP is on this device.</p>
-            {nextNode ? (
-              <Link
-                href={`/lingo/${lang}/${nextNode.id}`}
-                className="flex min-h-12 items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-sm font-semibold text-background"
-              >
-                Next · {nextNode.title}
-              </Link>
-            ) : (
-              <Link
-                href={`/lingo/${lang}`}
-                className="flex min-h-12 items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-sm font-semibold text-background"
-              >
-                Back to the tree
-              </Link>
-            )}
-          </>
-        ) : null}
-      </div>
     </div>
   );
 }

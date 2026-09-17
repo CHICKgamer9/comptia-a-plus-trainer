@@ -54,12 +54,20 @@ export function BrainPlayScreen({ id }: { id: string }) {
 
   return (
     <div>
-      <div className="mx-auto mb-6 flex max-w-xl items-center justify-between gap-3">
+      <div className="mx-auto mb-6 hidden max-w-xl items-center justify-between gap-3 md:flex">
         <Link href={inToday ? "/brain/today" : "/brain/browse"} className="text-sm text-muted hover:text-foreground">
           ← {inToday ? "Today" : "Browse"}
         </Link>
         <Link href="/brain" className="text-sm text-muted hover:text-foreground">
           Hub
+        </Link>
+      </div>
+      <div className="sticky top-0 z-30 -mx-4 mb-3 flex h-[52px] items-center justify-between border-b border-border/80 bg-background/90 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl md:hidden">
+        <Link
+          href={inToday ? "/brain/today" : "/brain/browse"}
+          className="inline-flex min-h-11 items-center text-sm text-muted"
+        >
+          ← {inToday ? "Today" : "Browse"}
         </Link>
       </div>
       <BrainPlayer

@@ -4,8 +4,7 @@ import { useCallback, useEffect, useRef, useState, type TouchEvent } from "react
 import Link from "next/link";
 import { useProgress } from "../ProgressProvider";
 import { BrainKindPlay } from "./BrainPlayer";
-import { SpeakBar } from "../SpeakBar";
-import { catTitle, getBrainManifest, loadBrainItem } from "@/content/brain/load";
+import { getBrainManifest, loadBrainItem } from "@/content/brain/load";
 import type { BrainItem } from "@/content/brain/types";
 import { DAILY_TARGET_MINUTES } from "@/content/brain/types";
 import { dayRecord } from "@/lib/brain-daily";
@@ -22,7 +21,7 @@ import { cn } from "@/lib/cn";
 import type { BrainFeedState } from "@/lib/progress";
 
 export function BrainFeed() {
-  const { progress, stats, recordBrainAnswer, saveBrainFeed, recordBrainSkip } = useProgress();
+  const { progress, recordBrainAnswer, saveBrainFeed, recordBrainSkip } = useProgress();
   const manifest = getBrainManifest();
   const ymd = sydneyDate();
   const day = dayRecord(ymd, progress.brain);
@@ -192,7 +191,6 @@ export function BrainFeed() {
   }
 
   const skipCooling = skipLockedUntil > 0 && now > 0 && now < skipLockedUntil;
-  const remainingDesk = Math.max(0, day.minutesTarget - day.minutesDone);
 
   return (
     <div
@@ -214,35 +212,18 @@ export function BrainFeed() {
         >
           ×
         </Link>
-        <div className="grid min-w-0 flex-1 grid-cols-3 gap-1 text-center">
-          <StatChip label="Streak" value={`${stats.streak}d`} />
-          <StatChip label="Desk" value={`${remainingDesk}m`} />
-          <StatChip label="Scroll" value={formatSessionClock(clockMs)} />
-        </div>
+        <p className="min-w-0 flex-1 text-center font-mono text-sm font-semibold">
+          {formatSessionClock(clockMs)}
+        </p>
+        <span className="inline-block min-w-11" aria-hidden />
       </header>
 
-      <div className="relative mb-2 flex shrink-0 items-center justify-between gap-2">
-        <span className="inline-flex min-h-11 items-center rounded-full border border-accent/40 bg-accent-dim px-3 text-xs font-semibold uppercase tracking-wider text-accent">
-          {item ? catTitle(item.cat) : "Feed"}
-        </span>
-        {item ? (
-          <SpeakBar
-            compact
-            narration={{
-              id: item.id,
-              prompt: `${item.title}. ${item.prompt}`,
-              followUp: resolved ? item.why : undefined,
-            }}
-          />
-        ) : null}
+      <div className="relative min-h-0 flex-1">
         {xpToast ? (
-          <span className="absolute right-0 top-12 z-10 rounded-full bg-ok/15 px-3 py-1 text-xs font-semibold text-ok">
+          <span className="absolute right-3 top-2 z-10 rounded-full bg-ok/15 px-3 py-1 text-xs font-semibold text-ok">
             {xpToast}
           </span>
         ) : null}
-      </div>
-
-      <div className="relative min-h-0 flex-1">
         <div
           key={id}
           className="feed-card flex h-full min-h-0 flex-col overflow-y-auto rounded-3xl border border-border bg-surface p-4"
@@ -282,15 +263,6 @@ export function BrainFeed() {
       <p className="mt-1 text-center text-[11px] text-muted">
         Replace the scroll · {ymd} · card {cursor + 1}
       </p>
-    </div>
-  );
-}
-
-function StatChip({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-border bg-surface px-1 py-1.5">
-      <p className="text-[9px] uppercase tracking-wider text-muted">{label}</p>
-      <p className="truncate font-mono text-xs font-semibold">{value}</p>
     </div>
   );
 }

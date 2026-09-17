@@ -67,6 +67,7 @@ export function SpeakBar({
         label={speaking ? "Stop" : "Listen"}
         onClick={() => (speaking ? stop() : speakLine(prompt || narration.followUp || "", narration.lang, narration.role ?? "narrator"))}
         active={speaking}
+        compact={compact}
       >
         {speaking ? <StopIcon /> : <SpeakIcon />}
       </IconButton>
@@ -78,9 +79,10 @@ export function SpeakBar({
           if (!next) stop();
         }}
         active={autoRead}
+        compact={compact}
       >
         <AutoIcon />
-        {compact ? null : <span className="hidden sm:inline">{autoRead ? "Calm" : "Off"}</span>}
+        {compact ? null : <span className="hidden md:inline">{autoRead ? "Calm" : "Off"}</span>}
       </IconButton>
       <IconButton
         label={muted ? "Unmute" : "Mute"}
@@ -90,9 +92,10 @@ export function SpeakBar({
           if (next) stop();
         }}
         active={muted}
+        compact={compact}
       >
         <MuteIcon />
-        {compact ? null : <span className="hidden sm:inline">{muted ? "Muted" : "Mute"}</span>}
+        {compact ? null : <span className="hidden md:inline">{muted ? "Muted" : "Mute"}</span>}
       </IconButton>
     </div>
   );
@@ -103,11 +106,13 @@ function IconButton({
   onClick,
   label,
   active,
+  compact,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   label: string;
   active?: boolean;
+  compact?: boolean;
 }) {
   return (
     <button
@@ -117,7 +122,8 @@ function IconButton({
       title={label}
       aria-pressed={active ? true : undefined}
       className={cn(
-        "inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-medium transition",
+        "inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-full border py-1.5 text-[11px] font-medium transition [touch-action:manipulation]",
+        compact ? "px-0" : "px-3",
         active
           ? "border-accent/50 bg-accent-dim text-accent"
           : "border-border text-muted active:border-accent/40 active:text-foreground hover:border-accent/40 hover:text-foreground",

@@ -39,7 +39,7 @@ export function SaveBenchPrompt() {
   });
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-20 z-40 flex justify-center px-4 md:bottom-6">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+0.75rem)] z-40 flex justify-center px-4 md:bottom-6">
       <div className="pointer-events-auto w-full max-w-lg rounded-2xl border border-accent/40 bg-surface/95 p-4 shadow-lg backdrop-blur">
         <p className="text-sm font-semibold">Save this bench</p>
         <p className="mt-1 text-xs leading-5 text-muted">

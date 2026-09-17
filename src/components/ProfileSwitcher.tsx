@@ -14,12 +14,11 @@ import { clerkBrowserConfigured } from "./AuthProvider";
 import { useAccount } from "./AccountProvider";
 
 export function ProfileSwitcher() {
-  const { account, profiles, activeProfile, switchProfile } = useAccount();
+  const { signedIn, account, activeProfile } = useAccount();
   const [open, setOpen] = useState(false);
   const clerkOn = clerkBrowserConfigured();
-  const router = useRouter();
 
-  if (!account) {
+  if (!signedIn) {
     if (clerkOn) {
       return (
         <div className="flex items-center gap-1.5">
@@ -77,46 +76,56 @@ export function ProfileSwitcher() {
         </button>
         {open ? (
           <div className="absolute right-0 z-40 mt-2 w-56 rounded-2xl border border-border bg-surface p-2 shadow-lg">
-            <p className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted">Learners</p>
-            {profiles.map((profile) => (
-              <button
-                key={profile.id}
-                type="button"
-                onClick={() => {
-                  void switchProfile(profile.id);
-                  setOpen(false);
-                }}
-                className={cn(
-                  "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-sm",
-                  profile.id === activeProfile?.id
-                    ? "bg-accent-dim text-accent"
-                    : "hover:bg-surface-2",
-                )}
-              >
-                <span aria-hidden>{profile.avatar}</span>
-                <span className="truncate">{profile.displayName}</span>
-              </button>
-            ))}
-            <Link
-              href="/account/profiles"
-              onClick={() => setOpen(false)}
-              className="mt-1 block rounded-xl px-2 py-2 text-sm text-muted hover:bg-surface-2 hover:text-foreground"
-            >
-              Manage profiles
-            </Link>
-            <Link
-              href="/account"
-              onClick={() => setOpen(false)}
-              className="block rounded-xl px-2 py-2 text-sm text-muted hover:bg-surface-2 hover:text-foreground"
-            >
-              Account
-            </Link>
-            {clerkOn ? <SignOutRow onDone={() => setOpen(false)} goHome={() => router.push("/")} /> : null}
+            <AccountMenu onDone={() => setOpen(false)} />
           </div>
         ) : null}
       </div>
       {clerkOn ? <UserButton /> : null}
     </div>
+  );
+}
+
+export function AccountMenu({ onDone }: { onDone: () => void }) {
+  const { profiles, activeProfile, switchProfile } = useAccount();
+  const clerkOn = clerkBrowserConfigured();
+  const router = useRouter();
+
+  return (
+    <>
+      <p className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted">Learners</p>
+      {profiles.map((profile) => (
+        <button
+          key={profile.id}
+          type="button"
+          onClick={() => {
+            void switchProfile(profile.id);
+            onDone();
+          }}
+          className={cn(
+            "flex min-h-11 w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-sm",
+            profile.id === activeProfile?.id ? "bg-accent-dim text-accent" : "hover:bg-surface-2 active:bg-surface-2",
+          )}
+        >
+          <span aria-hidden>{profile.avatar}</span>
+          <span className="truncate">{profile.displayName}</span>
+        </button>
+      ))}
+      <Link
+        href="/account/profiles"
+        onClick={onDone}
+        className="mt-1 flex min-h-11 items-center rounded-xl px-2 py-2 text-sm text-muted hover:bg-surface-2 hover:text-foreground"
+      >
+        Manage profiles
+      </Link>
+      <Link
+        href="/account"
+        onClick={onDone}
+        className="flex min-h-11 items-center rounded-xl px-2 py-2 text-sm text-muted hover:bg-surface-2 hover:text-foreground"
+      >
+        Account
+      </Link>
+      {clerkOn ? <SignOutRow onDone={onDone} goHome={() => router.push("/")} /> : null}
+    </>
   );
 }
 
