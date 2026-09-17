@@ -15,7 +15,7 @@ function isProtectedPath(path: string) {
   );
 }
 
-export default async function middleware(request: NextRequest, event: unknown) {
+export default async function proxy(request: NextRequest, event: unknown) {
   if (!clerkReady()) return NextResponse.next();
   const { clerkMiddleware } = await import("@clerk/nextjs/server");
   const handler = clerkMiddleware(async (auth, req) => {
@@ -30,5 +30,6 @@ export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
+    "/__clerk/:path*",
   ],
 };
