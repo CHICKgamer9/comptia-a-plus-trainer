@@ -99,6 +99,8 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
   if (!briefed) {
     return (
       <PlayerFrame
+        backHref={scenario.kind === "challenge" ? `/learn/${scenario.subject}` : "/lab"}
+        backLabel={scenario.kind === "challenge" ? "← Paths" : "← Queue"}
         kicker={scenario.ticketId}
         index={0}
         total={totalBeats}
@@ -169,6 +171,8 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
         ))}
       </div>
       <PlayerFrame
+        backHref={scenario.kind === "challenge" ? `/learn/${scenario.subject}` : "/lab"}
+        backLabel={scenario.kind === "challenge" ? "← Paths" : "← Queue"}
         kicker={phaseLabel(step.phase, scenario.kind ?? "ticket")}
         index={stepIndex + 1}
         total={totalBeats}
@@ -207,8 +211,8 @@ export function ScenarioRunner({ scenario }: { scenario: Scenario }) {
                 disabled={locked}
                 onClick={() => choose(item.id)}
                 className={cn(
-                  "w-full rounded-2xl border px-4 py-3 text-left text-sm leading-6 transition",
-                  !locked && "border-border hover:border-accent/50 hover:bg-surface-2",
+                  "w-full min-h-12 rounded-2xl border px-4 py-3 text-left text-sm leading-6 transition [touch-action:manipulation]",
+                  !locked && "border-border active:border-accent/50 active:bg-surface-2 hover:border-accent/50 hover:bg-surface-2",
                   locked && item.correct && "border-ok/50 bg-ok/10",
                   locked && isPick && !item.correct && "border-danger/50 bg-danger/10",
                   locked && !isPick && !item.correct && "border-border opacity-60",

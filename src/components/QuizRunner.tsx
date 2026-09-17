@@ -123,7 +123,7 @@ export function QuizRunner({
             Best: {best.score}/{best.total}
           </p>
         ) : null}
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
           <button
             type="button"
             onClick={() => {
@@ -248,7 +248,8 @@ export function QuizRunner({
 
   return (
     <PlayerFrame
-      kicker={remain ? `${quiz.title} · ${Math.floor(remain / 60)}:${String(remain % 60).padStart(2, "0")}` : quiz.title}
+      kicker={quiz.title}
+      timer={remain ? `${Math.floor(remain / 60)}:${String(remain % 60).padStart(2, "0")}` : undefined}
       index={index}
       total={deck.length}
       narration={{
@@ -284,8 +285,8 @@ export function QuizRunner({
               onClick={() => choose(choiceIndex)}
               disabled={locked}
               className={cn(
-                "flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm leading-6 transition",
-                !locked && "border-border hover:border-accent/50 hover:bg-surface-2",
+                "flex min-h-12 w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left text-sm leading-6 transition [touch-action:manipulation]",
+                !locked && "border-border active:border-accent/50 active:bg-surface-2 hover:border-accent/50 hover:bg-surface-2",
                 locked && examMode && isPick && "border-accent/50 bg-accent-dim",
                 locked && !examMode && isAnswer && "border-ok/50 bg-ok/10",
                 locked && !examMode && isPick && !isAnswer && "border-danger/50 bg-danger/10",

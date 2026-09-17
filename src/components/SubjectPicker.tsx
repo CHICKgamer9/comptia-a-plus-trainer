@@ -32,7 +32,7 @@ export function SubjectPicker({
         <section key={group.id}>
           <h2 className="text-sm font-semibold tracking-tight">{group.title}</h2>
           <p className="mt-1 mb-3 text-sm text-muted">{group.blurb}</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             {group.ids.map((id) => {
               const subject = getSubject(id);
               if (!subject) return null;
@@ -47,7 +47,7 @@ export function SubjectPicker({
                   <button
                     type="button"
                     onClick={() => openHub(id)}
-                    className="block w-full p-5 text-left"
+                    className="block w-full p-5 text-left [touch-action:manipulation]"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span
@@ -81,7 +81,7 @@ export function SubjectPicker({
                     <Link
                       href="/lab"
                       onClick={() => setLastSubject("tech")}
-                      className="block border-t border-border px-5 py-3 text-xs text-muted hover:bg-surface-2 hover:text-foreground"
+                      className="block min-h-11 border-t border-border px-5 py-3 text-xs text-muted hover:bg-surface-2 hover:text-foreground"
                     >
                       Tech Lab · helpdesk tickets
                     </Link>

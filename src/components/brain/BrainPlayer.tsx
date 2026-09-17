@@ -46,7 +46,7 @@ export function BrainPlayer({
 
   return (
     <div className="mx-auto w-full max-w-xl">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-4 hidden flex-wrap items-center justify-between gap-2 md:flex">
         <p className="text-[11px] uppercase tracking-[0.16em] text-muted">{kicker ?? item.cat}</p>
         <div className="flex items-center gap-2">
           <Badge tone="accent">{item.cat}</Badge>
@@ -54,7 +54,7 @@ export function BrainPlayer({
         </div>
       </div>
       {remainingPct !== undefined ? (
-        <div className="mb-4">
+        <div className="mb-4 hidden md:block">
           <ProgressBar
             value={100 - remainingPct}
             label={`${Math.max(0, minutesLeft ?? 0)} min left of ${minutesTarget}`}
@@ -75,10 +75,10 @@ export function BrainPlayer({
         <BrainKindPlay item={item} onResolved={resolved} />
       </div>
       {done && nextHref ? (
-        <div className="mt-5">
+        <div className="sticky-action">
           <Link
             href={nextHref}
-            className="block w-full rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background hover:brightness-110"
+            className="flex min-h-12 w-full items-center justify-center rounded-2xl bg-accent px-4 py-3.5 text-center text-sm font-semibold text-background active:brightness-110 hover:brightness-110"
           >
             {nextLabel ?? "Next"}
           </Link>
@@ -87,7 +87,7 @@ export function BrainPlayer({
         <button
           type="button"
           onClick={() => resolved(false, "Skipped. −XP, no card.", 0, true)}
-          className="mt-4 w-full text-center text-xs text-muted underline-offset-2 hover:text-foreground hover:underline"
+          className="mt-4 flex min-h-11 w-full items-center justify-center text-center text-xs text-muted underline-offset-2 hover:text-foreground hover:underline"
         >
           Skip (−XP) — no card
         </button>

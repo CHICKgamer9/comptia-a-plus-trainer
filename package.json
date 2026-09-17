@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src/lib src/content src/app src/components/LessonPlayer.tsx src/components/SpeakBar.tsx src/components/useSpeech.ts src/components/lingo src/components/CheckPlay.tsx src/components/teach-diagrams.tsx src/components/ProgressProvider.tsx src/components/AccountProvider.tsx src/components/AuthProvider.tsx src/components/ProfileSwitcher.tsx src/components/SaveBenchPrompt.tsx && npm test",
+    "lint": "eslint src/lib src/content src/app src/components/LessonPlayer.tsx src/components/SpeakBar.tsx src/components/useSpeech.ts src/components/lingo src/components/CheckPlay.tsx src/components/teach-diagrams.tsx src/components/ProgressProvider.tsx src/components/AccountProvider.tsx src/components/AuthProvider.tsx src/components/ProfileSwitcher.tsx src/components/SaveBenchPrompt.tsx src/components/SiteShell.tsx src/components/PhoneOverflow.tsx src/components/PlayerFrame.tsx src/components/DashboardHome.tsx src/components/BinderView.tsx src/components/brain/BrainFeed.tsx && npm test",
     "test": "vitest run",
     "db:push": "drizzle-kit push",
     "catalog": "node scripts/generate-catalog.mjs",

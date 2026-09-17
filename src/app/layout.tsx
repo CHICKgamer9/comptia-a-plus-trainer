@@ -31,6 +31,9 @@ export const metadata: Metadata = {
     title: "TicketBench",
     statusBarStyle: "black-translucent",
   },
+  icons: {
+    apple: "/apple-icon",
+  },
   formatDetection: {
     telephone: false,
   },

@@ -40,6 +40,8 @@ export function BinderView() {
   const [tab, setTab] = useState<CardType | "all">("all");
   const [subject, setSubject] = useState<SubjectId | "all">("all");
   const [page, setPage] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [dockId, setDockId] = useState<string | null>(null);
   const search = useSearchParams();
   const [flipped, setFlipped] = useState<string | null>(() => search.get("card"));
   const [dragId, setDragId] = useState<string | null>(null);
@@ -68,9 +70,30 @@ export function BinderView() {
   const sheet = catalog.slice(safePage * PAGE, safePage * PAGE + PAGE);
   while (sheet.length < PAGE) sheet.push(undefined as never);
 
+  const filterLabel =
+    tab === "all" && subject === "all"
+      ? "All"
+      : [
+          tab === "all" ? null : CARD_TYPE_TABS.find((option) => option.id === tab)?.label,
+          subject === "all" ? null : SUBJECTS.find((row) => row.id === subject)?.title,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+
   const huntOnSheet = hunt.filter((card) => !owned.some((row) => row.cardId === card.id));
 
   const loadout = bench.loadout;
+
+  function slotCard(cardId: string, bay?: number) {
+    const next = [...loadout] as typeof loadout;
+    const already = next.indexOf(cardId);
+    if (already >= 0) next[already] = undefined;
+    const slot = bay ?? next.findIndex((id) => !id);
+    next[slot >= 0 ? slot : 0] = cardId;
+    setLoadout(next);
+    setArmedBay(null);
+    setDockId(null);
+  }
 
   return (
     <div className="binder-page mx-auto max-w-3xl">
@@ -78,6 +101,7 @@ export function BinderView() {
         kicker="Binder"
         title="Nine pockets. One sheet."
         description="Cards live here — flip to review, drag to the lab mat. Extra prints dust the unique. No shop, no packs."
+        compactOnPhone
       />
 
       <section className="binder-cover">
@@ -101,7 +125,15 @@ export function BinderView() {
       </section>
 
       <div className="binder-book">
-        <nav className="binder-spine" aria-label="Binder dividers">
+        <button
+          type="button"
+          className="mb-3 flex min-h-11 w-full items-center justify-between rounded-2xl border border-border bg-surface px-4 text-sm md:hidden"
+          onClick={() => setFiltersOpen(true)}
+        >
+          <span>Filters</span>
+          <span className="text-muted">{filterLabel}</span>
+        </button>
+        <nav className="binder-spine hidden md:flex" aria-label="Binder dividers">
           {CARD_TYPE_TABS.map((option) => (
             <button
               key={option.id}
@@ -118,7 +150,7 @@ export function BinderView() {
         </nav>
 
         <div className="binder-body">
-          <div className="mb-3 flex flex-wrap gap-2">
+          <div className="mb-3 hidden flex-wrap gap-2 md:flex">
             {[{ id: "all" as const, title: "All hubs" }, ...SUBJECTS].map((option) => (
               <button
                 key={option.id}
@@ -166,6 +198,7 @@ export function BinderView() {
                       onReview={reviewCard}
                       dragId={dragId}
                       setDragId={setDragId}
+                      onLongPress={() => setDockId(huntGhost.id)}
                     />
                   );
                 }
@@ -210,6 +243,7 @@ export function BinderView() {
                   onReview={reviewCard}
                   dragId={dragId}
                   setDragId={setDragId}
+                  onLongPress={() => setDockId(card.id)}
                 />
               );
             })}
@@ -339,7 +373,107 @@ export function BinderView() {
           onClose={() => setFlipped(null)}
           onNote={setFieldNote}
           onReview={reviewCard}
+          onEquip={() => {
+            slotCard(flipped);
+            setFlipped(null);
+          }}
         />
+      ) : null}
+
+      {filtersOpen ? (
+        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-label="Binder filters">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60"
+            aria-label="Close filters"
+            onClick={() => setFiltersOpen(false)}
+          />
+          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-border bg-surface p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-semibold">Filters</p>
+              <button
+                type="button"
+                className="grid h-11 w-11 place-items-center rounded-full border border-border text-lg"
+                onClick={() => setFiltersOpen(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <p className="mb-2 text-[11px] uppercase tracking-wider text-muted">Type</p>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {CARD_TYPE_TABS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => {
+                    setTab(option.id);
+                    setPage(0);
+                  }}
+                  className={cn(
+                    "min-h-11 rounded-full border px-3 text-sm",
+                    tab === option.id
+                      ? "border-accent/40 bg-accent-dim text-accent"
+                      : "border-border text-muted",
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <p className="mb-2 text-[11px] uppercase tracking-wider text-muted">Hub</p>
+            <div className="mb-4 flex max-h-40 flex-wrap gap-2 overflow-y-auto">
+              {[{ id: "all" as const, title: "All hubs" }, ...SUBJECTS].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => {
+                    setSubject(option.id);
+                    setPage(0);
+                  }}
+                  className={cn(
+                    "min-h-11 rounded-full border px-3 text-sm",
+                    subject === option.id
+                      ? "border-accent/40 bg-accent-dim text-accent"
+                      : "border-border text-muted",
+                  )}
+                >
+                  {option.title}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="flex min-h-12 w-full items-center justify-center rounded-2xl bg-accent text-sm font-semibold text-background"
+              onClick={() => setFiltersOpen(false)}
+            >
+              Show {filterLabel}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {dockId ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-accent/30 bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-semibold">Lab dock</p>
+            <button type="button" className="min-h-11 px-2 text-sm text-muted" onClick={() => setDockId(null)}>
+              Cancel
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {loadout.map((id, index) => (
+              <button
+                key={`dock-${index}`}
+                type="button"
+                onClick={() => slotCard(dockId, index)}
+                className="min-h-12 rounded-2xl border border-border bg-surface px-2 text-xs"
+              >
+                {id ? getBenchCard(id)?.title ?? `Bay ${index + 1}` : `Bay ${index + 1}`}
+              </button>
+            ))}
+          </div>
+        </div>
       ) : null}
     </div>
   );
@@ -351,12 +485,14 @@ function InspectCard({
   onClose,
   onNote,
   onReview,
+  onEquip,
 }: {
   cardId: string;
   owned?: OwnedCard;
   onClose: () => void;
   onNote: (cardId: string, note: string) => void;
   onReview: (cardId: string, grade: "again" | "hard" | "easy") => void;
+  onEquip?: () => void;
 }) {
   const card = getBenchCard(cardId);
   const [face, setFace] = useState(false);
@@ -382,6 +518,15 @@ function InspectCard({
           </div>
         }
       />
+      {onEquip ? (
+        <button
+          type="button"
+          className="relative z-10 mt-4 flex min-h-12 w-full max-w-xs items-center justify-center rounded-2xl bg-accent text-sm font-semibold text-background md:hidden"
+          onClick={onEquip}
+        >
+          Equip
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -392,6 +537,7 @@ function Pocket({
   onFlip,
   dragId,
   setDragId,
+  onLongPress,
 }: {
   card: NonNullable<ReturnType<typeof getBenchCard>>;
   owned: OwnedCard;
@@ -401,6 +547,7 @@ function Pocket({
   onReview?: (cardId: string, grade: "again" | "hard" | "easy") => void;
   dragId: string | null;
   setDragId: (id: string | null) => void;
+  onLongPress?: () => void;
 }) {
   return (
     <div
@@ -411,6 +558,13 @@ function Pocket({
         setDragId(card.id);
       }}
       onDragEnd={() => setDragId(null)}
+      onPointerDown={() => {
+        if (!onLongPress) return;
+        const timer = window.setTimeout(() => onLongPress(), 450);
+        const clear = () => window.clearTimeout(timer);
+        window.addEventListener("pointerup", clear, { once: true });
+        window.addEventListener("pointercancel", clear, { once: true });
+      }}
     >
       <TicketCard
         card={card}

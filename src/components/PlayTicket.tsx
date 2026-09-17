@@ -41,7 +41,7 @@ export function PlayTicket() {
 
   return (
     <div>
-      <Link href="/lab" className="mb-4 inline-block text-sm text-muted hover:text-foreground">
+      <Link href="/lab" className="mb-4 hidden text-sm text-muted hover:text-foreground md:inline-block">
         ← Ticket queue
       </Link>
       <ScenarioRunner scenario={ticket} />

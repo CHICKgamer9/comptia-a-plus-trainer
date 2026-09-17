@@ -60,7 +60,7 @@ function VideoEmbed({ src, title }: { src: string; title: string }) {
 export function TeachFigure({ figure }: { figure: ContentFigure }) {
   return (
     <figure className="overflow-hidden rounded-2xl border border-border bg-surface-2/40">
-      <div className="px-3 pt-3 text-accent sm:px-4 sm:pt-4">
+      <div className="max-h-[40vh] overflow-auto px-3 pt-3 text-accent touch-pinch-zoom md:max-h-none sm:px-4 sm:pt-4">
         {figure.kind === "diagram" && figure.diagram ? (
           <TeachDiagram id={figure.diagram} alt={figure.alt} />
         ) : null}
@@ -71,7 +71,7 @@ export function TeachFigure({ figure }: { figure: ContentFigure }) {
             alt={figure.alt}
             loading="lazy"
             decoding="async"
-            className="mx-auto max-h-64 w-full object-contain"
+            className="mx-auto max-h-[40vh] w-full object-contain md:max-h-64"
           />
         ) : null}
         {figure.kind === "video" && figure.src ? (
